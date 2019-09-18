@@ -1,0 +1,1 @@
+from .lazy import Lazy as Task

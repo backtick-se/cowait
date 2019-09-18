@@ -1,0 +1,7 @@
+
+IMAGE_REGISTRY = 'johanhenriksson'
+BASE_IMAGE = 'pipeline-task'
+BASE_IMAGE_TAG = 'base'
+
+DEFAULT_BASE_IMAGE = f'{IMAGE_REGISTRY}/{BASE_IMAGE}:{BASE_IMAGE_TAG}'
+CONTEXT_FILE_NAME = 'pipeline.yml'

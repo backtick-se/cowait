@@ -1,0 +1,1 @@
+from .parent import ParentTask as Task

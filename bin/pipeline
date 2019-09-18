@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+import json
+import click
+import pipeline.cli
+
+def option_dict(opts):
+    options = { }
+    for opt in opts:
+        options[opt[0]] = json.loads(opt[1])
+    return options
+
+@click.group()
+def cli():
+    pass
+
+@click.command(help='run a task')
+@click.argument('task')
+@click.option('--provider', default='docker', type=str, help='cluster provider type')
+@click.option('--input', type=(str, str), multiple=True, help='specify task input')
+@click.option('--config', type=(str, str), multiple=True, help='specify task config')
+@click.option('--env', type=(str, str), multiple=True, help='specify task enviornment variable')
+def run(task: str, provider: str, input, config, env):
+    pipeline.cli.run(
+        task, 
+        provider=provider,
+        inputs=option_dict(input),
+        config=option_dict(config),
+        env=option_dict(env),
+    )
+cli.add_command(run)
+
+
+@click.command(help='build a task')
+@click.argument('task')
+def build(task: str):
+    pipeline.cli.build(task)
+cli.add_command(build)
+
+
+@click.command(help='push a task to the registry')
+@click.argument('task')
+def push(task: str):
+    pipeline.cli.push(task)
+cli.add_command(push)
+
+
+"""
+@click.command()
+@click.argument('task')
+def distribute(task: str):
+    pipeline.cli.distribute(task)
+cli.add_command(distribute)
+"""
+    
+if __name__ == '__main__':
+    cli()
