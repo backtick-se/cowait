@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from .task import Task, TaskDefinition
+from pipeline.tasks import Task, TaskContext, TaskDefinition
 
 
 class ClusterProvider(ABC):
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        pass
 
 
     @abstractmethod

@@ -1,1 +1,1 @@
-from .executor import execute
+from .executor import execute, get_task_class

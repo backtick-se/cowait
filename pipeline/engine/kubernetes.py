@@ -4,21 +4,26 @@ import json
 import kubernetes
 from typing import Dict
 from kubernetes import client, config, watch
-from .task import Task, TaskDefinition
+from pipeline.tasks import Task, TaskContext, TaskDefinition
 from .cluster import ClusterProvider
 
 
 class KubernetesTask(Task):
     def __init__(self, cluster: ClusterProvider, taskdef: TaskDefinition, job, pod):
-        super().__init__(cluster, taskdef)
+        super().__init__(TaskContext(
+            cluster=cluster,
+            taskdef=taskdef,
+            upstream=None,
+        ))
         self.job = job
         self.pod = pod
 
 
 class KubernetesProvider(ClusterProvider):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+        # hacky way to check if we're running within a pod
         if 'TASK_CLUSTER_PROVIDER' in os.environ:
             config.load_incluster_config()
         else:
@@ -32,7 +37,7 @@ class KubernetesProvider(ClusterProvider):
     def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
         # container definition
         container = client.V1Container(
-            name=taskdef.uuid,
+            name=taskdef.id,
             image=taskdef.image, 
             image_pull_policy='Always',
             env=kube_env_list({
@@ -50,7 +55,7 @@ class KubernetesProvider(ClusterProvider):
             status=client.V1JobStatus(),
             metadata=client.V1ObjectMeta(
                 namespace=taskdef.namespace, 
-                name=uid,
+                name=taskdef.id,
             ),
             spec=client.V1JobSpec(
                 backoff_limit=0,

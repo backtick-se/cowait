@@ -5,7 +5,8 @@ import os.path
 from typing import Dict
 from .const import IMAGE_REGISTRY
 from .task_image import TaskImage
-from ..engine import TaskDefinition, get_cluster_provider
+from ..engine import get_cluster_provider
+from ..tasks import TaskDefinition
 
 def build(task: str) -> TaskImage:
     image = TaskImage.create(task)
@@ -43,26 +44,28 @@ def build(task: str) -> TaskImage:
 def run(task: str, provider: str, inputs: Dict = { }, config: Dict = { }, env: Dict = { }):
     task_image = f'johanhenriksson/pipeline-task:{task}'
 
-    # run container
+    # grab cluster provider
     ClusterProvider = get_cluster_provider(provider)
     cluster = ClusterProvider()
     
-    taskdef = TaskDefinition(task, 
+    # run task
+    taskdef = TaskDefinition(
+        name=task,
         image=task_image,
         config=config,
         inputs=inputs,
         env=env,
         namespace='default',
+        parent='root',
     )
-
     task = cluster.spawn(taskdef)
 
+    # capture & print logs
     logs = cluster.logs(task)
-
-    print('--- TASK OUTPUT: -------------------------------------')
+    print('-- TASK OUTPUT: -------------------------------------')
     for log in logs:
         print(log, flush=True)
-    print('------------------------------------------------------')
+    print('-----------------------------------------------------')
 
 
 def push(task: str) -> TaskImage:

@@ -7,7 +7,7 @@ IMAGE="johanhenriksson/pipeline-task:$TAG"
 
 docker build \
     --tag $IMAGE \
-    --file ./task_image/Dockerfile \
+    --file ./worker/Dockerfile \
     .
 
 docker push $IMAGE

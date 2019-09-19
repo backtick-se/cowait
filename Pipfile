@@ -13,6 +13,7 @@ dask = "*"
 distributed = "*"
 pipeline = {editable = true,path = "."}
 pyzmq = "*"
+marshmallow = "*"
 
 [requires]
 python_version = "3.7"

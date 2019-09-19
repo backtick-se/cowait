@@ -21,14 +21,17 @@ setuptools.setup(
     classifiers=[ ],
 
     python_requires='>=3.6',
-    install_requires=[
-        'click',
-        'docker',
-        'requests',
-        'pyyaml',
-        'dask',
-        'distributed',
-        'kubernetes',
-        'pyzmq',
-    ],
 )
+
+"""
+install_requires=[
+    'click',
+    'docker',
+    'requests',
+    'pyyaml',
+    'dask',
+    'distributed',
+    'kubernetes',
+    'pyzmq',
+],
+"""

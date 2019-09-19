@@ -1,8 +1,9 @@
 import os
-from .docker import client
+import docker
 from .utils import find_file_in_parents
 from .const import CONTEXT_FILE_NAME, DEFAULT_BASE_IMAGE
 
+client = docker.from_env()
 
 class TaskImage(object):
     def __init__(self, name, task_path, root_path, base_image = None):
@@ -45,22 +46,18 @@ class TaskImage(object):
             # extend base image
             print(f'FROM {self.base}', file=df)
 
-            # copy source code
-            print('COPY . .', file=df)
-
             # install task-specific requirements
             if requirements:
-                print(f'COPY ./{requirements} ./requirements.txt', file=df)
-                print('RUN pip install -r ./requirements.txt', file=df)
+                print(f'COPY ./{requirements} ./task_requirements.txt', file=df)
+                print('RUN pip install -r ./task_requirements.txt', file=df)
 
-            # run task executor
-            print(f'CMD [ "python", "-u", "main.py", "{self.name}" ]', file=df)
+            # copy source code
+            print('COPY . .', file=df)
 
         # build image
         self.image, logs = client.images.build(
             path       = self.root,
             dockerfile = df_path,
-            rm         = True,
         )
 
         # remove temproary dockerfile

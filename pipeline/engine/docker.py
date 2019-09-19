@@ -2,22 +2,26 @@ import os
 import json
 import docker
 import socket
-from .task import TaskDefinition, Task
+from pipeline.tasks import Task, TaskContext, TaskDefinition
 from .cluster import ClusterProvider
 
 
 class DockerTask(Task):
-    def __init__(self, cluster, taskdef, container):
-        super().__init__(cluster, taskdef)
+    def __init__(self, cluster: ClusterProvider, taskdef: TaskDefinition, container):
+        super().__init__(TaskContext(
+            cluster=cluster,
+            taskdef=taskdef,
+            upstream=None,
+        ))
         self.container = container
 
 
 
 class DockerProvider(ClusterProvider):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.docker = docker.from_env()
-        self.hostname = os.environ.get('HOSTNAME', 'ROOT')
+        self.tasks = { }
 
 
     def spawn(self, taskdef: TaskDefinition):
@@ -30,8 +34,8 @@ class DockerProvider(ClusterProvider):
             environment = {
                 **taskdef.env,
                 'TASK_CLUSTER_PROVIDER': 'docker',
+                'TASK_CLUSTER_ARGUMENTS': '{}',
                 'TASK_DEFINITION': json.dumps(taskdef.serialize()),
-                'TASK_PARENT_HOST': self.hostname,
             },
             volumes={
                 '/var/run/docker.sock': {
@@ -40,8 +44,17 @@ class DockerProvider(ClusterProvider):
                 },
             },
         )
-        print('spawned docker container with id', container.id)
-        return DockerTask(self, taskdef, container)
+        task = DockerTask(self, taskdef, container)
+        self.tasks[taskdef.id] = task
+        return task
+
+
+    def destroy(self, task_id):
+        if task_id in self.tasks:
+            task = self.tasks[task_id]
+            print('destroy', task_id)
+            task.container.stop()
+            task.container.remove()
 
 
     def logs(self, task: DockerTask):

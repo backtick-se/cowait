@@ -1,1 +1,1 @@
-from .parent import ParentTask as Task
+from .parent import LazyParentTask as Task
