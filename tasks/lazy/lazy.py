@@ -16,11 +16,10 @@ class Lazy(Task):
         print('sleeping...')
 
         for i in range(1, int(duration)+1):
-            print(i)
-
             if crash_at and i == crash_at:
                 raise RuntimeError(f'planned crash at {i}')
 
+            print('slept', i)
             time.sleep(1)
 
         print('rest level ok')

@@ -1,6 +1,8 @@
 import zmq
 
 class PullSocket(object):
+    """ Thin wrapper over a ZeroMQ pull socket """
+
     def __init__(self, bind):
         self.bind = bind
         self.context = zmq.Context()
@@ -10,7 +12,3 @@ class PullSocket(object):
 
     def recv(self) -> dict:
         return self.socket.recv_json()
-
-
-    def close(self) -> None:
-        self.socket.unbind(self.bind)

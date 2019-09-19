@@ -1,7 +1,4 @@
-import os
-import json
 import docker
-import socket
 from pipeline.tasks import Task, TaskContext, TaskDefinition
 from .cluster import ClusterProvider
 
@@ -18,26 +15,21 @@ class DockerTask(Task):
 
 
 class DockerProvider(ClusterProvider):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, args = { }):
+        super().__init__('docker', args)
         self.docker = docker.from_env()
         self.tasks = { }
 
 
     def spawn(self, taskdef: TaskDefinition):
         container = self.docker.containers.run(
-            image = taskdef.image,
-            detach = True,
-            name = taskdef.id,
-            hostname = taskdef.id,
-            network = 'tasks',
-            environment = {
-                **taskdef.env,
-                'TASK_CLUSTER_PROVIDER': 'docker',
-                'TASK_CLUSTER_ARGUMENTS': '{}',
-                'TASK_DEFINITION': json.dumps(taskdef.serialize()),
-            },
-            volumes={
+            detach      = True,
+            image       = taskdef.image,
+            name        = taskdef.id,
+            hostname    = taskdef.id,
+            network     = 'tasks',
+            environment = self.create_env(taskdef),
+            volumes     = {
                 '/var/run/docker.sock': {
                     'bind': '/var/run/docker.sock', 
                     'mode': 'ro',

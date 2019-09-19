@@ -1,10 +1,10 @@
 import os
 import time
-import json
 import kubernetes
 from typing import Dict
 from kubernetes import client, config, watch
 from pipeline.tasks import Task, TaskContext, TaskDefinition
+from .const import ENV_TASK_CLUSTER
 from .cluster import ClusterProvider
 
 
@@ -20,11 +20,11 @@ class KubernetesTask(Task):
 
 
 class KubernetesProvider(ClusterProvider):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, args = { }):
+        super().__init__('kubernetes', args)
 
         # hacky way to check if we're running within a pod
-        if 'TASK_CLUSTER_PROVIDER' in os.environ:
+        if ENV_TASK_CLUSTER in os.environ:
             config.load_incluster_config()
         else:
             config.load_kube_config()
@@ -34,18 +34,14 @@ class KubernetesProvider(ClusterProvider):
         self.core = client.CoreV1Api(kubernetes.client.ApiClient(configuration))
 
 
-    def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
+    def spawn(self, taskdef: TaskDefinition, timeout=30) -> KubernetesTask:
         # container definition
         container = client.V1Container(
-            name=taskdef.id,
-            image=taskdef.image, 
+            name  = taskdef.id,
+            image = taskdef.image, 
+            env   = self.create_env(taskdef),
+            ports = [ client.V1ContainerPort(container_port=1337) ],
             image_pull_policy='Always',
-            env=kube_env_list({
-                **taskdef.env,
-                'TASK_CLUSTER_PROVIDER': 'kubernetes',
-                'TASK_INPUTS': json.dumps(taskdef.inputs),
-                'TASK_CONFIG': json.dumps(taskdef.config),
-            }),
         )
 
         # job definition
@@ -61,7 +57,11 @@ class KubernetesProvider(ClusterProvider):
                 backoff_limit=0,
                 ttl_seconds_after_finished=600, 
                 template=client.V1PodTemplateSpec(
+                    metadata=client.V1ObjectMeta(
+                        name=taskdef.id,
+                    ),
                     spec=client.V1PodSpec(
+                        hostname=taskdef.id,
                         containers=[ container ], 
                         restart_policy='Never'
                     ),
@@ -72,25 +72,29 @@ class KubernetesProvider(ClusterProvider):
         # create job
         job = self.batch.create_namespaced_job(taskdef.namespace, jobdef)
         while True:
-            pod = self.get_job_pod(job)
-            if pod.status.phase != 'Pending':
+            pod = self.get_task_pod(taskdef)
+            if pod and pod.status.phase != 'Pending':
                 break
-            time.sleep(0.5)
+            timeout -= 1
+            if timeout == 0:
+                raise TimeoutError(f'Could not find put for {taskdef.id}')
+            time.sleep(1)
 
         # wrap & return task
         print('spawned kubenetes pod with name', pod.metadata.name)
         return KubernetesTask(self, taskdef, job, pod)
 
 
-    def get_job_pod(self, job):
-        res = self.core.list_namespaced_pod(
-            namespace=job.metadata.namespace,
-            label_selector='controller-uid=' + job.spec.selector.match_labels['controller-uid']
-        )
-        if len(res.items) < 1:
-            raise RuntimeError('Could not find job pod')
+    def destroy(self, task_id):
+        raise NotImplementedError()
 
-        return res.items[0]
+
+    def get_task_pod(self, taskdef):
+        res = self.core.list_namespaced_pod(
+            namespace=taskdef.namespace,
+            label_selector=f'job-name={taskdef.id}', 
+        )
+        return res.items[0] if len(res.items) > 0 else None
 
 
     def wait(self, task: KubernetesTask) -> None:
@@ -118,10 +122,9 @@ class KubernetesProvider(ClusterProvider):
         )
 
 
-
-def kube_env_list(env: Dict) -> list:
-    """ creates a kubernetes environment list from a dictionary """
-    env_list = [ ]
-    for name, value in env.items():
-        env_list.append(client.V1EnvVar(name, value))
-    return env_list
+    def create_env(self, taskdef: TaskDefinition):
+        env = super().create_env(taskdef)
+        env_list = [ ]
+        for name, value in env.items():
+            env_list.append(client.V1EnvVar(name, value))
+        return env_list

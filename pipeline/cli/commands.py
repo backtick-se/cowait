@@ -1,12 +1,8 @@
-import zmq
-import time
-import json
 import os.path
-from typing import Dict
-from .const import IMAGE_REGISTRY
 from .task_image import TaskImage
 from ..engine import get_cluster_provider
 from ..tasks import TaskDefinition
+
 
 def build(task: str) -> TaskImage:
     image = TaskImage.create(task)
@@ -41,22 +37,20 @@ def build(task: str) -> TaskImage:
     return image
 
 
-def run(task: str, provider: str, inputs: Dict = { }, config: Dict = { }, env: Dict = { }):
+def run(task: str, provider: str, inputs: dict = { }, config: dict = { }, env: dict = { }):
     task_image = f'johanhenriksson/pipeline-task:{task}'
 
     # grab cluster provider
-    ClusterProvider = get_cluster_provider(provider)
-    cluster = ClusterProvider()
+    cluster = get_cluster_provider(type=provider)
     
     # run task
     taskdef = TaskDefinition(
-        name=task,
-        image=task_image,
-        config=config,
-        inputs=inputs,
-        env=env,
-        namespace='default',
-        parent='root',
+        name      = task,
+        image     = task_image,
+        config    = config,
+        inputs    = inputs,
+        env       = env,
+        namespace = 'default',
     )
     task = cluster.spawn(taskdef)
 

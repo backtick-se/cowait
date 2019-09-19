@@ -1,22 +1,33 @@
 
 
 class TaskContext(object):
+    """
+    Task Execution Context
+
+    Attributes:
+        cluster (ClusterProvider): Cluster provider
+        upstream (UpstreamConnector): Upstream connector
+        id (str): Task id
+        name (str): Task name
+        image (str): Task image
+        inputs (dict): Input arguments
+        config (dict): Configuration variables
+        parent (str): Parent connection string
+    """
+
     def __init__(self, 
-        cluster, 
-        upstream, 
+        cluster,
+        upstream,
         taskdef,
     ):
         """
         Arguments:
-            id (str): Task id
-            parent (str): Parent task id (or None if root)
             cluster (ClusterProvider): Cluster connection
-            upstream: Upstream connection
+            upstream (UpstreamConnector): Upstream connection
+            taskdef (TaskDefinition): Task definition
         """
         self.cluster  = cluster
         self.upstream = upstream
-        self.id       = taskdef.id
-        self.name     = taskdef.name
-        self.inputs   = taskdef.inputs
-        self.config   = taskdef.config
-        self.parent   = taskdef.parent
+
+        for key, value in taskdef.serialize().items():
+            setattr(self, key, value)

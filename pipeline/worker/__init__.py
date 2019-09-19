@@ -1,1 +1,2 @@
-from .executor import execute, get_task_class
+from .executor import execute
+from .loader import load_task_class, instantiate_task_class

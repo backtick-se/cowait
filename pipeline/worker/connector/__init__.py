@@ -1,3 +1,3 @@
-from .connector import WorkerConnector
+from .connector import UpstreamConnector
 from .logging import LoggingConnector
-from .upstream import UpstreamConnector
+from .push import PushConnector

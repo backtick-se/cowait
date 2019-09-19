@@ -1,12 +1,17 @@
+import socket
 from typing import Any
 from abc import abstractmethod
 from pipeline.network import PullSocket
-from pipeline.tasks import Task, TaskContext, TaskDefinition, ReturnException
+from pipeline.tasks import Task, TaskContext, TaskDefinition, ReturnException, TaskError
 
 
-class SubtaskError(RuntimeError):
-    def __init__(self, error):
-        self.error = error
+PORT = 1337
+
+
+def get_local_connstr():
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    return f'tcp://{local_ip}:{PORT}'
 
 
 class Flow(Task):
@@ -20,7 +25,7 @@ class Flow(Task):
 
     def run(self, **inputs) -> Any:
         # server socket
-        daemon = PullSocket(f'tcp://*:1337')
+        daemon = PullSocket(f'tcp://*:{PORT}')
 
         # create tasks
         self.plan(**inputs)
@@ -43,17 +48,20 @@ class Flow(Task):
             return self.result()
 
 
-    def spawn(self, **kwargs) -> Task:
+    def spawn(self, name: str, image: str = None, **inputs) -> Task:
         """
-        Spawn a child task
+        Spawn a child task.
 
         Arguments:
             name (str): Task name
-            image (str): Task image
+            image (str): Task image. Defaults to parent image.
+            kwargs (dict): Input arguments
         """
         taskdef = TaskDefinition(
-            parent=self.id,
-            **kwargs,
+            name = name,
+            inputs = inputs,
+            image = image if image else self.image,
+            parent = get_local_connstr(),
         )
 
         # notify parents of task creation
@@ -95,4 +103,4 @@ class Flow(Task):
 
     def on_fail(self, id: str, error: str) -> None:
         """ Fail message handler """
-        raise SubtaskError(error)
+        raise TaskError(error)
