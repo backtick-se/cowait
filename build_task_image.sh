@@ -5,9 +5,5 @@ set -e
 TAG="base"
 IMAGE="johanhenriksson/pipeline-task:$TAG"
 
-docker build \
-    --tag $IMAGE \
-    --file ./worker/Dockerfile \
-    .
-
+docker build --tag $IMAGE .
 docker push $IMAGE
