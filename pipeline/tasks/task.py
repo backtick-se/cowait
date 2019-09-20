@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Iterable
 from .errors import StopException
-from .task_context import TaskContext
+from .context import TaskContext
 
 
 class Task(ABC):

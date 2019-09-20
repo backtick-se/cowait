@@ -1,20 +1,11 @@
 from typing import Any
-from pipeline.tasks import ReturnException
 from .flow import Flow
+from .ops import Join
 
 
 class ConcurrentFlow(Flow):
-    def init(self) -> None:
-        self.results = { }
+    """ Runs all defined tasks in parallell """
 
-
-    def result(self) -> dict:
-        return self.results
-
-
-    def on_return(self, id: str, result: Any) -> None:
-        if id in self.tasks:
-            self.results[id] = result
-
-        if len(self.results) == len(self.tasks):
-            raise ReturnException()
+    def run(self, **inputs) -> Any:
+        super().run(**inputs)
+        return Join(self.tasks.values())

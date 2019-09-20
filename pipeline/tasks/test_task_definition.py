@@ -1,4 +1,4 @@
-from .task_definition import TaskDefinition
+from .definition import TaskDefinition
 
 
 def test_taskdef_serialization():

@@ -2,7 +2,8 @@ import socket
 from typing import Any
 from abc import abstractmethod
 from pipeline.network import PullSocket
-from pipeline.tasks import Task, TaskContext, TaskDefinition, ReturnException, TaskError
+from pipeline.tasks import *
+from .ops import Await, Join
 
 
 PORT = 1337
@@ -25,19 +26,17 @@ class Flow(Task):
 
     def run(self, **inputs) -> Any:
         # server socket
-        daemon = PullSocket(f'tcp://*:{PORT}')
+        self.daemon = PullSocket(f'tcp://*:{PORT}')
 
         # create tasks
-        self.plan(**inputs)
+        return self.plan(**inputs)
 
-        # initialize
-        self.init()
 
-        # run scheduler
+    def op(self, op):
         try:
             while True:
-                msg = daemon.recv()
-                if self.handle(**msg):
+                msg = self.daemon.recv()
+                if op.handle(**msg) and self.handle(**msg):
                     self.upstream.msg(**msg)
 
         except ReturnException:
@@ -45,10 +44,10 @@ class Flow(Task):
             self.upstream.msg(**msg)
 
             # assemble & return result
-            return self.result()
+            return op.result()
 
 
-    def spawn(self, name: str, image: str = None, **inputs) -> Task:
+    def task(self, name: str, image: str = None, **inputs) -> Task:
         """
         Spawn a child task.
 
@@ -57,9 +56,17 @@ class Flow(Task):
             image (str): Task image. Defaults to parent image.
             kwargs (dict): Input arguments
         """
+
+        # await any inputs
+        arguments = { }
+        for key, value in inputs.items():
+            if isinstance(value, TaskFuture):
+                value = Await(value)
+            arguments[key] = value
+
         taskdef = TaskDefinition(
             name = name,
-            inputs = inputs,
+            inputs = arguments,
             image = image if image else self.image,
             parent = get_local_connstr(),
         )
@@ -68,39 +75,45 @@ class Flow(Task):
         self.upstream.init(taskdef=taskdef)
 
         task = self.cluster.spawn(taskdef)
-        self.tasks[task.id] = task
+        future = TaskFuture(self, task)
+        self.tasks[task.id] = future
+        return future
+
+
+    def define(self, name: str, image: str = None, **inputs):
+        base_inputs = inputs
+        def task(**inputs):
+            return self.task(
+                name=name,
+                image=image,
+                **{
+                    **base_inputs,
+                    **inputs,
+                },
+            )
         return task
 
 
+    @abstractmethod
+    def plan(self, **inputs):
+        """ Virtual method for scheduling subtasks """
+        return None
+
+
     def handle(self, id: str, type: str, **msg) -> bool:
+        if not id in self.tasks:
+            return True
+
         if type == 'return':
-            self.on_return(id, msg['result'])
+            result = msg['result']
+            self.tasks[id].done(result)
+
         elif type == 'fail':
-            self.on_fail(id, msg['error'])
+            error = msg['error']
+            self.tasks[id].fail(error)
+
         return True
 
 
-    def init(self) -> None:
-        """ Virtual initialization method. Called after plan() """
-        pass
-
-
-    def result(self) -> Any:
-        """ Virtual method for creating a return value """
-        return None
-
-        
-    @abstractmethod
-    def plan(self, **inputs) -> None:
-        """ Virtual method for scheduling subtasks """
-        pass
-
-
-    def on_return(self, id: str, result: Any) -> None:
-        """ Return message handler """
-        pass
-
-
-    def on_fail(self, id: str, error: str) -> None:
-        """ Fail message handler """
-        raise TaskError(error)
+    def join(self):
+        self.op(Join(self.tasks.values()))
