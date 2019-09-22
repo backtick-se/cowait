@@ -10,9 +10,10 @@ class TaskContext(object):
         id (str): Task id
         name (str): Task name
         image (str): Task image
+        parent (str): Parent task id
         inputs (dict): Input arguments
         config (dict): Configuration variables
-        parent (str): Parent connection string
+        upstream (str): Upstream connection string
     """
 
     def __init__(self, 

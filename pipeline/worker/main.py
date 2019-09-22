@@ -9,10 +9,9 @@ import pipeline.worker
 from pipeline.network import PushSocket, NoopSocket
 from pipeline.tasks import TaskDefinition, TaskContext
 from pipeline.worker.env import env_get_cluster_provider, env_get_task_definition
-from pipeline.flows.client import FlowClient
-from pipeline.flows.service import FlowLogger
-from pipeline.flows.tasklist import TaskList
 from pipeline.network import Node
+from pipeline.network.service import FlowLogger, TaskList
+
 
 def main():
     # unpack cluster provider
@@ -21,19 +20,30 @@ def main():
     # unpack task definition
     taskdef = env_get_task_definition()
 
-    # upstream handler
-    node = Node(taskdef.id)
-    if not taskdef.upstream:
-        print('im the root task')
-        node.attach(FlowLogger())
-        node.attach(TaskList())
-    else:
-        print('connecting upstream...')
-        node.connect(taskdef.upstream)
+    # create network node
+    node = create_node(taskdef)
 
     # execute task
-    print('running task...')
     pipeline.worker.execute(cluster, node, taskdef)
+
+
+def create_root_node(node, taskdef):
+    node.attach(TaskList())
+    node.attach(FlowLogger())
+
+
+def create_child_node(node, taskdef):
+    node.connect(taskdef.upstream)
+
+
+def create_node(taskdef):
+    node = Node(taskdef.id)
+    if not taskdef.upstream:
+        create_root_node(node, taskdef)
+    else:
+        create_child_node(node, taskdef)
+    return node
+
 
 
 if __name__ == '__main__':

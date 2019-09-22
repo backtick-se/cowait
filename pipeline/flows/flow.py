@@ -1,12 +1,10 @@
 import socket
 from typing import Any
 from abc import abstractmethod
-from pipeline.tasks import *
+from pipeline.tasks import Task, TaskContext, TaskDefinition, TaskFuture, ReturnException
 from pipeline.network import get_local_connstr
+from pipeline.network.service import TaskList
 from .ops import Await, Join
-from .server import FlowServer
-from .tasklist import TaskList
-from pipeline.protocol import StopMsg
 
 
 class Flow(Task):
@@ -19,9 +17,7 @@ class Flow(Task):
 
 
     def run(self, **inputs) -> Any:
-        print('setting up flow daemon')
         self.node.bind('tcp://*:1337')
-        self.node.attach(self)
         self.node.attach(self.tasklist)
 
         try:
@@ -42,7 +38,6 @@ class Flow(Task):
 
 
     def op(self, op):
-        print('serving operation', op)
         try:
             self.node.attach(op)
             self.node.serve()
@@ -71,7 +66,7 @@ class Flow(Task):
         taskdef = TaskDefinition(
             name = name,
             inputs = arguments,
-            parent_id = self.id,
+            parent = self.id,
             image = image if image else self.image,
             upstream = get_local_connstr(),
         )
@@ -103,23 +98,6 @@ class Flow(Task):
     def plan(self, **inputs):
         """ Virtual method for scheduling subtasks """
         return None
-
-
-    def handle(self, id: str, type: str, **msg) -> bool:
-        if not id in self.tasks:
-            return True
-
-        if type == 'return':
-            result = msg['result']
-            print('flow child', id, 'completed')
-            self.tasks[id].done(result)
-
-        elif type == 'fail':
-            error = msg['error']
-            print('flow child', id, 'failed')
-            self.tasks[id].fail(error)
-
-        return True
 
 
     def join(self):

@@ -24,7 +24,7 @@ class TaskDefinition(object):
         image:     str, 
         id:        str  = None, 
         upstream:  str  = None,
-        parent_id: str  = None,
+        parent:    str  = None,
         namespace: str  = 'default', 
         config:    dict = { }, 
         inputs:    dict = { }, 
@@ -46,8 +46,8 @@ class TaskDefinition(object):
         self.id        = '%s-%s' % (name, uuid()) if not id else id
         self.name      = name
         self.image     = image
+        self.parent    = parent
         self.upstream  = upstream
-        self.parent_id = parent_id
         self.namespace = namespace
         self.config    = config
         self.inputs    = inputs
@@ -74,7 +74,7 @@ class TaskDefinitionSchema(Schema):
     name      = fields.Str(required=True)
     image     = fields.Str(required=True)
     upstream  = fields.Str(allow_none=True)
-    parent_id = fields.Str(allow_none=True)
+    parent    = fields.Str(allow_none=True)
     namespace = fields.Str(missing='default')
     config    = fields.Dict(missing={})
     inputs    = fields.Dict(missing={})

@@ -1,8 +1,49 @@
 import json
 from datetime import datetime
 from marshmallow import Schema, fields, post_load
-from pipeline.tasks.status import *
-from .service import FlowService
+from pipeline.tasks.status import WAIT, WORK
+from .service import NodeService
+
+
+class TaskList(NodeService):
+    def __init__(self):
+        self.items = { }
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __iter__(self):
+        return self.items.values().__iter__()
+
+    def task_ids(self):
+        return self.items.keys()
+
+    def on_init(self, task: dict):
+        task = TaskListItem(**task)
+        self.items[task.id] = task
+
+    def on_status(self, id, status):
+        if not id in self.items:
+            return
+        task = self.items[id]
+        task.status = status
+        if status == WORK:
+            task.started_at = datetime.now()
+
+    def on_fail(self, id, error):
+        if not id in self.items:
+            return
+        task = self.items[id]
+        task.error = error
+        task.ended_at = datetime.now()
+
+    def on_return(self, id, result):
+        if not id in self.items:
+            return
+        task = self.items[id]
+        task.result = result
+        task.ended_at = datetime.now()
+
 
 
 class TaskListItemSchema(Schema):
@@ -27,6 +68,7 @@ class TaskListItemSchema(Schema):
 schema = TaskListItemSchema()
 
 
+
 class TaskListItem(object):
     def __init__(self, id, name, image, status = WAIT, upstream = None, env = { }, meta = { }, inputs = { }, **kwargs):
         self.id = id
@@ -48,42 +90,3 @@ class TaskListItem(object):
 
     def __str__(self):
         return schema.dumps(self)
-
-
-
-
-
-
-class TaskList(FlowService):
-    def __init__(self):
-        self.items = { }
-
-    def on_init(self, task: dict):
-        task = TaskListItem(**task)
-        self.items[task.id] = task
-        print(task)
-
-    def on_status(self, id, status):
-        if not id in self.items:
-            return
-        task = self.items[id]
-        task.status = status
-        if status == WORK:
-            task.started_at = datetime.now()
-        print(task)
-
-    def on_fail(self, id, error):
-        if not id in self.items:
-            return
-        task = self.items[id]
-        task.error = error
-        task.ended_at = datetime.now()
-        print(task)
-
-    def on_return(self, id, result):
-        if not id in self.items:
-            return
-        task = self.items[id]
-        task.result = result
-        task.ended_at = datetime.now()
-        print(task)

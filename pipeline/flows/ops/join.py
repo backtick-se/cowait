@@ -7,15 +7,15 @@ class JoinOp(FlowOp):
     def __init__(self, tasks: list):
         super().__init__(tasks)
         self.results = { task.id: task.result for task in tasks if task.completed() }
-        print('join tasks:', *tasks)
+
 
     def result(self) -> dict:
         return self.results
 
+
     def on_return(self, id: str, result: Any) -> None:
         if id in self.tasks:
             self.results[id] = result
-            print('join completed task', id)
 
         if len(self.results) == len(self.tasks):
             raise ReturnException()

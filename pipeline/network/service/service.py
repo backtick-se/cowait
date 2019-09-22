@@ -1,7 +1,8 @@
 import json
 import traceback
 
-class FlowService(object):
+
+class NodeService(object):
     def handle(self, id: str, type: str, **msg):
         if   type == 'init':   self.on_init(msg['task'])
         elif type == 'fail':   self.on_fail(id, msg['error'])
@@ -29,23 +30,3 @@ class FlowService(object):
 
     def on_log(self, id, file, data):
         pass
-
-
-class FlowLogger(FlowService):
-    def on_init(self, task: dict):
-        print('~~ Create', task['id'], 'from', task['image'], task['inputs'])
-
-    def on_status(self, id, status):
-        print('~~', id, 'changed status to', status)
-
-    def on_fail(self, id, error):
-        print('-- TASK FAILED: -------------------------------------')
-        print('~~', id, 'failed with error:')
-        print(error.strip())
-
-    def on_return(self, id, result):
-        print('~~', id, 'returned:')
-        print(json.dumps(result, indent=2))
-
-    def on_log(self, id, file, data):
-        print(data, end='')

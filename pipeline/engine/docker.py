@@ -36,8 +36,8 @@ class DockerProvider(ClusterProvider):
                 },
             },
             labels = {
-                'task_id': taskdef.id,
-                'task_parent_id': taskdef.parent_id,
+                'task': taskdef.id,
+                'task_parent': taskdef.parent,
             },
         )
         print('~~ Spawned docker container with id', container.id[:12])
@@ -47,7 +47,7 @@ class DockerProvider(ClusterProvider):
     def find_child_containers(self, parent_id: str) -> list:
         return self.docker.containers.list(
             filters={
-                'label': f'task_parent_id={parent_id}',
+                'label': f'task_parent={parent_id}',
             },
         )
 
@@ -57,14 +57,14 @@ class DockerProvider(ClusterProvider):
         tasks = [ ]
         children = self.find_child_containers(parent_id)
         for child in children:
-            tasks += self.destroy(child.labels['task_id'])
+            tasks += self.destroy(child.labels['task'])
         return tasks
 
 
     def destroy(self, task_id):
         def kill_family(container):
             kills = [ ]
-            container_task_id = container.labels['task_id']
+            container_task_id = container.labels['task']
             print('~~ docker: kill', container_task_id, '->', container.id[:12])
 
             children = self.find_child_containers(container_task_id)

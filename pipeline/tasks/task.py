@@ -29,6 +29,7 @@ class Task(ABC):
         self.name     = context.name
         self.image    = context.image
         self.inputs   = context.inputs
+        self.parent   = context.parent
         self.upstream = context.upstream
         self.cluster  = context.cluster
         self.node     = context.node

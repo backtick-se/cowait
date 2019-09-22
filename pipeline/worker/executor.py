@@ -1,13 +1,11 @@
 import traceback
 from contextlib import nullcontext
+from pipeline.network import Node
 from pipeline.engine import ClusterProvider
 from pipeline.tasks import TaskContext, TaskDefinition, TaskError, StopException
-from pipeline.flows.client import FlowClient
-from pipeline.utils.stream_capture import StreamCapturing
+from pipeline.utils import StreamCapturing
 from .loader import instantiate_task_class
 
-from pipeline.network import Node
-from pipeline.protocol import InitMsg, RunMsg, StopMsg, FailMsg, LogMsg
 
 def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> None:
     try:
@@ -22,14 +20,8 @@ def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> No
         node.send_init(taskdef)
         node.send_run()
 
-        # set up output capturing
-        capturing = StreamCapturing(
-            on_stdout = lambda x: node.send_log('stdout', x),
-            on_stderr = lambda x: node.send_log('stderr', x),
-        ) if node.upstream else nullcontext()
-
-        # run task within capture context
-        with capturing:
+        # run task within log capture context
+        with capture_logs_to_node(node):
             task = instantiate_task_class(taskdef, context)
             result = task.run(**taskdef.inputs)
 
@@ -41,6 +33,7 @@ def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> No
 
     except TaskError as e:
         # pass subtask errors upstream
+        traceback.print_exc()
         node.send_fail(e.error)
         exit(1)
 
@@ -56,3 +49,10 @@ def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> No
     finally:
         # clean exit
         exit(0)
+
+
+def capture_logs_to_node(node):
+    return StreamCapturing(
+        on_stdout = lambda x: node.send_log('stdout', x),
+        on_stderr = lambda x: node.send_log('stderr', x),
+    ) if node.upstream else nullcontext()

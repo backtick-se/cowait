@@ -1,9 +1,9 @@
 from typing import Any
 from pipeline.tasks import TaskError
-from ..service import FlowService
+from pipeline.network.service import NodeService
 
 
-class FlowOp(FlowService):
+class FlowOp(NodeService):
     def __init__(self, tasks):
         self.tasks = { task.id: task for task in tasks }
 
