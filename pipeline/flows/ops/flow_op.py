@@ -1,26 +1,11 @@
 from typing import Any
 from pipeline.tasks import TaskError
+from ..service import FlowService
 
 
-class FlowOp(object):
+class FlowOp(FlowService):
     def __init__(self, tasks):
         self.tasks = { task.id: task for task in tasks }
-
-    def handle(self, id: str, type: str, **msg) -> bool:
-        if not id in self.tasks:
-            return True
-
-        if type == 'return':
-            result = msg['result']
-            self.tasks[id].done(result)
-            self.on_return(id, result)
-
-        elif type == 'fail':
-            error = msg['error']
-            self.tasks[id].fail(error)
-            self.on_fail(id, error)
-
-        return True
 
 
     def result(self) -> Any:
@@ -30,9 +15,12 @@ class FlowOp(object):
 
     def on_return(self, id: str, result: Any) -> None:
         """ Return message handler """
-        pass
+        if id in self.tasks:
+            self.tasks[id].done(result)
 
 
     def on_fail(self, id: str, error: str) -> None:
         """ Fail message handler """
+        if id in self.tasks:
+            self.tasks[id].fail(error)
         raise TaskError(error)

@@ -1,49 +1,53 @@
 import socket
 from typing import Any
 from abc import abstractmethod
-from pipeline.network import PullSocket
 from pipeline.tasks import *
+from pipeline.network import get_local_connstr
 from .ops import Await, Join
-
-
-PORT = 1337
-
-
-def get_local_connstr():
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    return f'tcp://{local_ip}:{PORT}'
+from .server import FlowServer
+from .tasklist import TaskList
+from pipeline.protocol import StopMsg
 
 
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-
     def __init__(self, context: TaskContext):
         super().__init__(context)
         self.tasks = { }
+        self.tasklist = TaskList()
 
 
     def run(self, **inputs) -> Any:
-        # server socket
-        self.daemon = PullSocket(f'tcp://*:{PORT}')
+        print('setting up flow daemon')
+        self.node.bind('tcp://*:1337')
+        self.node.attach(self)
+        self.node.attach(self.tasklist)
 
-        # create tasks
-        return self.plan(**inputs)
+        try:
+            return self.plan(**inputs)
+
+        except Exception as e:
+            print('destroyig children due to error...')
+
+            # ask the cluster to destroy any children
+            children = self.cluster.destroy_children(self.id)
+
+            # send a stop message upstream for each killed task
+            for child_id in children:
+                self.node.send_stop(id=child_id)
+
+            # pass on to task level error handling
+            raise e
 
 
     def op(self, op):
+        print('serving operation', op)
         try:
-            while True:
-                msg = self.daemon.recv()
-                if op.handle(**msg) and self.handle(**msg):
-                    self.upstream.msg(**msg)
-
+            self.node.attach(op)
+            self.node.serve()
         except ReturnException:
-            # ensure triggering message is passed up:
-            self.upstream.msg(**msg)
-
-            # assemble & return result
+            self.node.detach(op)
             return op.result()
 
 
@@ -67,14 +71,15 @@ class Flow(Task):
         taskdef = TaskDefinition(
             name = name,
             inputs = arguments,
+            parent_id = self.id,
             image = image if image else self.image,
-            parent = get_local_connstr(),
+            upstream = get_local_connstr(),
         )
 
-        # notify parents of task creation
-        self.upstream.init(taskdef=taskdef)
-
         task = self.cluster.spawn(taskdef)
+
+
+        # return a future
         future = TaskFuture(self, task)
         self.tasks[task.id] = future
         return future
@@ -106,10 +111,12 @@ class Flow(Task):
 
         if type == 'return':
             result = msg['result']
+            print('flow child', id, 'completed')
             self.tasks[id].done(result)
 
         elif type == 'fail':
             error = msg['error']
+            print('flow child', id, 'failed')
             self.tasks[id].fail(error)
 
         return True

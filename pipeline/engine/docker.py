@@ -8,7 +8,7 @@ class DockerTask(Task):
         super().__init__(TaskContext(
             cluster=cluster,
             taskdef=taskdef,
-            upstream=None,
+            node=None,
         ))
         self.container = container
 
@@ -35,18 +35,53 @@ class DockerProvider(ClusterProvider):
                     'mode': 'ro',
                 },
             },
+            labels = {
+                'task_id': taskdef.id,
+                'task_parent_id': taskdef.parent_id,
+            },
         )
-        task = DockerTask(self, taskdef, container)
-        self.tasks[taskdef.id] = task
-        return task
+        print('~~ Spawned docker container with id', container.id[:12])
+        return DockerTask(self, taskdef, container)
+
+
+    def find_child_containers(self, parent_id: str) -> list:
+        return self.docker.containers.list(
+            filters={
+                'label': f'task_parent_id={parent_id}',
+            },
+        )
+
+
+    def destroy_children(self, parent_id: str) -> list:
+        print('~~ docker: destroy children of', parent_id)
+        tasks = [ ]
+        children = self.find_child_containers(parent_id)
+        for child in children:
+            tasks += self.destroy(child.labels['task_id'])
+        return tasks
 
 
     def destroy(self, task_id):
-        if task_id in self.tasks:
-            task = self.tasks[task_id]
-            print('destroy', task_id)
-            task.container.stop()
-            task.container.remove()
+        def kill_family(container):
+            kills = [ ]
+            container_task_id = container.labels['task_id']
+            print('~~ docker: kill', container_task_id, '->', container.id[:12])
+
+            children = self.find_child_containers(container_task_id)
+            print('~~ docker:', task_id, 'children:', children)
+            for child in children:
+                kills += kill_family(child)
+
+            try:
+                container.remove(force=True)
+            except docker.errors.NotFound:
+                print('~~ docker: kill: task', task_id, 'container not found:', container.id[:12])
+
+            kills.append(task_id)
+
+        print('~~ docker: destroy', task_id)
+        container = self.docker.containers.get(task_id)
+        return kill_family(container)
 
 
     def logs(self, task: DockerTask):

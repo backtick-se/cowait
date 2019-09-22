@@ -1,14 +1,29 @@
 from abc import ABC, abstractmethod
 from typing import Any
+from pipeline.tasks.status import *
+from pipeline.network import PushSocket, NoopSocket
 
 
-class UpstreamConnector(ABC):
-    def __init__(self, id):
-        super().__init__()
+class FlowClient(object):
+    """ Upstream Client """
+
+    def __init__(self, id: str, upstream = None):
+        """
+        Create a new PushConnector.
+
+        Arguments:
+            id (str): Local task id
+            parent (str): Parent connection string
+        """
         self.id = id
+        self.services = [ ]
+        self.upstream = NoopSocket() if upstream is None else PushSocket(upstream)
 
 
-    @abstractmethod
+    def attach(self, service):
+        self.services.append(service)
+
+
     def msg(self, type: str, **msg):
         """
         Send a message upstream.
@@ -17,7 +32,14 @@ class UpstreamConnector(ABC):
             type (str): Message type
             kwargs (dict): Message fields
         """
-        pass
+        msg = {
+            'id': self.id,
+            'type': type,
+            **msg,
+        }
+        for service in self.services:
+            service.msg(**msg)
+        self.upstream.send(msg)
 
 
     def init(self, taskdef) -> None:
@@ -32,13 +54,13 @@ class UpstreamConnector(ABC):
 
     def run(self) -> None:
         """ Send status update: Running """
-        self.msg('status', status='run')
+        self.msg('status', status=WORK)
 
 
-    def stop(self) -> None:
+    def stop(self, id=None) -> None:
         """ Send status update: Stopped """
-        self.msg('status', status='stop')
-        self.msg('return', result={})
+        self.msg('status', status=STOP, id=id)
+        self.msg('return', result={}, id=id)
 
 
     def done(self, result: Any) -> None:
@@ -46,9 +68,9 @@ class UpstreamConnector(ABC):
         Send status update: Done, and return a result.
 
         Arguments:
-            result (any): Any json-serializable data to return to the parent task.
+            result (any): Any json-serializable data to return to the upstream task.
         """
-        self.msg('status', status='done')
+        self.msg('status', status=DONE)
         self.msg('return', result=result)
 
 
@@ -59,7 +81,7 @@ class UpstreamConnector(ABC):
         Arguments:
             error (str): Error message
         """
-        self.msg('status', status='error')
+        self.msg('status', status=FAIL)
         self.msg('fail',   error=error)
 
 

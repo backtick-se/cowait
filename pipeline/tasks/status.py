@@ -1,0 +1,5 @@
+WORK = 'work'
+WAIT = 'wait'
+DONE = 'done'
+STOP = 'stop'
+FAIL = 'fail'

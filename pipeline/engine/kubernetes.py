@@ -13,7 +13,7 @@ class KubernetesTask(Task):
         super().__init__(TaskContext(
             cluster=cluster,
             taskdef=taskdef,
-            upstream=None,
+            node=None,
         ))
         self.job = job
         self.pod = pod
@@ -81,7 +81,7 @@ class KubernetesProvider(ClusterProvider):
             time.sleep(1)
 
         # wrap & return task
-        print('spawned kubenetes pod with name', pod.metadata.name)
+        print('~~ Spawned kubenetes pod with name', pod.metadata.name)
         return KubernetesTask(self, taskdef, job, pod)
 
 

@@ -18,3 +18,6 @@ class TaskFuture(object):
 
     def fail(self, error: str):
         self.error = error
+
+    def __str__(self) -> str:
+        return self.task.__str__().replace('Task', 'TaskFuture', 1)

@@ -1,5 +1,7 @@
 from abc import ABC
 from typing import Any, Iterable
+from datetime import datetime
+from marshmallow import Schema, fields
 from .errors import StopException
 from .context import TaskContext
 
@@ -27,9 +29,9 @@ class Task(ABC):
         self.name     = context.name
         self.image    = context.image
         self.inputs   = context.inputs
-        self.parent   = context.parent
-        self.cluster  = context.cluster
         self.upstream = context.upstream
+        self.cluster  = context.cluster
+        self.node     = context.node
 
 
     def run(self, **inputs: dict) -> Any:
@@ -44,3 +46,7 @@ class Task(ABC):
             StopException: Used to stop execution.
         """
         raise StopException()
+
+
+    def __str__(self) -> str:
+        return f'Task({self.id}, {self.name})'

@@ -1,17 +1,14 @@
-from pipeline.flows import ConcurrentFlow, SequentialFlow
+from pipeline.flows import ConcurrentFlow
 
 
 class LazyParentTask(ConcurrentFlow):
-    def plan(self, durations, crash_at = -1, **inputs):
+    def plan(self, duration, crash_at = -1, **inputs):
         Lazy = self.define(
             name='lazy',
             image='johanhenriksson/pipeline-task:lazy', 
-            duration=10,
+            duration=duration,
+            crash_at=-1,
         )
 
-        sleeps = [ ]
-        for duration in durations:
-            task = Lazy(duration=duration)
-            sleeps.append(task)
-
-        print('parent done')
+        lazy1 = Lazy()
+        lazy2 = Lazy(crash_at=crash_at)

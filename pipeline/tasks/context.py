@@ -17,7 +17,7 @@ class TaskContext(object):
 
     def __init__(self, 
         cluster,
-        upstream,
+        node,
         taskdef,
     ):
         """
@@ -27,7 +27,7 @@ class TaskContext(object):
             taskdef (TaskDefinition): Task definition
         """
         self.cluster  = cluster
-        self.upstream = upstream
+        self.node = node
 
         for key, value in taskdef.serialize().items():
             setattr(self, key, value)
