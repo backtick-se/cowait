@@ -1,0 +1,15 @@
+version: '2'
+networks: 
+  tasks:
+    external: true
+services:
+  agent:
+    image: 'pipeline/agent'
+    build: './agent'
+    hostname: 'agent'
+    networks:
+      - default
+      - tasks
+    ports:
+      - '1337:1337'
+      - '1338:1338'

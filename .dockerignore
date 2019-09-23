@@ -1,5 +1,6 @@
-dist/
 build/
+cloud/
+dist/
 pipeline.egg-info/
 dask-worker-space/
 .pytest_cache/

@@ -1,0 +1,17 @@
+{
+  "name": "pipeline-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "johanhenriksson",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "socket.io": "^2.3.0",
+    "zeromq": "^5.1.0"
+  }
+}
