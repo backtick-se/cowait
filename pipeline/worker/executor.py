@@ -20,9 +20,9 @@ def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> No
         node.send_init(taskdef)
         node.send_run()
 
-        # run task within log capture context
+        # run task within a log capture context
         with capture_logs_to_node(node):
-            task = instantiate_task_class(taskdef, context)
+            task = instantiate_task_class(context)
             result = task.run(**taskdef.inputs)
 
         # submit result

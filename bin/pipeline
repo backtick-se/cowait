@@ -18,14 +18,16 @@ def cli():
 @click.option('--provider', default='docker', type=str, help='cluster provider type')
 @click.option('--input', type=(str, str), multiple=True, help='specify task input')
 @click.option('--config', type=(str, str), multiple=True, help='specify task config')
-@click.option('--env', type=(str, str), multiple=True, help='specify task enviornment variable')
-def run(task: str, provider: str, input, config, env):
+@click.option('--env', type=(str, str), multiple=True, help='define enviornment variable')
+@click.option('--upstream', type=(str), help='root task upstream uri')
+def run(task: str, provider: str, input, config, env, upstream: str):
     pipeline.cli.run(
         task, 
         provider=provider,
         inputs=option_dict(input),
         config=option_dict(config),
         env=option_dict(env),
+        upstream=upstream,
     )
 cli.add_command(run)
 
@@ -44,13 +46,12 @@ def push(task: str):
 cli.add_command(push)
 
 
-"""
-@click.command()
-@click.argument('task')
-def distribute(task: str):
-    pipeline.cli.distribute(task)
-cli.add_command(distribute)
-"""
+@click.command(help='destroy tasks')
+@click.option('--provider', default='docker', type=str, help='cluster provider type')
+def destroy(provider):
+    pipeline.cli.destroy(provider)
+cli.add_command(destroy)
+
     
 if __name__ == '__main__':
     cli()

@@ -37,29 +37,43 @@ def build(task: str) -> TaskImage:
     return image
 
 
-def run(task: str, provider: str, inputs: dict = { }, config: dict = { }, env: dict = { }):
-    task_image = f'johanhenriksson/pipeline-task:{task}'
+def run(task: str, provider: str, inputs: dict = { }, config: dict = { }, env: dict = { }, upstream = None):
+    image = f'johanhenriksson/pipeline-task:{task}'
 
     # grab cluster provider
     cluster = get_cluster_provider(type=provider)
-    
-    # run task
+
+    # define task
     taskdef = TaskDefinition(
         name      = task,
-        image     = task_image,
+        image     = image,
         config    = config,
         inputs    = inputs,
         env       = env,
         namespace = 'default',
+        upstream  = upstream,
+        parent    = None, # root task
     )
+
+    # print execution info
+    print('-- TASK: -----------------------------------------------')
+    print('   task:      ', taskdef.id)
+    print('   provider:  ', provider)
+    if upstream:
+        print('   upstream:  ', upstream)
+    print('   image:     ', image)
+    print('   inputs:    ', inputs)
+    print('   env:       ', env)
+
+    # run task
     task = cluster.spawn(taskdef)
 
     # capture & print logs
     logs = cluster.logs(task)
-    print('-- TASK OUTPUT: -------------------------------------')
+    print('-- TASK OUTPUT: ---------------------------------------')
     for log in logs:
         print(log, flush=True)
-    print('-----------------------------------------------------')
+    print('-------------------------------------------------------')
 
 
 def push(task: str) -> TaskImage:
@@ -72,3 +86,11 @@ def push(task: str) -> TaskImage:
 
     print('done')
     return image
+
+
+def destroy(provider: str) -> None:
+    # grab cluster provider
+    cluster = get_cluster_provider(type=provider)
+
+    # kill all tasks
+    cluster.destroy_all()

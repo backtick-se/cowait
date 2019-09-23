@@ -6,8 +6,7 @@ Environment:
     TASK_DEFINITION (json): JSON-serialized TaskDefinition
 """
 import pipeline.worker
-from pipeline.network import PushSocket, NoopSocket
-from pipeline.tasks import TaskDefinition, TaskContext
+from pipeline.tasks import TaskContext
 from pipeline.worker.env import env_get_cluster_provider, env_get_task_definition
 from pipeline.network import Node
 from pipeline.network.service import FlowLogger, TaskList
@@ -28,17 +27,25 @@ def main():
 
 
 def create_root_node(node, taskdef):
+    """ Root task node setup """
     node.attach(TaskList())
-    node.attach(FlowLogger())
+
+    if taskdef.upstream:
+        print('root: connecting upstream')
+        node.connect(taskdef.upstream)
+    else:
+        node.attach(FlowLogger())
 
 
 def create_child_node(node, taskdef):
+    """ Child task node setup """
+    print('child: connecting upstream')
     node.connect(taskdef.upstream)
 
 
 def create_node(taskdef):
     node = Node(taskdef.id)
-    if not taskdef.upstream:
+    if not taskdef.parent:
         create_root_node(node, taskdef)
     else:
         create_child_node(node, taskdef)

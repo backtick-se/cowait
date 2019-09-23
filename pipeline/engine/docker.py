@@ -44,6 +44,16 @@ class DockerProvider(ClusterProvider):
         return DockerTask(self, taskdef, container)
 
 
+    def destroy_all(self) -> None:
+        containers = self.docker.containers.list(
+            filters={
+                'label': 'task',
+            },
+        )
+        for container in containers:
+            container.remove(force=True)
+
+
     def find_child_containers(self, parent_id: str) -> list:
         return self.docker.containers.list(
             filters={

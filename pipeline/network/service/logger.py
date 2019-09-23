@@ -10,7 +10,7 @@ class FlowLogger(NodeService):
         print('~~', id, 'changed status to', status)
 
     def on_fail(self, id, error):
-        print('-- TASK FAILED: -------------------------------------')
+        print('-- TASK FAILED: ---------------------------------------')
         print('~~', id, 'failed with error:')
         print(error.strip())
 
