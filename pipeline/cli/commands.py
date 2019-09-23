@@ -94,3 +94,9 @@ def destroy(provider: str) -> None:
 
     # kill all tasks
     cluster.destroy_all()
+
+
+
+class Context(object):
+    def __init__(self, provider, args):
+        pass

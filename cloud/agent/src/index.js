@@ -1,7 +1,18 @@
-const io = require('socket.io')();
-var zmq = require("zeromq");
+var zmq = require("zeromq")
+var http = require("http")
+var socketio = require("socket.io")
 
 let clients = [ ]
+function handler (req, res) {
+    res.end('hello sir')
+}
+
+const ZMQ_PORT = 1337
+const WS_PORT = 1338
+
+var app = http.createServer(handler)
+var io = socketio(app)
+
 
 io.on('connection', client => { 
     clients.push(client)
@@ -23,17 +34,11 @@ let sock = zmq.socket("pull");
 
 sock.on("message", function(msg) {
     console.log("work: %s", msg.toString());
-    io.sockets.send(msg)
+    io.sockets.send(JSON.parse(msg.toString()))
 });
 
-sock.bindSync("tcp://*:1337");
+sock.bindSync(`tcp://*:${ZMQ_PORT}`);
 
-setInterval(function() {
-    console.log("heartbeat");
-    io.sockets.send({ type: "heartbeat" });
-}, 5000);
-
-console.log('listening for websockets')
-io.listen(1338);
-
-
+app.listen(WS_PORT, () => {
+    console.log('listening for websockets')
+});

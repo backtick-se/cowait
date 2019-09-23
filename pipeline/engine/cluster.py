@@ -26,6 +26,16 @@ class ClusterProvider(ABC):
         """ Destroy a task """
         pass
 
+
+    @abstractmethod
+    def destroy_all(self) -> None:
+        pass
+
+
+    @abstractmethod
+    def destroy_children(self, parent_id: str) -> None:
+        pass
+
     
     @abstractmethod
     def wait(self, task: Task) -> None:

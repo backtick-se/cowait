@@ -102,4 +102,4 @@ class DockerProvider(ClusterProvider):
 
 
     def wait(self, task: DockerTask):
-        pass
+        raise NotImplementedError()
