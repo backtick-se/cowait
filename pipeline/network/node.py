@@ -20,12 +20,12 @@ class Node(object):
         self.daemon = PullSocket(bind)
 
 
-    def serve(self):
+    async def serve(self):
         if not self.daemon:
             raise RuntimeError('Cant serve, no daemon bound')
 
         while True:
-            msg = self.daemon.recv()
+            msg = await self.daemon.recv()
             if self.upstream:
                 self.upstream.send(msg)
             self.handle(msg)

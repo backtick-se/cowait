@@ -5,6 +5,7 @@ Environment:
     TASK_CLUSTER (json): JSON-serialized ClusterProvider
     TASK_DEFINITION (json): JSON-serialized TaskDefinition
 """
+import asyncio
 import pipeline.worker
 from pipeline.tasks import TaskContext
 from pipeline.worker.env import env_get_cluster_provider, env_get_task_definition
@@ -12,7 +13,7 @@ from pipeline.network import Node
 from pipeline.network.service import FlowLogger, TaskList
 
 
-def main():
+async def main():
     # unpack cluster provider
     cluster = env_get_cluster_provider()
 
@@ -23,7 +24,7 @@ def main():
     node = create_node(taskdef)
 
     # execute task
-    pipeline.worker.execute(cluster, node, taskdef)
+    await pipeline.worker.execute(cluster, node, taskdef)
 
 
 def create_root_node(node, taskdef):
@@ -54,4 +55,4 @@ def create_node(taskdef):
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

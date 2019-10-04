@@ -1,14 +1,20 @@
-from pipeline.flows import ConcurrentFlow
+from pipeline.flows import Flow
 
 
-class LazyParentTask(ConcurrentFlow):
-    def plan(self, duration, crash_at = -1, **inputs):
-        Lazy = self.define(
+class LazyParentTask(Flow):
+    async def plan(self, duration, crash_at = -1, **inputs):
+        print('first sleep:')
+        await self.task(
             name='lazy',
             image='johanhenriksson/pipeline-task:lazy', 
             duration=duration,
             crash_at=-1,
         )
 
-        lazy1 = Lazy()
-        lazy2 = Lazy(crash_at=crash_at)
+        print('second sleep:')
+        await self.task(
+            name='lazy',
+            image='johanhenriksson/pipeline-task:lazy', 
+            duration=duration,
+            crash_at=-1,
+        )

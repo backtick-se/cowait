@@ -21,11 +21,6 @@ class TaskNotFoundError(RuntimeError):
     pass
 
 
-class ReturnException(Exception):
-    """ Raised to return from a flow message loop """
-    pass
-
-
 class StopException(Exception):
     """ Raised to abort task execution """
     pass

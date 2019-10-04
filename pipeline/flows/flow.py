@@ -1,10 +1,9 @@
-import socket
+import asyncio
 from typing import Any
 from abc import abstractmethod
-from pipeline.tasks import Task, TaskContext, TaskDefinition, TaskFuture, ReturnException
+from pipeline.tasks import Task, TaskContext, TaskDefinition
 from pipeline.network import get_local_connstr
 from pipeline.network.service import TaskList
-from .ops import Await, Join
 
 
 class Flow(Task):
@@ -16,12 +15,25 @@ class Flow(Task):
         self.tasklist = TaskList()
 
 
-    def run(self, **inputs) -> Any:
+    def handle(self, id: str, type: str, **msg):
+        if type == 'return' and id in self.tasks: 
+            future = self.tasks[id]
+            future.set_result(future.task)
+        if type == 'fail' and id in self.tasks:
+            future = self.tasks[id]
+            future.set_exception(msg['error'])
+
+
+    async def run(self, **inputs) -> Any:
         self.node.bind('tcp://*:1337')
-        self.node.attach(self.tasklist)
+        self.node.attach(self)
+
+        asyncio.create_task(self.node.serve())
 
         try:
-            return self.plan(**inputs)
+            await self.plan(**inputs)
+
+            # check return value for futures and await them? 🤔
 
         except Exception as e:
             print('destroyig children due to error...')
@@ -37,16 +49,7 @@ class Flow(Task):
             raise e
 
 
-    def op(self, op):
-        try:
-            self.node.attach(op)
-            self.node.serve()
-        except ReturnException:
-            self.node.detach(op)
-            return op.result()
-
-
-    def task(self, name: str, image: str = None, **inputs) -> Task:
+    async def task(self, name: str, image: str = None, **inputs) -> asyncio.Future:
         """
         Spawn a child task.
 
@@ -59,8 +62,8 @@ class Flow(Task):
         # await any inputs
         arguments = { }
         for key, value in inputs.items():
-            if isinstance(value, TaskFuture):
-                value = Await(value)
+            if isinstance(value, asyncio.Future):
+                value = await value
             arguments[key] = value
 
         taskdef = TaskDefinition(
@@ -75,15 +78,16 @@ class Flow(Task):
 
 
         # return a future
-        future = TaskFuture(self, task)
+        future = asyncio.Future()
+        future.task = task
         self.tasks[task.id] = future
-        return future
+        return await future
 
 
     def define(self, name: str, image: str = None, **inputs):
         base_inputs = inputs
-        def task(**inputs):
-            return self.task(
+        async def task(**inputs):
+            return await self.task(
                 name=name,
                 image=image,
                 **{
@@ -95,10 +99,6 @@ class Flow(Task):
 
 
     @abstractmethod
-    def plan(self, **inputs):
+    async def plan(self, **inputs):
         """ Virtual method for scheduling subtasks """
         return None
-
-
-    def join(self):
-        self.op(Join(self.tasks.values()))

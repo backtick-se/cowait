@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from contextlib import nullcontext
 from pipeline.network import Node
@@ -7,7 +8,7 @@ from pipeline.utils import StreamCapturing
 from .loader import instantiate_task_class
 
 
-def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> None:
+async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> None:
     try:
         # create task context
         context = TaskContext(
@@ -23,7 +24,7 @@ def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> No
         # run task within a log capture context
         with capture_logs_to_node(node):
             task = instantiate_task_class(context)
-            result = task.run(**taskdef.inputs)
+            result = await task.run(**taskdef.inputs)
 
         # submit result
         node.send_done(result)

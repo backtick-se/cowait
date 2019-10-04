@@ -8,11 +8,12 @@ Outputs:
     duration (int): Number of seconds slept
 """
 import time
+import asyncio
 from pipeline.tasks import Task
 
 
 class Lazy(Task):
-    def run(self, duration, crash_at = -1, **inputs):
+    async def run(self, duration, crash_at = -1, **inputs):
         print('sleeping...')
 
         for i in range(1, int(duration)+1):
@@ -20,7 +21,7 @@ class Lazy(Task):
                 raise RuntimeError(f'planned crash at {i}')
 
             print('slept', i)
-            time.sleep(1)
+            await asyncio.sleep(1)
 
         print('rest level ok')
 
