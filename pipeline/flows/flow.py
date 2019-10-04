@@ -3,7 +3,6 @@ from typing import Any
 from abc import abstractmethod
 from pipeline.tasks import Task, TaskContext, TaskDefinition
 from pipeline.network import get_local_connstr
-from pipeline.network.service import TaskList
 
 
 class Flow(Task):
@@ -12,13 +11,12 @@ class Flow(Task):
     def __init__(self, context: TaskContext):
         super().__init__(context)
         self.tasks = { }
-        self.tasklist = TaskList()
 
 
     def handle(self, id: str, type: str, **msg):
         if type == 'return' and id in self.tasks: 
             future = self.tasks[id]
-            future.set_result(future.task)
+            future.set_result(msg['result'])
         if type == 'fail' and id in self.tasks:
             future = self.tasks[id]
             future.set_exception(msg['error'])
@@ -28,10 +26,11 @@ class Flow(Task):
         self.node.bind('tcp://*:1337')
         self.node.attach(self)
 
+        # run task daemon in the background
         asyncio.create_task(self.node.serve())
 
         try:
-            await self.plan(**inputs)
+            return await self.plan(**inputs)
 
             # check return value for futures and await them? 🤔
 
@@ -79,7 +78,6 @@ class Flow(Task):
 
         # return a future
         future = asyncio.Future()
-        future.task = task
         self.tasks[task.id] = future
         return await future
 
