@@ -6,21 +6,37 @@ import TaskStatus from './TaskStatus'
 import TaskError from './TaskError'
 import TaskResult from './TaskResult'
 import TaskLink from './TaskLink'
+import TaskInputs from './TaskInputs'
 
 const TaskBox = styled.div`
     padding: 1rem 0;
 `
 
-function Task({ task: { id, status, image, parent, result, error, children } }) {
+const TaskChildrenBox = styled.div`
+    padding: 0.5rem 0;
+    h4 {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+`
+
+function TaskChildren({ children }) {
+    return <TaskChildrenBox>
+        <h4>Children</h4>
+        {children.map(child => <TaskLink key={child} id={child} />)}
+    </TaskChildrenBox>
+}
+
+function Task({ task: { id, status, image, parent, result, error, children, inputs } }) {
     return <TaskBox>
         <h2>{id} <TaskStatus status={status} /></h2>
-        {parent && <TaskLink id={parent}>Parent: {parent}</TaskLink>}
         <p>Image: {image}</p>
-        <p>Children: {JSON.stringify(children)}</p>
+        {parent && <TaskLink id={parent}>Parent: {parent}</TaskLink>}
+        <TaskInputs inputs={inputs} />
         <TaskError error={error} />
-        <TaskResult result={result} />
+        <TaskChildren children={children} />
         <TaskLog id={id} />
-        {children.map(child => <TaskLink id={child} />)}
+        <TaskResult result={result} />
     </TaskBox>
 }
 

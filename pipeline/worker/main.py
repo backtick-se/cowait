@@ -32,7 +32,7 @@ def create_root_node(node, taskdef):
     node.attach(TaskList())
 
     if taskdef.upstream:
-        print('root: connecting upstream')
+        print('~~ root: connecting upstream')
         node.connect(taskdef.upstream)
     else:
         node.attach(FlowLogger())

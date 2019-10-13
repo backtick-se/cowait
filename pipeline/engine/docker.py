@@ -40,7 +40,7 @@ class DockerProvider(ClusterProvider):
                 'task_parent': taskdef.parent,
             },
         )
-        print('~~ Spawned docker container with id', container.id[:12])
+        print('~~ created docker container with id', container.id[:12], 'for task', taskdef.id)
         return DockerTask(self, taskdef, container)
 
 

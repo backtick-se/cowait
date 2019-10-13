@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 
-const TaskResultBox = styled.div`
+const TaskInputBox = styled.div`
     padding: 0.5rem 0;
     h4 {
         font-size: 1.1rem;
@@ -12,14 +12,14 @@ const TaskResultBox = styled.div`
     }
 `
 
-function TaskResult({ result }) {
-    if (!result) {
+function TaskInputs({ inputs }) {
+    if (!inputs) {
         return null
     }
-    return <TaskResultBox>
-        <h4>Result</h4>
-        <pre>{JSON.stringify(result, null, 4)}</pre>
-    </TaskResultBox>
+    return <TaskInputBox>
+        <h4>Inputs</h4>
+        <pre>{JSON.stringify(inputs, null, 4)}</pre>
+    </TaskInputBox>
 }
 
-export default TaskResult
+export default TaskInputs

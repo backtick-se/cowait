@@ -128,3 +128,9 @@ class KubernetesProvider(ClusterProvider):
         for name, value in env.items():
             env_list.append(client.V1EnvVar(name, value))
         return env_list
+
+    def destroy_all(self) -> None:
+        raise NotImplementedError()
+
+    def destroy_children(self, parent_id: str) -> list:
+        raise NotImplementedError()

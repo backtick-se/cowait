@@ -8,9 +8,10 @@ const TaskErrorBox = styled.div`
 
     h4 {
         font-size: 1.1rem;
+        font-weight: bold;
     }
     pre {
-        font-family: monospace;
+        font-family: 'Nanum Gothic Coding';
     }
 `
 
