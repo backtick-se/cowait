@@ -9,6 +9,9 @@ const TaskErrorBox = styled.div`
     h4 {
         font-size: 1.1rem;
     }
+    pre {
+        font-family: monospace;
+    }
 `
 
 function TaskError({ error }) {

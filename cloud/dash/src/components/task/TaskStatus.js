@@ -22,6 +22,7 @@ const StatusLabels = {
 }
 
 const TaskStatusLabel = styled.label`
+    display: inline-block;
     color: ${p => StatusColors[p.status]};
     border: 1px solid ${p => StatusColors[p.status]};
     padding: 0.3rem;

@@ -5,19 +5,22 @@ import TaskLog from './TaskLog'
 import TaskStatus from './TaskStatus'
 import TaskError from './TaskError'
 import TaskResult from './TaskResult'
+import TaskLink from './TaskLink'
 
 const TaskBox = styled.div`
     padding: 1rem 0;
 `
 
-function Task({ task: { id, status, image, parent, result, error } }) {
+function Task({ task: { id, status, image, parent, result, error, children } }) {
     return <TaskBox>
         <h2>{id} <TaskStatus status={status} /></h2>
-        {parent && <p>Parent: {parent}</p>}
+        {parent && <TaskLink id={parent}>Parent: {parent}</TaskLink>}
         <p>Image: {image}</p>
+        <p>Children: {JSON.stringify(children)}</p>
         <TaskError error={error} />
         <TaskResult result={result} />
         <TaskLog id={id} />
+        {children.map(child => <TaskLink id={child} />)}
     </TaskBox>
 }
 

@@ -1,16 +1,31 @@
 import React from 'react'
-import styled from 'styled-components'
 import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import { createLogger } from 'redux-logger'
+import { useParams, Switch, Route, BrowserRouter as Router } from 'react-router-dom'
 import tasks from './store/tasks'
 import io from 'socket.io-client'
 
 import TaskList from './components/TaskList'
+import Task from './components/task/Task'
+
+function TaskView({ }) {
+    let { taskId } = useParams();
+    return <Task id={taskId} />
+}
 
 function App() {
-    return <TaskList />
+    return <Router>
+        <Switch>
+            <Route path="/task/:taskId">
+                <TaskView />
+            </Route>
+            <Route path="/">
+                <TaskList />
+            </Route>
+        </Switch>
+    </Router>
 }
 
 const logger = createLogger()

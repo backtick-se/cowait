@@ -8,11 +8,9 @@ import { Metastore } from './metastore'
 const ZMQ_PORT = 1337
 const WS_PORT = 1338
 
-let clients = [ ]
-
-var app = express()
-var server = http.Server(app)
-var io = socketio(server)
+const app = express()
+const server = http.Server(app)
+const io = socketio(server)
 
 const metastore = new Metastore([ 'task' ])
 
@@ -20,9 +18,11 @@ function handle_update({ id, type, ...msg }) {
     switch(type) {
     case 'init':
         metastore.set('task', id, msg.task) 
+        break
 
     case 'status':
         metastore.update('task', id, task => _.set(task, 'status', msg.status))
+        break
 
     case 'return':
         metastore.update('task', id, task => _.set(task, 'result', msg.result))
@@ -30,6 +30,13 @@ function handle_update({ id, type, ...msg }) {
 
     case 'fail':
         metastore.update('task', id, task => _.set(task, 'error', msg.error))
+        break
+
+    case 'log':
+        metastore.update('task', id, task => {
+            const log = (task.log || '') + msg.data
+            return _.set(task, 'log', log)
+        })
         break
 
     case 'object':
@@ -48,23 +55,14 @@ app.get('/meta/:kind/:id', async (req, res) => {
 })
 
 io.on('connection', client => { 
-    clients.push(client)
     console.log('new client')
-    client.emit('msg', {
-        'type': 'hello',
-    })
-
-    client.on('event', data => { 
-        console.log('event', data)
-    });
     client.on('disconnect', () => { 
         console.log('disconnect')
     });
 });
 
-console.log('listening for nodes')
+// zmq handler
 let sock = zmq.socket("pull");
-
 sock.on("message", function(msg) {
     console.log("recv: %s", msg.toString());
     const event = JSON.parse(msg.toString())
@@ -73,8 +71,11 @@ sock.on("message", function(msg) {
     io.sockets.emit('msg', event)
 });
 
+// zmq listen
+console.log('listening for nodes')
 sock.bindSync(`tcp://*:${ZMQ_PORT}`);
 
+// websocket listen
 server.listen(WS_PORT, () => {
     console.log('listening for websockets')
 });

@@ -15,3 +15,4 @@ services:
       - '1338:1338'
     volumes:
       - './agent/src:/app/src:ro'
+      - './agent/data:/app/data'

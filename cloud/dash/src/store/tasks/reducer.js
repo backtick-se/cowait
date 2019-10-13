@@ -13,13 +13,37 @@ export function tasks(state, action) {
     switch(action.type) {
     case 'init': {
         const { task } = action
-        return {
-            ...state,
-            order: [ ...state.order, task.id ],
-            items: {
-                ...state.items,
-                [task.id]: task,
-            },
+        let order = state.order
+        if (!task.parent) {
+            return {
+                ...state,
+                order: [ task.id, ...order ],
+                items: {
+                    ...state.items,
+                    [task.id]: {
+                        ...task,
+                        children: [ ],
+                    },
+                },
+            }
+        }
+        else {
+            const parent = state.items[task.parent]
+            return {
+                ...state,
+                items: {
+                    ...state.items,
+                    [task.id]: {
+                        ...task,
+                        children: [ ],
+                    },
+                    [task.parent]: {
+                        ...parent,
+                        children: [ ...parent.children, task.id ],
+                    },
+                },
+            }
+
         }
     }
 
