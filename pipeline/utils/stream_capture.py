@@ -15,18 +15,24 @@ class StreamCapture(object):
         if not self.silence:
             self.stream.write(data)
 
-        if callable(self.callback):
-            self.callback(data)
+        if '\n' in data:
+            self.flush()
+        
 
     def flush(self):
         self.capture.flush()
+
         if not self.silence:
             self.stream.flush()
 
+        if callable(self.callback):
+            self.callback(self.getvalue())
+
+        self.capture = StringIO()
+
+
     def getvalue(self):
         data = self.capture.getvalue()
-        self.capture.truncate(0)
-        self.capture.seek(0)
         return data
 
     def __del__(self):

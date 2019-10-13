@@ -12,6 +12,7 @@ def test_taskdef_serialization():
         'env':       { }, 
         'meta':      { },
         'inputs':    { }, 
+        'upstream':  None,
     }
 
     taskdef = TaskDefinition.deserialize(sample)
