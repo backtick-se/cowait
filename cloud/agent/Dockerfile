@@ -6,6 +6,7 @@ EXPOSE 1337 1338
 COPY ./package.json .
 RUN npm install
 
+COPY ./babel.config.js .
 COPY ./src /app/src
 
 CMD ["npm", "start"]
