@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 import { connect } from  'react-redux'
-import Task from './Task'
+import Task from './task/Task'
 
 function TaskList({ task_ids }) {
     return <div>
