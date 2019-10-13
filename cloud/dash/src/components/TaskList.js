@@ -3,16 +3,16 @@ import React from 'react'
 import { connect } from  'react-redux'
 import Task from './Task'
 
-function TaskList({ tasks }) {
+function TaskList({ task_ids }) {
     return <div>
-        <h2>tasks</h2>
+        <h2>Tasks</h2>
         <ul>
-            {_.map(tasks, task => <Task {...task} />)}
+            {_.map(task_ids, task_id => <Task id={task_id} />)}
         </ul>
     </div>
 }
 
 const mapStateToProps = state => ({
-    tasks: state.tasks.items,
+    task_ids: state.tasks.order,
 })
 export default connect(mapStateToProps)(TaskList)

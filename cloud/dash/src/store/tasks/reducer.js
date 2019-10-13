@@ -2,6 +2,7 @@
 const DefaultState = {
     order: [ ],
     items: { },
+    logs: { },
 }
 
 export function tasks(state, action) {
@@ -10,7 +11,7 @@ export function tasks(state, action) {
     }
 
     switch(action.type) {
-    case 'init':
+    case 'init': {
         const { task } = action
         return {
             ...state,
@@ -20,8 +21,9 @@ export function tasks(state, action) {
                 [task.id]: task,
             },
         }
+    }
 
-    case 'status':
+    case 'status': {
         const { id, status } = action
         return {
             ...state,
@@ -33,6 +35,46 @@ export function tasks(state, action) {
                 },
             },
         }
+    }
+
+    case 'log': {
+        const { id, data } = action
+        return {
+            ...state,
+            logs: {
+                ...state.logs,
+                [id]: (state.logs[id] || '') + data,
+            },
+        }
+    }
+
+    case 'return': {
+        const { id, result } = action
+        return {
+            ...state,
+            items: {
+                ...state.items,
+                [id]: {
+                    ...state.items[id],
+                    result,
+                },
+            },
+        }
+    }
+
+    case 'fail': {
+        const { id, error } = action
+        return {
+            ...state,
+            items: {
+                ...state.items,
+                [id]: {
+                    ...state.items[id],
+                    error,
+                },
+            },
+        }
+    }
         
     default:
         return state

@@ -13,3 +13,5 @@ services:
     ports:
       - '1337:1337'
       - '1338:1338'
+    volumes:
+      - './agent/src:/app/src:ro'

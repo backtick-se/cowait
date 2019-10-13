@@ -23,7 +23,7 @@ const store = createStore(
 )
 
 let socket = io('http://localhost:1338')
-socket.on('message', event => {
+socket.on('msg', event => {
     console.log(event)
     store.dispatch(event)
 })

@@ -17,7 +17,7 @@ var io = socketio(app)
 io.on('connection', client => { 
     clients.push(client)
     console.log('new client')
-    client.send({
+    client.emit('msg', {
         'type': 'hello',
     })
 
@@ -34,7 +34,7 @@ let sock = zmq.socket("pull");
 
 sock.on("message", function(msg) {
     console.log("work: %s", msg.toString());
-    io.sockets.send(JSON.parse(msg.toString()))
+    io.sockets.emit('msg', JSON.parse(msg.toString()))
 });
 
 sock.bindSync(`tcp://*:${ZMQ_PORT}`);
@@ -42,3 +42,5 @@ sock.bindSync(`tcp://*:${ZMQ_PORT}`);
 app.listen(WS_PORT, () => {
     console.log('listening for websockets')
 });
+
+console.log('im on hostname', process.env.HOSTNAME)
