@@ -56,6 +56,15 @@ app.get('/meta/:kind/:id', async (req, res) => {
 
 io.on('connection', client => { 
     console.log('new client')
+    const tasks = metastore.getAll('task')
+    for(var task of tasks) {
+        client.emit('msg', {
+            id: task.id,
+            type: 'init',
+            task,
+        })
+    }
+
     client.on('disconnect', () => { 
         console.log('disconnect')
     });
@@ -67,7 +76,13 @@ sock.on("message", function(msg) {
     console.log("recv: %s", msg.toString());
     const event = JSON.parse(msg.toString())
 
-    handle_update(event)
+    try {
+        handle_update(event)
+    }
+    catch(e) {
+        console.log('caught error:', e)
+    }
+
     io.sockets.emit('msg', event)
 });
 

@@ -75,7 +75,6 @@ export class Metatable {
             this.order.push(id)
         }
         this.items[id] = value
-        console.log(this.items[id])
     }
 
     update = (id, transform) => {
@@ -84,7 +83,6 @@ export class Metatable {
             throw new Error(`No such item ${id}`)
         }
         this.items[id] = transform(item)
-        console.log(this.items[id])
     }
 
     del = id => {
