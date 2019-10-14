@@ -1,18 +1,26 @@
 import React from 'react'
-import styled from 'styled-components'
+import PropTypes from 'prop-types'
 import { connect } from  'react-redux'
 import Task from './task/Task'
+import TaskItem from './task/TaskItem'
 
-const TaskListContainer = styled.ul`
-`
+function TaskList({ tasks, render }) {
+    return <ul>
+        {tasks.map(id => <TaskItem id={id} key={id} render={render} />)}
+    </ul>
+}
 
-function TaskList({ task_ids }) {
-    return <TaskListContainer>
-        {task_ids.map(task_id => <Task id={task_id} key={task_id} />)}
-    </TaskListContainer>
+TaskList.defaultProps = {
+    tasks: [ ],
+    render: Task,
+}
+
+TaskList.propTypes = {
+    tasks: PropTypes.array.isRequired,
+    render: PropTypes.elementType,
 }
 
 const mapStateToProps = state => ({
-    task_ids: state.tasks.order,
+    tasks: state.tasks.order,
 })
 export default connect(mapStateToProps)(TaskList)

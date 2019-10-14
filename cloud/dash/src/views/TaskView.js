@@ -1,13 +1,13 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import Task from '../components/task/Task'
-import { View, Header } from '../components/ui'
+import { View } from '../components/ui'
+import TaskItem from '../components/task/TaskItem'
 
 function TaskView({ }) {
     let { taskId } = useParams();
 
     return <View title={taskId}>
-        <Task id={taskId} />
+        <TaskItem id={taskId} />
     </View>
 }
 

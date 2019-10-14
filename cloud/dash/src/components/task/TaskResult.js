@@ -1,13 +1,13 @@
 import React from 'react'
-import { Bubble, CodeBlock } from '../ui'
+import { Bubble, Code } from '../ui'
 
 function TaskResult({ result }) {
     if (!result) {
         return null
     }
-    return <Bubble>
+    return <Bubble shadow="none">
         <h4>Result</h4>
-        <CodeBlock>{JSON.stringify(result, null, 4)}</CodeBlock>
+        <Code language="json">{JSON.stringify(result, null, 4)}</Code>
     </Bubble>
 }
 

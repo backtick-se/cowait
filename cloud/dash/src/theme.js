@@ -54,6 +54,14 @@ export const GlobalStyle = createGlobalStyle`
     pre {
         margin: 0;
     }
+
+    pre, 
+    code,
+    pre span,
+    code span {
+        margin: 0;
+        font-family: ${p => p.theme.fonts.monospace};
+    }
 `
 
 

@@ -1,20 +1,34 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Bubble, CodeBlock } from '../ui'
+import PropTypes from 'prop-types'
+import { ErrorBubble } from '../ui'
 
-const ErrorBubble = styled(Bubble)`
-    color: white;
-    background-color: ${p => p.theme.colors.status.fail};
+
+const ErrorOutput = styled.pre`
+    font-family: ${p => p.theme.fonts.monospace};
+    line-height: 1.5em;
+`
+
+const ErrorBubblePadded = styled(ErrorBubble)`
+    margin: 0 1rem;
 `
 
 function TaskError({ error }) {
     if (!error) {
         return null
     }
-    return <ErrorBubble>
+    return <ErrorBubblePadded>
         <h4>Error</h4>
-        <CodeBlock>{error}</CodeBlock>
-    </ErrorBubble>
+        <ErrorOutput>{error}</ErrorOutput>
+    </ErrorBubblePadded>
+}
+
+TaskError.propTypes = {
+    error: PropTypes.string,
+}
+
+TaskError.defaultProps = {
+    error: null,
 }
 
 export default TaskError

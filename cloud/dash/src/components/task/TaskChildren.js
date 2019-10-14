@@ -6,7 +6,7 @@ function TaskChildren({ children }) {
     if (!React.Children.count(children)) {
         return null
     }
-    return <Bubble>
+    return <Bubble shadow="none">
         <h4>Children</h4>
         {children.map(child => <TaskLink key={child} id={child} />)}
     </Bubble>

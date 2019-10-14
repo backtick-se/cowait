@@ -23,10 +23,10 @@ const TaskStatusLabel = styled.label`
     border: 1px solid ${p => p.theme.colors.status[p.status]};
     padding: 0.25em 0.5em;
     font-size: 0.8em;
-    border-radius: 0.3rem;
+    border-radius: 0.3em;
     
     .fa {
-        margin-right: 0.3rem;
+        margin-right: 0.3em;
     }
 `
 

@@ -10,6 +10,7 @@ const LinkWrapper = styled.span`
 
     ${Link} {
         margin-right: 0.5em;
+        font-family: ${p => p.theme.fonts.monospace};
     }
 `
 

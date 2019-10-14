@@ -114,6 +114,10 @@ export function tasks(state, action) {
             },
         }
     }
+
+    case 'clear': {
+        return DefaultState
+    }
         
     default:
         return state

@@ -1,13 +1,13 @@
 import React from 'react'
-import { Bubble, CodeBlock } from '../ui'
+import { Bubble, Code } from '../ui'
 
 function TaskInputs({ inputs }) {
     if (!inputs) {
         return null
     }
-    return <Bubble>
+    return <Bubble shadow="none">
         <h4>Inputs</h4>
-        <CodeBlock>{JSON.stringify(inputs, null, 4)}</CodeBlock>
+        <Code language="json">{JSON.stringify(inputs, null, 4)}</Code>
     </Bubble>
 }
 

@@ -10,13 +10,16 @@ const LogOutput = styled.pre`
     background-color: #222;
     border-radius: 0.3rem;
     color: white;
+    overflow-x: auto;
+
+    line-height: 1.25em;
 `
 
 function TaskLog({ log }) {
     if (!log) {
         return null
     }
-    return <Bubble>
+    return <Bubble shadow="none">
         <h4>Output Log</h4>
         <LogOutput>{log}</LogOutput>
     </Bubble>
