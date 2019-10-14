@@ -10,7 +10,7 @@ const TaskLogBox = styled.div`
         font-weight: bold;
     }
     pre {
-        font-family: 'Nanum Gothic Coding';
+        font-family: ${p => p.theme.fonts.monospace};
         padding: 0.5rem;
         background-color: black;
         color: white;

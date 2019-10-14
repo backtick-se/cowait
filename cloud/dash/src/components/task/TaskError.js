@@ -11,7 +11,7 @@ const TaskErrorBox = styled.div`
         font-weight: bold;
     }
     pre {
-        font-family: 'Nanum Gothic Coding';
+        font-family: ${p => p.theme.fonts.monospace};
     }
 `
 

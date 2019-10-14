@@ -13,11 +13,10 @@ export function tasks(state, action) {
     switch(action.type) {
     case 'init': {
         const { task } = action
-        let order = state.order
         if (!task.parent) {
             return {
                 ...state,
-                order: [ task.id, ...order ],
+                order: [ task.id, ...state.order ],
                 items: {
                     ...state.items,
                     [task.id]: {
@@ -49,6 +48,15 @@ export function tasks(state, action) {
 
     case 'status': {
         const { id, status } = action
+        const item = state.items[id]
+        if (!item) {
+            console.log('unknown task', id)
+            return state
+        }
+        if (item.status === 'fail' || item.status === 'done') {
+            console.log('cant change status on', id, 'its already', item.status)
+            return state
+        }
         return {
             ...state,
             items: {

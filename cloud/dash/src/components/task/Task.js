@@ -21,6 +21,9 @@ const TaskChildrenBox = styled.div`
 `
 
 function TaskChildren({ children }) {
+    if (!children) {
+        return null
+    }
     return <TaskChildrenBox>
         <h4>Children</h4>
         {children.map(child => <TaskLink key={child} id={child} />)}
