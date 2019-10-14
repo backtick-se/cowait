@@ -7,40 +7,26 @@ import TaskError from './TaskError'
 import TaskResult from './TaskResult'
 import TaskLink from './TaskLink'
 import TaskInputs from './TaskInputs'
+import TaskChildren from './TaskChildren'
 
-const TaskBox = styled.div`
-    padding: 1rem 0;
+const TaskHeader = styled.div`
+    margin-bottom: 1rem;
 `
-
-const TaskChildrenBox = styled.div`
-    padding: 0.5rem 0;
-    h4 {
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-`
-
-function TaskChildren({ children }) {
-    if (!children) {
-        return null
-    }
-    return <TaskChildrenBox>
-        <h4>Children</h4>
-        {children.map(child => <TaskLink key={child} id={child} />)}
-    </TaskChildrenBox>
-}
 
 function Task({ task: { id, status, image, parent, result, error, children, inputs } }) {
-    return <TaskBox>
-        <h2>{id} <TaskStatus status={status} /></h2>
-        <p>Image: {image}</p>
-        {parent && <TaskLink id={parent}>Parent: {parent}</TaskLink>}
-        <TaskInputs inputs={inputs} />
+    return <React.Fragment>
+        <TaskHeader>
+            <h2>{id} <TaskStatus status={status} /></h2>
+            <p>{image}</p>
+            {parent && <TaskLink id={parent}>Parent: {parent}</TaskLink>}
+        </TaskHeader>
+
         <TaskError error={error} />
+        <TaskInputs inputs={inputs} />
         <TaskChildren children={children} />
         <TaskLog id={id} />
         <TaskResult result={result} />
-    </TaskBox>
+    </React.Fragment>
 }
 
 const mapStateToProps = (state, props) => ({

@@ -1,25 +1,14 @@
 import React from 'react'
-import styled from 'styled-components'
-
-const TaskResultBox = styled.div`
-    padding: 0.5rem 0;
-    h4 {
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-    pre {
-        font-family: ${p => p.theme.fonts.monospace};
-    }
-`
+import { Bubble, CodeBlock } from '../ui'
 
 function TaskResult({ result }) {
     if (!result) {
         return null
     }
-    return <TaskResultBox>
+    return <Bubble>
         <h4>Result</h4>
-        <pre>{JSON.stringify(result, null, 4)}</pre>
-    </TaskResultBox>
+        <CodeBlock>{JSON.stringify(result, null, 4)}</CodeBlock>
+    </Bubble>
 }
 
 export default TaskResult

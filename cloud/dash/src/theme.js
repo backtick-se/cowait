@@ -7,12 +7,15 @@ export const theme = {
     },
 
     colors: {
+        text: '#ffffff',
+        background: '#e3e7f1',
+
         status: {
             wait: '#999999',
-            work: '#ffad13',
-            done: 'green',
-            fail: 'red',
-            stop: 'orange',
+            work: '#42b883',
+            done: '#347474',
+            fail: '#c70d3a',
+            stop: '#ed5107',
         },
     },
 }
@@ -27,15 +30,16 @@ export const GlobalStyle = createGlobalStyle`
         box-sizing: inherit;
     }
 
+    body {
+        background-color: ${p => p.theme.colors.background};
+    }
+
     body, h1, h2, h3, h4, h5, h6, p, ol, ul {
         margin: 0;
         padding: 0;
+
         font-weight: normal;
         font-family: ${p => p.theme.fonts.normal};
-    }
-
-    body {
-        padding: 0.5rem;
     }
 
     ol, ul {

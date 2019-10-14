@@ -2,26 +2,24 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
+import { Bubble } from '../ui'
 
-const TaskLogBox = styled.div`
-    padding: 0.5rem 0;
-    h4 {
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-    pre {
-        font-family: ${p => p.theme.fonts.monospace};
-        padding: 0.5rem;
-        background-color: black;
-        color: white;
-    }
+const LogOutput = styled.pre`
+    font-family: ${p => p.theme.fonts.monospace};
+    padding: 0.5rem;
+    background-color: #222;
+    border-radius: 0.3rem;
+    color: white;
 `
 
 function TaskLog({ log }) {
-    return <TaskLogBox>
-        <h4>Log</h4>
-        <pre>{log}</pre>
-    </TaskLogBox>
+    if (!log) {
+        return null
+    }
+    return <Bubble>
+        <h4>Output Log</h4>
+        <LogOutput>{log}</LogOutput>
+    </Bubble>
 }
 
 const mapStateToProps = (state, props) => ({

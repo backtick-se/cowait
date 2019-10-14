@@ -24,6 +24,10 @@ export function tasks(state, action) {
                         children: [ ],
                     },
                 },
+                logs: {
+                    ...state.logs,
+                    [task.id]: task.log || '',
+                },
             }
         }
         else {
@@ -41,8 +45,11 @@ export function tasks(state, action) {
                         children: [ ...parent.children, task.id ],
                     },
                 },
+                logs: {
+                    ...state.logs,
+                    [task.id]: task.log || '',
+                },
             }
-
         }
     }
 
