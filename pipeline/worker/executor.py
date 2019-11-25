@@ -35,8 +35,8 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
     except TaskError as e:
         # pass subtask errors upstream
         traceback.print_exc()
-        node.send_fail(e.error)
-        exit(1)
+        node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+        exit(0)
 
     except:
         # capture local errors
@@ -44,8 +44,8 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         traceback.print_exc()
 
         error = traceback.format_exc()
-        node.send_fail(error)
-        exit(1)
+        node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
+        exit(0)
 
     finally:
         # clean exit

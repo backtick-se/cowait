@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
 from abc import abstractmethod
-from pipeline.tasks import Task, TaskContext, TaskDefinition
+from pipeline.tasks import Task, TaskContext, TaskDefinition, TaskError
 from pipeline.network import get_local_connstr
 
 
@@ -16,10 +16,12 @@ class Flow(Task):
     def handle(self, id: str, type: str, **msg):
         if type == 'return' and id in self.tasks: 
             future = self.tasks[id]
-            future.set_result(msg['result'])
+            if not future.done():
+                future.set_result(msg['result'])
         if type == 'fail' and id in self.tasks:
             future = self.tasks[id]
-            future.set_exception(msg['error'])
+            if not future.done():
+                future.set_exception(TaskError(msg['error']))
 
 
     async def run(self, **inputs) -> Any:
@@ -31,21 +33,18 @@ class Flow(Task):
 
         try:
             return await self.plan(**inputs)
-
-            # check return value for futures and await them? 🤔
-
         except Exception as e:
-            print('destroyig children due to error...')
-
-            # ask the cluster to destroy any children
-            children = self.cluster.destroy_children(self.id)
-
-            # send a stop message upstream for each killed task
-            for child_id in children:
-                self.node.send_stop(id=child_id)
-
-            # pass on to task level error handling
+            self.stop()
             raise e
+
+
+    def stop(self):
+        # ask the cluster to destroy any children
+        children = self.cluster.destroy_children(self.id)
+
+        # send a stop message upstream for each killed task
+        for child_id in children:
+            self.node.send_stop(id=child_id)
 
 
     async def task(self, name: str, image: str = None, **inputs) -> asyncio.Future:
