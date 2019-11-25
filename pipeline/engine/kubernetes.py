@@ -7,6 +7,11 @@ from pipeline.tasks import Task, TaskContext, TaskDefinition
 from .const import ENV_TASK_CLUSTER
 from .cluster import ClusterProvider
 
+# for now, all tasks live in the same namespace.
+NAMESPACE = 'default'
+LABEL_TASK_ID = 'pipeline/task'
+LABEL_PARENT_ID = 'pipeline/parent'
+
 
 class KubernetesTask(Task):
     def __init__(self, cluster: ClusterProvider, taskdef: TaskDefinition, job, pod):
@@ -59,6 +64,10 @@ class KubernetesProvider(ClusterProvider):
                 template=client.V1PodTemplateSpec(
                     metadata=client.V1ObjectMeta(
                         name=taskdef.id,
+                        labels={
+                            LABEL_TASK_ID: taskdef.id,
+                            LABEL_PARENT_ID: taskdef.parent,
+                        },
                     ),
                     spec=client.V1PodSpec(
                         hostname=taskdef.id,
@@ -72,12 +81,12 @@ class KubernetesProvider(ClusterProvider):
         # create job
         job = self.batch.create_namespaced_job(taskdef.namespace, jobdef)
         while True:
-            pod = self.get_task_pod(taskdef)
+            pod = self.get_task_pod(taskdef.id)
             if pod and pod.status.phase != 'Pending':
                 break
             timeout -= 1
             if timeout == 0:
-                raise TimeoutError(f'Could not find put for {taskdef.id}')
+                raise TimeoutError(f'Could not find pod for {taskdef.id}')
             time.sleep(1)
 
         # wrap & return task
@@ -86,15 +95,27 @@ class KubernetesProvider(ClusterProvider):
 
 
     def destroy(self, task_id):
-        raise NotImplementedError()
+        self.core.delete_collection_namespaced_pod(
+            namespace=NAMESPACE,
+            label_selector=f'pipeline/task={task_id}', 
+        )
+        return task_id
 
 
-    def get_task_pod(self, taskdef):
+    def get_task_pod(self, task_id):
         res = self.core.list_namespaced_pod(
-            namespace=taskdef.namespace,
-            label_selector=f'job-name={taskdef.id}', 
+            namespace=NAMESPACE,
+            label_selector=f'pipeline/task={task_id}', 
         )
         return res.items[0] if len(res.items) > 0 else None
+
+
+    def get_task_child_pods(self, task_id: str):
+        res = self.core.list_namespaced_pod(
+            namespace=NAMESPACE,
+            label_selector=f'pipeline/parent={task_id}', 
+        )
+        return res.items
 
 
     def wait(self, task: KubernetesTask) -> None:
@@ -114,12 +135,15 @@ class KubernetesProvider(ClusterProvider):
 
 
     def logs(self, task: KubernetesTask):
-        w = watch.Watch()
-        return w.stream(
-            self.core.read_namespaced_pod_log, 
-            name=task.pod.metadata.name, 
-            namespace=task.pod.metadata.namespace,
-        )
+        try:
+            w = watch.Watch()
+            return w.stream(
+                self.core.read_namespaced_pod_log, 
+                name=task.pod.metadata.name, 
+                namespace=task.pod.metadata.namespace,
+            )
+        except:
+            self.logs(task)
 
 
     def create_env(self, taskdef: TaskDefinition):
@@ -129,8 +153,29 @@ class KubernetesProvider(ClusterProvider):
             env_list.append(client.V1EnvVar(name, value))
         return env_list
 
-    def destroy_all(self) -> None:
-        raise NotImplementedError()
+    def destroy_all(self, task_id) -> None:
+        def kill_family(task_id):
+            kills = [ ]
+            children = self.get_task_child_pods(task_id)
+            for child in children.items:
+                child_id = child.metadata.labels[LABEL_TASK_ID]
+                kills += kill_family(child_id)
+
+            self.destroy(task_id)
+            kills.append(task_id)
+
+        return kill_family(task_id)
 
     def destroy_children(self, parent_id: str) -> list:
-        raise NotImplementedError()
+        children = self.core.list_namespaced_pod(
+            namespace=NAMESPACE,
+            label_selector=f'pipeline/parent={parent_id}', 
+        )
+
+        self.core.delete_collection_namespaced_pod(
+            namespace=NAMESPACE,
+            label_selector=f'pipeline/parent={parent_id}', 
+        )
+
+        # return killed child ids
+        return [ child.metadata.labels[LABEL_TASK_ID] for child in children.items ]
