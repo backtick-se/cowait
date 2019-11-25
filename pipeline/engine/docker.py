@@ -63,11 +63,11 @@ class DockerProvider(ClusterProvider):
 
 
     def destroy_children(self, parent_id: str) -> list:
-        print('~~ docker: destroy children of', parent_id)
         tasks = [ ]
         children = self.find_child_containers(parent_id)
         for child in children:
-            tasks += self.destroy(child.labels['task'])
+            child = self.destroy(child.labels['task'])
+            tasks += child
         return tasks
 
 
@@ -78,7 +78,6 @@ class DockerProvider(ClusterProvider):
             print('~~ docker: kill', container_task_id, '->', container.id[:12])
 
             children = self.find_child_containers(container_task_id)
-            print('~~ docker:', task_id, 'children:', children)
             for child in children:
                 kills += kill_family(child)
 
@@ -88,8 +87,8 @@ class DockerProvider(ClusterProvider):
                 print('~~ docker: kill: task', task_id, 'container not found:', container.id[:12])
 
             kills.append(task_id)
+            return kills
 
-        print('~~ docker: destroy', task_id)
         container = self.docker.containers.get(task_id)
         return kill_family(container)
 
