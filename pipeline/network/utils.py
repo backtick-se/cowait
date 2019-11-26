@@ -1,7 +1,7 @@
 import socket
 
 
-PORT = 1337
+PORT = 1338
 
 
 def get_local_ip():
@@ -11,4 +11,4 @@ def get_local_ip():
 
 def get_local_connstr():
     local_ip = get_local_ip()
-    return f'tcp://{local_ip}:{PORT}'
+    return f'ws://{local_ip}:{PORT}'

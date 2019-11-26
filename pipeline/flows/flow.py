@@ -25,7 +25,7 @@ class Flow(Task):
 
 
     async def run(self, **inputs) -> Any:
-        self.node.bind('tcp://*:1337')
+        self.node.bind(1338)
         self.node.attach(self)
 
         # run task daemon in the background
@@ -74,7 +74,6 @@ class Flow(Task):
         )
 
         task = self.cluster.spawn(taskdef)
-
 
         # return a future
         future = asyncio.Future()

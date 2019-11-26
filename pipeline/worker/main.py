@@ -21,13 +21,13 @@ async def main():
     taskdef = env_get_task_definition()
 
     # create network node
-    node = create_node(taskdef)
+    node = await create_node(taskdef)
 
     # execute task
     await pipeline.worker.execute(cluster, node, taskdef)
 
 
-def create_root_node(node, taskdef):
+async def create_root_node(node, taskdef):
     """ Root task node setup """
     node.attach(TaskList())
 
@@ -38,18 +38,18 @@ def create_root_node(node, taskdef):
         node.attach(FlowLogger())
 
 
-def create_child_node(node, taskdef):
+async def create_child_node(node, taskdef):
     """ Child task node setup """
     print('child: connecting upstream')
-    node.connect(taskdef.upstream)
+    await node.connect(taskdef.upstream)
 
 
-def create_node(taskdef):
+async def create_node(taskdef):
     node = Node(taskdef.id)
     if not taskdef.parent:
-        create_root_node(node, taskdef)
+        await create_root_node(node, taskdef)
     else:
-        create_child_node(node, taskdef)
+        await create_child_node(node, taskdef)
     return node
 
 

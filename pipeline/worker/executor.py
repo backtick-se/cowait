@@ -20,8 +20,8 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         )
 
         # instantiate & run task
-        node.send_init(taskdef)
-        node.send_run()
+        await node.send_init(taskdef)
+        await node.send_run()
 
         # run task within a log capture context
         with capture_logs_to_node(node):
@@ -29,15 +29,15 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
             result = await task.run(**taskdef.inputs)
 
         # submit result
-        node.send_done(result)
+        await node.send_done(result)
 
     except StopException:
-        node.send_stop()
+        await node.send_stop()
 
     except TaskError as e:
         # pass subtask errors upstream
         traceback.print_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
         os._exit(1)
 
     except:
@@ -45,7 +45,7 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         traceback.print_exc()
 
         error = traceback.format_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
+        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
         os._exit(1)
 
     finally:
