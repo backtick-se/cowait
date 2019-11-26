@@ -17,8 +17,6 @@ kubernetes = "*"
 pyyaml = "*"
 dask = "*"
 distributed = "*"
-pipeline = {editable = true,path = "."}
-pyzmq = "*"
 marshmallow = "*"
 websockets = "*"
 
