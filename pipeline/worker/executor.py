@@ -1,6 +1,5 @@
 import os
 import sys
-import asyncio
 import traceback
 from contextlib import nullcontext
 from pipeline.network import Node
@@ -20,8 +19,8 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         )
 
         # instantiate & run task
-        await node.send_init(taskdef)
-        await node.send_run()
+        node.send_init(taskdef)
+        node.send_run()
 
         # run task within a log capture context
         with capture_logs_to_node(node):
@@ -29,15 +28,19 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
             result = await task.run(**taskdef.inputs)
 
         # submit result
-        await node.send_done(result)
+        node.send_done(result)
 
     except StopException:
-        await node.send_stop()
+        node.send_stop()
 
     except TaskError as e:
         # pass subtask errors upstream
         traceback.print_exc()
-        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+        node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+
+        print('error exit. closing...')
+        await node.close()
+        print('exiting')
         os._exit(1)
 
     except:
@@ -45,11 +48,18 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         traceback.print_exc()
 
         error = traceback.format_exc()
-        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
+        node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
+        
+        print('error exit. closing...')
+        await node.close()
+        print('exiting')
         os._exit(1)
 
     finally:
         # clean exit
+        print('clean exit. closing...')
+        await node.close()
+        print('exiting')
         os._exit(0)
 
 

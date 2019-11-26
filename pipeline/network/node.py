@@ -7,11 +7,6 @@ import json
 import asyncio
 import websockets
 
-import logging
-logger = logging.getLogger('websockets')
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-
 class Client:
     def __init__(self, target):
         self.target = target
@@ -21,22 +16,30 @@ class Client:
 
     async def send(self, msg):
         await self.ws.send(json.dumps(msg))
+    
+    async def close(self):
+        return await self.ws.close()
+
 
 class Server:
     def __init__(self, port):
         self.port = port
+        self.running = False
 
     async def serve(self, handler):
         async def connection(ws, path):
-            print('ws connection')
-            while True:
+            while ws.connected:
                 msg = await ws.recv()
-                print('recv', msg)
                 handler(json.loads(msg))
 
-        await websockets.serve(connection, "0.0.0.0", self.port)
-        while True:
-            await asyncio.sleep(1)
+        self.running = True
+        self.ws = await websockets.serve(connection, "0.0.0.0", self.port)
+        while self.running:
+            await asyncio.sleep(0.1)
+
+    def close(self):
+        self.ws.close()
+        self.running = False
 
 
 class Node(object):
@@ -60,20 +63,27 @@ class Node(object):
         await self.daemon.serve(self.handle)
 
 
+    async def close(self):
+        if self.daemon:
+            self.daemon.close()
+        if self.upstream:
+            await self.upstream.close()
+
+
     def handle(self, msg) -> None:
         for handler in self.handlers:
             handler.handle(**msg)
 
 
-    async def send(self, msg: dict) -> None:
+    def send(self, msg: dict) -> None:
         if isinstance(msg, list):
             for m in msg:
-                await self.send(m)
+                self.send(m)
         else:
             if not 'id' in msg:
                 msg['id'] = self.id
             if self.upstream:
-                await self.upstream.send(msg)
+                asyncio.ensure_future(self.upstream.send(msg))
             self.handle(msg)
 
     
@@ -89,7 +99,7 @@ class Node(object):
     # put it somewhere else
     #
 
-    async def send_msg(self, type: str, **msg):
+    def send_msg(self, type: str, **msg):
         """
         Send a message upstream.
 
@@ -97,57 +107,57 @@ class Node(object):
             type (str): Message type
             kwargs (dict): Message fields
         """
-        await self.send({
+        self.send({
             'id': self.id,
             'type': type,
             **msg,
         })
 
     
-    async def send_init(self, taskdef) -> None:
+    def send_init(self, taskdef) -> None:
         """
         Send a task initialization message.
 
         Arguments:
             taskdef (TaskDefinition): New task definition
         """
-        await self.send_msg('init', task=taskdef.serialize())
+        self.send_msg('init', task=taskdef.serialize())
 
 
-    async def send_run(self) -> None:
+    def send_run(self) -> None:
         """ Send status update: Running """
-        await self.send_msg('status', status=WORK)
+        self.send_msg('status', status=WORK)
 
 
-    async def send_stop(self, id=None) -> None:
+    def send_stop(self, id=None) -> None:
         """ Send status update: Stopped """
-        await self.send_msg('status', status=STOP, id=id)
-        await self.send_msg('return', result={}, id=id)
+        self.send_msg('status', status=STOP, id=id)
+        self.send_msg('return', result={}, id=id)
 
 
-    async def send_done(self, result: Any) -> None:
+    def send_done(self, result: Any) -> None:
         """ 
         Send status update: Done, and return a result.
 
         Arguments:
             result (any): Any json-serializable data to return to the upstream task.
         """
-        await self.send_msg('status', status=DONE)
-        await self.send_msg('return', result=result)
+        self.send_msg('status', status=DONE)
+        self.send_msg('return', result=result)
 
 
-    async def send_fail(self, error: str) -> None:
+    def send_fail(self, error: str) -> None:
         """
         Send an error.
 
         Arguments:
             error (str): Error message
         """
-        await self.send_msg('status', status=FAIL)
-        await self.send_msg('fail',   error=error)
+        self.send_msg('status', status=FAIL)
+        self.send_msg('fail',   error=error)
 
 
-    async def send_log(self, file: str, data: str) -> None:
+    def send_log(self, file: str, data: str) -> None:
         """
         Send captured log output.
 
@@ -155,4 +165,4 @@ class Node(object):
             file (str): Capture source (stdout/stderr)
             data (str): Captured output data
         """
-        await self.send_msg('log', file=file, data=data)
+        self.send_msg('log', file=file, data=data)
