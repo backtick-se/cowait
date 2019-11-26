@@ -90,14 +90,14 @@ class KubernetesProvider(ClusterProvider):
             time.sleep(1)
 
         # wrap & return task
-        print('~~ Spawned kubenetes pod with name', pod.metadata.name)
+        print('~~ created kubenetes pod with name', pod.metadata.name)
         return KubernetesTask(self, taskdef, job, pod)
 
 
     def destroy(self, task_id):
         self.core.delete_collection_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'pipeline/task={task_id}', 
+            label_selector=f'{LABEL_TASK_ID}={task_id}', 
         )
         return task_id
 
@@ -105,7 +105,7 @@ class KubernetesProvider(ClusterProvider):
     def get_task_pod(self, task_id):
         res = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'pipeline/task={task_id}', 
+            label_selector=f'{LABEL_TASK_ID}={task_id}', 
         )
         return res.items[0] if len(res.items) > 0 else None
 
@@ -113,7 +113,7 @@ class KubernetesProvider(ClusterProvider):
     def get_task_child_pods(self, task_id: str):
         res = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'pipeline/parent={task_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={task_id}', 
         )
         return res.items
 
@@ -169,12 +169,12 @@ class KubernetesProvider(ClusterProvider):
     def destroy_children(self, parent_id: str) -> list:
         children = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'pipeline/parent={parent_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={parent_id}', 
         )
 
         self.core.delete_collection_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'pipeline/parent={parent_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={parent_id}', 
         )
 
         # return killed child ids

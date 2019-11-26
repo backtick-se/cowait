@@ -40,11 +40,12 @@ class Flow(Task):
 
     def stop(self):
         # ask the cluster to destroy any children
-        children = self.cluster.destroy_children(self.id)
+        # children = self.cluster.destroy_children(self.id)
 
         # send a stop message upstream for each killed task
-        for child_id in children:
-            self.node.send_stop(id=child_id)
+        #for child_id in children:
+        #    self.node.send_stop(id=child_id)
+        pass
 
 
     async def task(self, name: str, image: str = None, **inputs) -> asyncio.Future:

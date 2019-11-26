@@ -1,3 +1,5 @@
+import os
+import sys
 import asyncio
 import traceback
 from contextlib import nullcontext
@@ -36,20 +38,19 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
         # pass subtask errors upstream
         traceback.print_exc()
         node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
-        exit(0)
+        os._exit(1)
 
     except:
         # capture local errors
-        print('CAUGHT EXCEPTION:')
         traceback.print_exc()
 
         error = traceback.format_exc()
         node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
-        exit(0)
+        os._exit(1)
 
     finally:
         # clean exit
-        exit(0)
+        os._exit(0)
 
 
 def capture_logs_to_node(node):
