@@ -1,5 +1,4 @@
 import json
-import asyncio
 import websockets
 from .conn import Conn
 
@@ -8,47 +7,54 @@ ANY_IP = '0.0.0.0'
 
 class Server:
     def __init__(self, port: int):
+        self.ws = None
         self.port = port
-        self.conns = [ ]
+        self.conns = []
 
+    async def serve(self, handler: callable) -> None:
+        async def handle(ws, path):
+            await self.on_client(ws, handler)
 
-    async def serve(self, handler: callable):
         # serve websockets
         self.ws = await websockets.serve(
-            lambda ws, path: self.on_client(ws, handler),
-            host=ANY_IP, 
+            handle,
+            host=ANY_IP,
             port=self.port,
         )
+        await self.ws.wait_closed()
 
-        # wait forever.
-        while True:
-            await asyncio.sleep(1)
-
-
-    async def on_client(self, ws, handler):
+    async def on_client(self, ws, handler: callable) -> None:
         conn = Conn(ws)
         self.conns.append(conn)
 
         try:
             while True:
                 msg = await conn.recv()
+                if msg is None:
+                    break
+
                 await handler(conn, msg)
 
         except websockets.exceptions.ConnectionClosedOK:
-            print('ws client disconnected')
+            pass
 
         finally:
             self.conns.remove(conn)
 
+    async def send(self, msg: dict) -> None:
+        if self.ws is None:
+            raise RuntimeError('call serve() first')
 
-    async def send(self, msg: dict):
         try:
             js = json.dumps(msg)
             for conn in self.conns:
                 await conn.ws.send(js)
+
         except websockets.exceptions.ConnectionClosedOK:
-            return None
+            return
 
+    def close(self) -> None:
+        if self.ws is None:
+            return
 
-    def close(self):
         self.ws.close()

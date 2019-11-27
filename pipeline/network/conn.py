@@ -1,5 +1,4 @@
 import json
-import websockets
 from websockets.exceptions import ConnectionClosedOK
 
 
@@ -11,7 +10,6 @@ class Conn:
     def __init__(self, ws):
         self.ws = ws
 
-
     async def recv(self):
         try:
             js = await self.ws.recv()
@@ -19,7 +17,6 @@ class Conn:
 
         except ConnectionClosedOK:
             return None
-
 
     async def send(self, msg: dict) -> None:
         try:

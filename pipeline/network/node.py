@@ -1,5 +1,3 @@
-import asyncio
-from typing import Any
 from .client import Client
 from .server import Server
 
@@ -13,17 +11,14 @@ class Node(object):
         self.id = id
         self.upstream = None
         self.daemon = None
-        self.handlers = [ ]
+        self.handlers = []
 
-
-    async def connect(self, target) -> None:
-        self.upstream = Client(target)
+    async def connect(self, uri) -> None:
+        self.upstream = Client(uri)
         await self.upstream.connect()
-
 
     def bind(self, port) -> None:
         self.daemon = Server(port)
-
 
     async def serve(self) -> None:
         async def handle(conn, msg):
@@ -33,13 +28,11 @@ class Node(object):
 
         await self.daemon.serve(handle)
 
-
     async def close(self) -> None:
         if self.daemon:
             self.daemon.close()
         if self.upstream:
             await self.upstream.close()
-
 
     async def send(self, msg: dict) -> None:
         """
@@ -50,7 +43,7 @@ class Node(object):
             for m in msg:
                 await self.send(m)
         else:
-            if not 'id' in msg:
+            if 'id' not in msg:
                 msg['id'] = self.id
 
             if self.upstream:
@@ -59,10 +52,8 @@ class Node(object):
             for handler in self.handlers:
                 handler.handle(**msg)
 
-    
     def attach(self, handler: callable) -> None:
         self.handlers.append(handler)
-
 
     def detach(self, handler: callable) -> None:
         self.handlers.remove(handler)

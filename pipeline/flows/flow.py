@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 from abc import abstractmethod
 from pipeline.tasks import Task, TaskContext, TaskDefinition, TaskError
-from pipeline.network import get_local_connstr
+from pipeline.network import get_local_connstr, PORT
 
 
 class Flow(Task):
@@ -25,7 +25,7 @@ class Flow(Task):
 
 
     async def run(self, **inputs) -> Any:
-        self.node.bind(1338)
+        self.node.bind(PORT)
         self.node.attach(self)
 
         # run task daemon in the background

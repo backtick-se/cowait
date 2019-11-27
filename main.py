@@ -8,7 +8,9 @@ Environment:
 import os
 import asyncio
 import traceback
-from pipeline.worker import execute, env_get_cluster_provider, env_get_task_definition
+from pipeline.worker import execute, \
+    env_get_cluster_provider, \
+    env_get_task_definition
 
 
 async def main():
@@ -21,16 +23,15 @@ async def main():
     # execute task
     try:
         await execute(cluster, taskdef)
-    except:
+
+    except Exception:
         print(f'~~ {taskdef.id} exiting with error:')
         traceback.print_exc()
         os._exit(1)
 
     # clean exit
-    print('~~ {taskdef.id} completed')
+    print(f'~~ {taskdef.id} completed')
     os._exit(0)
-    
-
 
 if __name__ == '__main__':
     asyncio.run(main())
