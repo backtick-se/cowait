@@ -1,5 +1,6 @@
 import json
 import websockets
+from websockets.exceptions import ConnectionClosedOK
 
 
 class Client:
@@ -8,11 +9,17 @@ class Client:
 
 
     async def connect(self):
-        self.ws = await websockets.connect(self.uri)
+        try:
+            self.ws = await websockets.connect(self.uri)
+        except ConnectionClosedOK:
+            return None
 
 
     async def send(self, msg):
-        await self.ws.send(json.dumps(msg))
+        try:
+            await self.ws.send(json.dumps(msg))
+        except ConnectionClosedOK:
+            return None
     
 
     async def close(self):

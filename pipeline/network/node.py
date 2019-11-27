@@ -1,10 +1,14 @@
+import asyncio
 from typing import Any
-from pipeline.tasks.status import WAIT, WORK, DONE, STOP, FAIL
 from .client import Client
 from .server import Server
 
 
 class Node(object):
+    """
+    Tree network node.
+    """
+
     def __init__(self, id):
         self.id = id
         self.upstream = None
@@ -12,41 +16,48 @@ class Node(object):
         self.handlers = [ ]
 
 
-    async def connect(self, target):
+    async def connect(self, target) -> None:
         self.upstream = Client(target)
         await self.upstream.connect()
 
 
-    def bind(self, bind):
-        self.daemon = Server(bind)
+    def bind(self, port) -> None:
+        self.daemon = Server(port)
 
 
-    async def serve(self):
-        await self.daemon.serve(self.handle)
+    async def serve(self) -> None:
+        async def handle(conn, msg):
+            # received upstream message
+            for handler in self.handlers:
+                handler.handle(**msg)
+
+        await self.daemon.serve(handle)
 
 
-    async def close(self):
+    async def close(self) -> None:
         if self.daemon:
             self.daemon.close()
         if self.upstream:
             await self.upstream.close()
 
 
-    def handle(self, msg) -> None:
-        for handler in self.handlers:
-            handler.handle(**msg)
+    async def send(self, msg: dict) -> None:
+        """
+        Send a message upstream. Also executed by handlers (?)
+        """
 
-
-    def send(self, msg: dict) -> None:
         if isinstance(msg, list):
             for m in msg:
-                self.send(m)
+                await self.send(m)
         else:
             if not 'id' in msg:
                 msg['id'] = self.id
+
             if self.upstream:
-                asyncio.ensure_future(self.upstream.send(msg))
-            self.handle(msg)
+                await self.upstream.send(msg)
+
+            for handler in self.handlers:
+                handler.handle(**msg)
 
     
     def attach(self, handler: callable) -> None:
@@ -55,76 +66,3 @@ class Node(object):
 
     def detach(self, handler: callable) -> None:
         self.handlers.remove(handler)
-
-    #
-    # protocol client:
-    # put it somewhere else
-    #
-
-    def send_msg(self, type: str, **msg):
-        """
-        Send a message upstream.
-
-        Arguments:
-            type (str): Message type
-            kwargs (dict): Message fields
-        """
-        self.send({
-            'id': self.id,
-            'type': type,
-            **msg,
-        })
-
-    
-    def send_init(self, taskdef) -> None:
-        """
-        Send a task initialization message.
-
-        Arguments:
-            taskdef (TaskDefinition): New task definition
-        """
-        self.send_msg('init', task=taskdef.serialize())
-
-
-    def send_run(self) -> None:
-        """ Send status update: Running """
-        self.send_msg('status', status=WORK)
-
-
-    def send_stop(self, id=None) -> None:
-        """ Send status update: Stopped """
-        self.send_msg('status', status=STOP, id=id)
-        self.send_msg('return', result={}, id=id)
-
-
-    def send_done(self, result: Any) -> None:
-        """ 
-        Send status update: Done, and return a result.
-
-        Arguments:
-            result (any): Any json-serializable data to return to the upstream task.
-        """
-        self.send_msg('status', status=DONE)
-        self.send_msg('return', result=result)
-
-
-    def send_fail(self, error: str) -> None:
-        """
-        Send an error.
-
-        Arguments:
-            error (str): Error message
-        """
-        self.send_msg('status', status=FAIL)
-        self.send_msg('fail',   error=error)
-
-
-    def send_log(self, file: str, data: str) -> None:
-        """
-        Send captured log output.
-
-        Arguments:
-            file (str): Capture source (stdout/stderr)
-            data (str): Captured output data
-        """
-        self.send_msg('log', file=file, data=data)

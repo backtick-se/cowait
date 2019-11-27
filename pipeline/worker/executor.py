@@ -1,5 +1,4 @@
-import os
-import sys
+import asyncio
 import traceback
 from contextlib import nullcontext
 from pipeline.network import Node
@@ -7,20 +6,22 @@ from pipeline.engine import ClusterProvider
 from pipeline.tasks import TaskContext, TaskDefinition, TaskError, StopException
 from pipeline.utils import StreamCapturing
 from .loader import instantiate_task_class
+from .worker_node import create_worker_node
+
+import websockets
 
 
-async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> None:
+async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
+    # create network node
+    node = await create_worker_node(taskdef)
+
     try:
         # create task context
-        context = TaskContext(
-            cluster = cluster,
-            taskdef = taskdef,
-            node    = node,
-        )
+        context = TaskContext(taskdef, cluster, node)
 
         # instantiate & run task
-        node.send_init(taskdef)
-        node.send_run()
+        await node.send_init(taskdef)
+        await node.send_run()
 
         # run task within a log capture context
         with capture_logs_to_node(node):
@@ -28,43 +29,34 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
             result = await task.run(**taskdef.inputs)
 
         # submit result
-        node.send_done(result)
+        await node.send_done(result)
 
     except StopException:
-        node.send_stop()
+        await node.send_stop()
+
+    except websockets.exceptions.ConnectionClosedOK:
+        print('connection closed')
+
+    except websockets.exceptions.ConnectionClosedError:
+        print('connection error')
 
     except TaskError as e:
         # pass subtask errors upstream
-        traceback.print_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
+        raise e
 
-        print('error exit. closing...')
-        await node.close()
-        print('exiting')
-        os._exit(1)
-
-    except:
+    except Exception as e:
         # capture local errors
-        traceback.print_exc()
-
         error = traceback.format_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
-        
-        print('error exit. closing...')
-        await node.close()
-        print('exiting')
-        os._exit(1)
+        await node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
+        raise e
 
     finally:
-        # clean exit
-        print('clean exit. closing...')
         await node.close()
-        print('exiting')
-        os._exit(0)
 
 
 def capture_logs_to_node(node):
     return StreamCapturing(
-        on_stdout = lambda x: node.send_log('stdout', x),
-        on_stderr = lambda x: node.send_log('stderr', x),
+        on_stdout = lambda x: asyncio.ensure_future(node.send_log('stdout', x)),
+        on_stderr = lambda x: asyncio.ensure_future(node.send_log('stderr', x)),
     ) if node.upstream else nullcontext()

@@ -13,4 +13,4 @@ RUN pip install -r requirements.txt
 COPY . .
 RUN pip install .
 
-CMD [ "python", "-u", "pipeline/worker/main.py" ]
+CMD [ "python", "-u", "main.py" ]
