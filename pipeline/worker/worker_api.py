@@ -1,7 +1,7 @@
 
 from typing import Any
 from pipeline.network import Node
-from pipeline.tasks import TaskDefinition, WAIT, WORK, DONE, STOP, FAIL
+from pipeline.tasks import TaskDefinition, WORK, DONE, STOP, FAIL
 
 
 class WorkerAPI:
@@ -12,10 +12,8 @@ class WorkerAPI:
     def __init__(self, node: Node):
         self.node = node
 
-
     async def send(self, msg: dict) -> None:
         await self.node.send(msg)
-
 
     async def msg(self, type: str, **msg) -> None:
         """
@@ -31,7 +29,6 @@ class WorkerAPI:
             **msg,
         })
 
-    
     async def init(self, taskdef: TaskDefinition) -> None:
         """
         Send a task initialization message.
@@ -41,28 +38,24 @@ class WorkerAPI:
         """
         await self.msg('init', task=taskdef.serialize())
 
-
     async def run(self) -> None:
         """ Send status update: Running """
         await self.msg('status', status=WORK)
-
 
     async def stop(self, id: str = None) -> None:
         """ Send status update: Stopped """
         await self.msg('status', status=STOP, id=id)
         await self.msg('return', result={}, id=id)
 
-
     async def done(self, result: Any) -> None:
-        """ 
+        """
         Send status update: Done, and return a result.
 
         Arguments:
-            result (any): Any json-serializable data to return to the upstream task.
+            result (any): Any serializable data to return to the upstream task.
         """
         await self.msg('status', status=DONE)
         await self.msg('return', result=result)
-
 
     async def fail(self, error: str) -> None:
         """
@@ -73,7 +66,6 @@ class WorkerAPI:
         """
         await self.msg('status', status=FAIL)
         await self.msg('fail',   error=error)
-
 
     async def log(self, file: str, data: str) -> None:
         """

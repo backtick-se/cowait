@@ -18,7 +18,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     scripts=['bin/pipeline'],
 
-    classifiers=[ ],
+    classifiers=[],
 
     python_requires='>=3.6',
 )

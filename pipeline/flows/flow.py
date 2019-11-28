@@ -10,11 +10,10 @@ class Flow(Task):
 
     def __init__(self, context: TaskContext):
         super().__init__(context)
-        self.tasks = { }
-
+        self.tasks = {}
 
     def handle(self, id: str, type: str, **msg):
-        if type == 'return' and id in self.tasks: 
+        if type == 'return' and id in self.tasks:
             future = self.tasks[id]
             if not future.done():
                 future.set_result(msg['result'])
@@ -22,7 +21,6 @@ class Flow(Task):
             future = self.tasks[id]
             if not future.done():
                 future.set_exception(TaskError(msg['error']))
-
 
     async def run(self, **inputs) -> Any:
         self.node.bind(PORT)
@@ -37,18 +35,21 @@ class Flow(Task):
             self.stop()
             raise e
 
-
     def stop(self):
         # ask the cluster to destroy any children
         # children = self.cluster.destroy_children(self.id)
 
         # send a stop message upstream for each killed task
-        #for child_id in children:
+        # for child_id in children:
         #    self.node.send_stop(id=child_id)
         pass
 
-
-    async def task(self, name: str, image: str = None, **inputs) -> asyncio.Future:
+    async def task(
+        self,
+        name: str,
+        image: str = None,
+        **inputs,
+    ) -> asyncio.Future:
         """
         Spawn a child task.
 
@@ -59,18 +60,18 @@ class Flow(Task):
         """
 
         # await any inputs
-        arguments = { }
+        arguments = {}
         for key, value in inputs.items():
             if isinstance(value, asyncio.Future):
                 value = await value
             arguments[key] = value
 
         taskdef = TaskDefinition(
-            name = name,
-            inputs = arguments,
-            parent = self.id,
-            image = image if image else self.image,
-            upstream = get_local_connstr(),
+            name=name,
+            inputs=arguments,
+            parent=self.id,
+            image=image if image else self.image,
+            upstream=get_local_connstr(),
         )
 
         task = self.cluster.spawn(taskdef)
@@ -80,9 +81,9 @@ class Flow(Task):
         self.tasks[task.id] = future
         return await future
 
-
     def define(self, name: str, image: str = None, **inputs):
         base_inputs = inputs
+
         async def task(**inputs):
             return await self.task(
                 name=name,
@@ -93,7 +94,6 @@ class Flow(Task):
                 },
             )
         return task
-
 
     @abstractmethod
     async def plan(self, **inputs):

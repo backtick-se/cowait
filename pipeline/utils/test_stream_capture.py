@@ -1,4 +1,3 @@
-import pytest
 from io import StringIO
 from unittest.mock import Mock
 from .stream_capture import StreamCapture

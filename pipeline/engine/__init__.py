@@ -1,4 +1,6 @@
-from .const import *
+# flake8: noqa: F401
+
+from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
 from .cluster import ClusterProvider
 from .docker import DockerProvider
 from .kubernetes import KubernetesProvider

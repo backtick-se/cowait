@@ -7,13 +7,12 @@ Inputs:
 Outputs:
     duration (int): Number of seconds slept
 """
-import time
 import asyncio
 from pipeline.tasks import Task
 
 
 class Lazy(Task):
-    async def run(self, duration, crash_at = -1, **inputs):
+    async def run(self, duration, crash_at=-1, **inputs):
         print('sleeping...')
 
         for i in range(1, int(duration)+1):

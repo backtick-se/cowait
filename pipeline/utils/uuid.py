@@ -1,7 +1,8 @@
 import string
 import random
 
-def uuid(length = 8, lower = True):
+
+def uuid(length=8, lower=True):
     """sebbe-approved UUID"""
     # risk of collision
     # mixed case: 8 characters -> 1 in 54 trillion
