@@ -1,12 +1,13 @@
+from .definition import TaskDefinition
 
 
-class TaskContext(object):
+class TaskContext(TaskDefinition):
     """
     Task Execution Context
 
     Attributes:
         cluster (ClusterProvider): Cluster provider
-        upstream (UpstreamConnector): Upstream connector
+        node (WorkerNode): Network node
         id (str): Task id
         name (str): Task name
         image (str): Task image
@@ -18,18 +19,17 @@ class TaskContext(object):
 
     def __init__(
         self,
+        taskdef: TaskDefinition,
         cluster,
         node,
-        taskdef,
     ):
         """
         Arguments:
-            cluster (ClusterProvider): Cluster connection
-            upstream (UpstreamConnector): Upstream connection
             taskdef (TaskDefinition): Task definition
+            cluster (ClusterProvider): Cluster connection
+            node (WorkerNode): Upstream connection
         """
+        kwargs = taskdef.serialize()
+        TaskDefinition.__init__(self, **kwargs)
         self.cluster = cluster
         self.node = node
-
-        for key, value in taskdef.serialize().items():
-            setattr(self, key, value)

@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from marshmallow import Schema, fields, post_load
 from pipeline.tasks.status import WAIT, WORK
@@ -7,7 +6,7 @@ from .service import NodeService
 
 class TaskList(NodeService):
     def __init__(self):
-        self.items = { }
+        self.items = {}
 
     def __getitem__(self, key):
         return self.items[key]
@@ -23,7 +22,7 @@ class TaskList(NodeService):
         self.items[task.id] = task
 
     def on_status(self, id, status):
-        if not id in self.items:
+        if id not in self.items:
             return
         task = self.items[id]
         task.status = status
@@ -31,19 +30,18 @@ class TaskList(NodeService):
             task.started_at = datetime.now()
 
     def on_fail(self, id, error):
-        if not id in self.items:
+        if id not in self.items:
             return
         task = self.items[id]
         task.error = error
         task.ended_at = datetime.now()
 
     def on_return(self, id, result):
-        if not id in self.items:
+        if id not in self.items:
             return
         task = self.items[id]
         task.result = result
         task.ended_at = datetime.now()
-
 
 
 class TaskListItemSchema(Schema):
@@ -65,12 +63,23 @@ class TaskListItemSchema(Schema):
     def make_task_item(self, data):
         return TaskListItem(**data)
 
+
 schema = TaskListItemSchema()
 
 
-
 class TaskListItem(object):
-    def __init__(self, id, name, image, status = WAIT, upstream = None, env = { }, meta = { }, inputs = { }, **kwargs):
+    def __init__(
+        self,
+        id,
+        name,
+        image,
+        status=WAIT,
+        upstream=None,
+        env={},
+        meta={},
+        inputs={},
+        **kwargs,
+    ):
         self.id = id
         self.name = name
         self.image = image

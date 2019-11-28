@@ -1,27 +1,26 @@
-import os
-import sys
 import asyncio
 import traceback
 from contextlib import nullcontext
-from pipeline.network import Node
 from pipeline.engine import ClusterProvider
-from pipeline.tasks import TaskContext, TaskDefinition, TaskError, StopException
+from pipeline.network import Node, ConnectionClosedOK, ConnectionClosedError
+from pipeline.tasks import TaskContext, TaskDefinition, TaskError, \
+    StopException
 from pipeline.utils import StreamCapturing
 from .loader import instantiate_task_class
+from .worker_node import create_worker_node
 
 
-async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition) -> None:
+async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
+    # create network node
+    node = await create_worker_node(taskdef)
+
     try:
         # create task context
-        context = TaskContext(
-            cluster = cluster,
-            taskdef = taskdef,
-            node    = node,
-        )
+        context = TaskContext(taskdef, cluster, node)
 
         # instantiate & run task
-        node.send_init(taskdef)
-        node.send_run()
+        await node.api.init(taskdef)
+        await node.api.run()
 
         # run task within a log capture context
         with capture_logs_to_node(node):
@@ -29,32 +28,35 @@ async def execute(cluster: ClusterProvider, node: Node, taskdef: TaskDefinition)
             result = await task.run(**taskdef.inputs)
 
         # submit result
-        node.send_done(result)
+        await node.api.done(result)
 
     except StopException:
-        node.send_stop()
+        await node.api.stop()
+
+    except ConnectionClosedOK:
+        print('~~ upstream connection closed.')
+
+    except ConnectionClosedError:
+        print('~~ upstream connection error:')
+        traceback.print_exc()
 
     except TaskError as e:
         # pass subtask errors upstream
-        traceback.print_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{e.error}')
-        os._exit(1)
+        await node.api.fail(f'Caught exception in {taskdef.id}:\n{e.error}')
+        raise e
 
-    except:
+    except Exception as e:
         # capture local errors
-        traceback.print_exc()
-
         error = traceback.format_exc()
-        node.send_fail(f'Caught exception in task {taskdef.id}:\n{error}')
-        os._exit(1)
+        await node.api.fail(f'Caught exception in {taskdef.id}:\n{error}')
+        raise e
 
     finally:
-        # clean exit
-        os._exit(0)
+        await node.close()
 
 
-def capture_logs_to_node(node):
+def capture_logs_to_node(node: Node) -> StreamCapturing:
     return StreamCapturing(
-        on_stdout = lambda x: node.send_log('stdout', x),
-        on_stderr = lambda x: node.send_log('stderr', x),
+        on_stdout=lambda x: asyncio.ensure_future(node.api.log('stdout', x)),
+        on_stderr=lambda x: asyncio.ensure_future(node.api.log('stderr', x)),
     ) if node.upstream else nullcontext()

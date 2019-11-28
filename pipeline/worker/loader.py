@@ -1,6 +1,6 @@
 import importlib
 from typing import TypeVar
-from pipeline.tasks import TaskDefinition, TaskContext, TaskNotFoundError
+from pipeline.tasks import TaskContext, TaskNotFoundError
 
 
 def load_task_class(task_name: str) -> TypeVar:
@@ -13,7 +13,8 @@ def load_task_class(task_name: str) -> TypeVar:
         raise TaskNotFoundError(f'No such task module: {task_name}')
 
     except AttributeError:
-        raise TaskNotFoundError(f'No task class exported from module {task_name}')
+        raise TaskNotFoundError(
+            f'No task class exported from module {task_name}')
 
 
 def instantiate_task_class(context: TaskContext):

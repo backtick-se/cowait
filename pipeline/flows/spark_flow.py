@@ -2,8 +2,11 @@ import asyncio
 from typing import Any
 from .flow import Flow
 
+# todo: refactor to websockets
+
+
 class SparkFlow(Flow):
-    async def run(self, workers = 1, **inputs) -> Any:
+    async def run(self, workers=1, **inputs) -> Any:
         self.node.bind('tcp://*:1337')
         self.node.attach(self)
 
@@ -18,13 +21,13 @@ class SparkFlow(Flow):
         self.task(
             name='master',
             image='spark-master',
-            env={ },
+            env={},
         )
         for i in range(0, workers):
             self.task(
                 name=f'worker{i}',
                 image='spark-worker',
-                env={ },
+                env={},
             )
 
         try:
