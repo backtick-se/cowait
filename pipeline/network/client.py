@@ -10,7 +10,7 @@ class Client:
         self.uri = uri
         self.queue = []
 
-    async def connect(self, retries: int = 3, delay: float = 1.0):
+    async def connect(self, retries: int = 10, delay: float = 1.0):
         retries_left = retries
         while retries_left > 0:
             try:
@@ -25,8 +25,9 @@ class Client:
                 return
 
             except (ConnectionRefusedError, ConnectionClosed):
-                retries_left -= 1
                 await asyncio.sleep(delay)
+                retries_left -= 1
+                delay *= 1.5  # exponential backoff
 
         raise ConnectionError(
             f'Unable to connect to upstream at {self.uri}'
