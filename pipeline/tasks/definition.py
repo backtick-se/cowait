@@ -19,17 +19,18 @@ class TaskDefinition(object):
         env (dict): Environment variables
     """
 
-    def __init__(self, 
-        name:      str, 
-        image:     str, 
-        id:        str  = None, 
-        upstream:  str  = None,
-        parent:    str  = None,
-        namespace: str  = 'default', 
-        config:    dict = { }, 
-        inputs:    dict = { }, 
-        meta:      dict = { },
-        env:       dict = { },
+    def __init__(
+        self,
+        name:      str,
+        image:     str,
+        id:        str = None,
+        upstream:  str = None,
+        parent:    str = None,
+        namespace: str = 'default',
+        config:    dict = {},
+        inputs:    dict = {},
+        meta:      dict = {},
+        env:       dict = {},
     ):
         """
         Arguments:
@@ -43,22 +44,20 @@ class TaskDefinition(object):
             meta (dict): Freeform metadata
             env (dict): Environment variables
         """
-        self.id        = '%s-%s' % (name, uuid()) if not id else id
-        self.name      = name
-        self.image     = image
-        self.parent    = parent
-        self.upstream  = upstream
+        self.id = '%s-%s' % (name, uuid()) if not id else id
+        self.name = name
+        self.image = image
+        self.parent = parent
+        self.upstream = upstream
         self.namespace = namespace
-        self.config    = config
-        self.inputs    = inputs
-        self.meta      = meta
-        self.env       = env
-
+        self.config = config
+        self.inputs = inputs
+        self.meta = meta
+        self.env = env
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
         return TaskDefinitionSchema().dump(self)
-
 
     @staticmethod
     def deserialize(taskdef: dict) -> TaskDefinition:
@@ -66,20 +65,19 @@ class TaskDefinition(object):
         return TaskDefinitionSchema().load(taskdef)
 
 
-
 class TaskDefinitionSchema(Schema):
     """ TaskDefinition serialization schema. """
 
-    id        = fields.Str(required=True)
-    name      = fields.Str(required=True)
-    image     = fields.Str(required=True)
-    upstream  = fields.Str(allow_none=True)
-    parent    = fields.Str(allow_none=True)
+    id = fields.Str(required=True)
+    name = fields.Str(required=True)
+    image = fields.Str(required=True)
+    upstream = fields.Str(allow_none=True)
+    parent = fields.Str(allow_none=True)
     namespace = fields.Str(missing='default')
-    config    = fields.Dict(missing={})
-    inputs    = fields.Dict(missing={})
-    meta      = fields.Dict(missing={})
-    env       = fields.Dict(missing={})
+    config = fields.Dict(missing={})
+    inputs = fields.Dict(missing={})
+    meta = fields.Dict(missing={})
+    env = fields.Dict(missing={})
 
     @post_load
     def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:

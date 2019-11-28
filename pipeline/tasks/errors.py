@@ -1,9 +1,9 @@
 
 
 class TaskError(RuntimeError):
-    """ 
-    Raised when an error is received from a subtask 
-    
+    """
+    Raised when an error is received from a subtask
+
     Attributes:
         error (str): Original error message
     """

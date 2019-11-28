@@ -1,7 +1,6 @@
 import os
 import time
 import kubernetes
-from typing import Dict
 from kubernetes import client, config, watch
 from pipeline.tasks import Task, TaskContext, TaskDefinition
 from .const import ENV_TASK_CLUSTER
@@ -14,7 +13,13 @@ LABEL_PARENT_ID = 'pipeline/parent'
 
 
 class KubernetesTask(Task):
-    def __init__(self, cluster: ClusterProvider, taskdef: TaskDefinition, job, pod):
+    def __init__(
+        self,
+        cluster: ClusterProvider,
+        taskdef: TaskDefinition,
+        job,
+        pod,
+    ):
         super().__init__(TaskContext(
             cluster=cluster,
             taskdef=taskdef,
@@ -25,7 +30,7 @@ class KubernetesTask(Task):
 
 
 class KubernetesProvider(ClusterProvider):
-    def __init__(self, args = { }):
+    def __init__(self, args={}):
         super().__init__('kubernetes', args)
 
         # hacky way to check if we're running within a pod
@@ -35,32 +40,33 @@ class KubernetesProvider(ClusterProvider):
             config.load_kube_config()
 
         configuration = client.Configuration()
-        self.batch = client.BatchV1Api(kubernetes.client.ApiClient(configuration))
-        self.core = client.CoreV1Api(kubernetes.client.ApiClient(configuration))
-
+        self.batch = client.BatchV1Api(
+            kubernetes.client.ApiClient(configuration))
+        self.core = client.CoreV1Api(
+            kubernetes.client.ApiClient(configuration))
 
     def spawn(self, taskdef: TaskDefinition, timeout=30) -> KubernetesTask:
         # container definition
         container = client.V1Container(
-            name  = taskdef.id,
-            image = taskdef.image, 
-            env   = self.create_env(taskdef),
-            ports = [ client.V1ContainerPort(container_port=1337) ],
+            name=taskdef.id,
+            image=taskdef.image,
+            env=self.create_env(taskdef),
+            ports=[client.V1ContainerPort(container_port=1337)],
             image_pull_policy='Always',
         )
 
         # job definition
         jobdef = client.V1Job(
-            api_version='batch/v1', 
+            api_version='batch/v1',
             kind='Job',
             status=client.V1JobStatus(),
             metadata=client.V1ObjectMeta(
-                namespace=taskdef.namespace, 
+                namespace=taskdef.namespace,
                 name=taskdef.id,
             ),
             spec=client.V1JobSpec(
                 backoff_limit=0,
-                ttl_seconds_after_finished=600, 
+                ttl_seconds_after_finished=600,
                 template=client.V1PodTemplateSpec(
                     metadata=client.V1ObjectMeta(
                         name=taskdef.id,
@@ -71,7 +77,7 @@ class KubernetesProvider(ClusterProvider):
                     ),
                     spec=client.V1PodSpec(
                         hostname=taskdef.id,
-                        containers=[ container ], 
+                        containers=[container],
                         restart_policy='Never'
                     ),
                 ),
@@ -93,30 +99,26 @@ class KubernetesProvider(ClusterProvider):
         print('~~ created kubenetes pod with name', pod.metadata.name)
         return KubernetesTask(self, taskdef, job, pod)
 
-
     def destroy(self, task_id):
         self.core.delete_collection_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'{LABEL_TASK_ID}={task_id}', 
+            label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
         return task_id
-
 
     def get_task_pod(self, task_id):
         res = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'{LABEL_TASK_ID}={task_id}', 
+            label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
         return res.items[0] if len(res.items) > 0 else None
-
 
     def get_task_child_pods(self, task_id: str):
         res = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'{LABEL_PARENT_ID}={task_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={task_id}',
         )
         return res.items
-
 
     def wait(self, task: KubernetesTask) -> None:
         while True:
@@ -133,29 +135,27 @@ class KubernetesProvider(ClusterProvider):
 
             time.sleep(0.5)
 
-
     def logs(self, task: KubernetesTask):
         try:
             w = watch.Watch()
             return w.stream(
-                self.core.read_namespaced_pod_log, 
-                name=task.pod.metadata.name, 
+                self.core.read_namespaced_pod_log,
+                name=task.pod.metadata.name,
                 namespace=task.pod.metadata.namespace,
             )
-        except:
+        except Exception:
             self.logs(task)
-
 
     def create_env(self, taskdef: TaskDefinition):
         env = super().create_env(taskdef)
-        env_list = [ ]
+        env_list = []
         for name, value in env.items():
             env_list.append(client.V1EnvVar(name, value))
         return env_list
 
     def destroy_all(self, task_id) -> None:
         def kill_family(task_id):
-            kills = [ ]
+            kills = []
             children = self.get_task_child_pods(task_id)
             for child in children.items:
                 child_id = child.metadata.labels[LABEL_TASK_ID]
@@ -169,13 +169,16 @@ class KubernetesProvider(ClusterProvider):
     def destroy_children(self, parent_id: str) -> list:
         children = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'{LABEL_PARENT_ID}={parent_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
         )
 
         self.core.delete_collection_namespaced_pod(
             namespace=NAMESPACE,
-            label_selector=f'{LABEL_PARENT_ID}={parent_id}', 
+            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
         )
 
         # return killed child ids
-        return [ child.metadata.labels[LABEL_TASK_ID] for child in children.items ]
+        return [
+            child.metadata.labels[LABEL_TASK_ID]
+            for child in children.items
+        ]

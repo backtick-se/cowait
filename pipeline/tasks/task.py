@@ -1,7 +1,5 @@
 from abc import ABC
-from typing import Any, Iterable
-from datetime import datetime
-from marshmallow import Schema, fields
+from typing import Any
 from .errors import StopException
 from .context import TaskContext
 
@@ -25,29 +23,26 @@ class Task(ABC):
         Arguments:
             context (TaskContext): Task execution context
         """
-        self.id       = context.id
-        self.name     = context.name
-        self.image    = context.image
-        self.inputs   = context.inputs
-        self.parent   = context.parent
+        self.id = context.id
+        self.name = context.name
+        self.image = context.image
+        self.inputs = context.inputs
+        self.parent = context.parent
         self.upstream = context.upstream
-        self.cluster  = context.cluster
-        self.node     = context.node
-
+        self.cluster = context.cluster
+        self.node = context.node
 
     def run(self, **inputs: dict) -> Any:
         pass
 
-
     def stop(self) -> None:
-        """ 
+        """
         Abort task execution.
 
         Raises:
             StopException: Used to stop execution.
         """
         raise StopException()
-
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'

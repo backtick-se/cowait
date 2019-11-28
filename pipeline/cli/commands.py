@@ -15,16 +15,17 @@ def build(task: str) -> TaskImage:
         print('found custom requirements.txt:', requirements)
 
     # find custom Dockerfile
-    # if it exists, build it, then extend that instead of the default base image
+    # if it exists, build it and extend that instead of the default base image
     dockerfile = image.find_file('Dockerfile')
     if dockerfile:
-        print('found custom Dockerfile:', os.path.relpath(dockerfile, image.root))
+        print('found custom Dockerfile:',
+              os.path.relpath(dockerfile, image.root))
         print('building custom base image...')
         logs = image.build_custom_base(dockerfile)
         for log in logs:
             if 'stream' in log:
                 print(log['stream'], flush=True, end='')
-    
+
     print('building task image...')
     logs = image.build(
         requirements=requirements,
@@ -37,7 +38,14 @@ def build(task: str) -> TaskImage:
     return image
 
 
-def run(task: str, provider: str, inputs: dict = { }, config: dict = { }, env: dict = { }, upstream = None):
+def run(
+    task: str,
+    provider: str,
+    inputs: dict = {},
+    config: dict = {},
+    env: dict = {},
+    upstream=None
+):
     image = f'johanhenriksson/pipeline-task:{task}'
 
     # grab cluster provider
@@ -45,14 +53,14 @@ def run(task: str, provider: str, inputs: dict = { }, config: dict = { }, env: d
 
     # define task
     taskdef = TaskDefinition(
-        name      = task,
-        image     = image,
-        config    = config,
-        inputs    = inputs,
-        env       = env,
-        namespace = 'default',
-        upstream  = upstream,
-        parent    = None, # root task
+        name=task,
+        image=image,
+        config=config,
+        inputs=inputs,
+        env=env,
+        namespace='default',
+        upstream=upstream,
+        parent=None,  # root task
     )
 
     # print execution info
@@ -94,9 +102,3 @@ def destroy(provider: str) -> None:
 
     # kill all tasks
     cluster.destroy_all()
-
-
-
-class Context(object):
-    def __init__(self, provider, args):
-        pass

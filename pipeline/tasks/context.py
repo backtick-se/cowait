@@ -16,7 +16,8 @@ class TaskContext(object):
         upstream (str): Upstream connection string
     """
 
-    def __init__(self, 
+    def __init__(
+        self,
         cluster,
         node,
         taskdef,
@@ -27,7 +28,7 @@ class TaskContext(object):
             upstream (UpstreamConnector): Upstream connection
             taskdef (TaskDefinition): Task definition
         """
-        self.cluster  = cluster
+        self.cluster = cluster
         self.node = node
 
         for key, value in taskdef.serialize().items():

@@ -3,55 +3,75 @@ import json
 import click
 import pipeline.cli
 
+
 def option_dict(opts):
-    options = { }
+    options = {}
     for opt in opts:
         options[opt[0]] = json.loads(opt[1])
     return options
 
-@click.group()
-def cli():
-    pass
 
 @click.command(help='run a task')
 @click.argument('task')
-@click.option('--provider', default='docker', type=str, help='cluster provider type')
-@click.option('--input', type=(str, str), multiple=True, help='specify task input')
-@click.option('--config', type=(str, str), multiple=True, help='specify task config')
-@click.option('--env', type=(str, str), multiple=True, help='define enviornment variable')
-@click.option('--upstream', type=(str), help='root task upstream uri')
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
+@click.option('--input',
+              type=(str, str),
+              multiple=True,
+              help='specify task input')
+@click.option('--config',
+              type=(str, str),
+              multiple=True,
+              help='specify task config')
+@click.option('--env',
+              type=(str, str),
+              multiple=True,
+              help='define enviornment variable')
+@click.option('--upstream',
+              type=(str),
+              help='root task upstream uri')
 def run(task: str, provider: str, input, config, env, upstream: str):
     pipeline.cli.run(
-        task, 
+        task,
         provider=provider,
         inputs=option_dict(input),
         config=option_dict(config),
         env=option_dict(env),
         upstream=upstream,
     )
-cli.add_command(run)
 
 
 @click.command(help='build a task')
 @click.argument('task')
 def build(task: str):
     pipeline.cli.build(task)
-cli.add_command(build)
 
 
 @click.command(help='push a task to the registry')
 @click.argument('task')
 def push(task: str):
     pipeline.cli.push(task)
-cli.add_command(push)
 
 
 @click.command(help='destroy tasks')
-@click.option('--provider', default='docker', type=str, help='cluster provider type')
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
 def destroy(provider):
     pipeline.cli.destroy(provider)
-cli.add_command(destroy)
 
-    
+
 if __name__ == '__main__':
+    @click.group()
+    def cli():
+        pass
+
+    cli.add_command(run)
+    cli.add_command(build)
+    cli.add_command(push)
+    cli.add_command(destroy)
+
     cli()

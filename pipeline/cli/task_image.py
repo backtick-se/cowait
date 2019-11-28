@@ -5,27 +5,27 @@ from .const import CONTEXT_FILE_NAME, DEFAULT_BASE_IMAGE
 
 client = docker.from_env()
 
+
 class TaskImage(object):
-    def __init__(self, name, task_path, root_path, base_image = None):
+    def __init__(self, name, task_path, root_path, base_image=None):
         self.name = name
         self.path = task_path
         self.root = root_path
         self.base = base_image if base_image else DEFAULT_BASE_IMAGE
         self.image = None
 
-
     def find_file(self, file_name):
         """ Find a file within the task context and return its full path """
         return find_file_in_parents(self.path, file_name)
 
-
     def find_file_rel(self, file_name):
-        """ Find a file within the task context and return its relative path """
+        """
+        Find a file within the task context and return its relative path
+        """
         abs_path = self.find_file(file_name)
         if not abs_path:
             return None
         return os.path.relpath(abs_path, self.root)
-
 
     def build_custom_base(self, dockerfile):
         """ Build a custom image and set it as the base image for this task """
@@ -36,8 +36,7 @@ class TaskImage(object):
         self.base = custom_base.id
         return logs
 
-
-    def build(self, requirements = None):
+    def build(self, requirements=None):
         """ Build task image """
 
         # create temporary dockerfile
@@ -48,7 +47,8 @@ class TaskImage(object):
 
             # install task-specific requirements
             if requirements:
-                print(f'COPY ./{requirements} ./task_requirements.txt', file=df)
+                print(
+                    f'COPY ./{requirements} ./task_requirements.txt', file=df)
                 print('RUN pip install -r ./task_requirements.txt', file=df)
 
             # copy source code
@@ -56,8 +56,8 @@ class TaskImage(object):
 
         # build image
         self.image, logs = client.images.build(
-            path       = self.root,
-            dockerfile = df_path,
+            path=self.root,
+            dockerfile=df_path,
         )
 
         # remove temproary dockerfile
@@ -65,7 +65,6 @@ class TaskImage(object):
 
         return logs
 
-    
     def push(self, repository):
         """ Push task image to a repository """
         if not self.image:
@@ -79,10 +78,9 @@ class TaskImage(object):
         logs = client.images.push(
             repository=repository,
             tag=self.name,
-            stream = True
+            stream=True
         )
         return logs
-
 
     def run(self):
         """ Run task in a container """
@@ -90,16 +88,15 @@ class TaskImage(object):
             raise RuntimeError('Task must be built first')
 
         return client.containers.run(
-            image = self.image.id,
-            detach = True,
-            environment = {
+            image=self.image.id,
+            detach=True,
+            environment={
                 'PYTHONUNBUFFERED': '0',
             },
         )
 
-
     @staticmethod
-    def create(task_name, work_dir = None):
+    def create(task_name, work_dir=None):
         if not work_dir:
             work_dir = os.getcwd()
 
@@ -113,13 +110,15 @@ class TaskImage(object):
         # find context file
         context_file = find_file_in_parents(task_path, CONTEXT_FILE_NAME)
         if context_file is None:
-            raise RuntimeError(f'Could not find {CONTEXT_FILE_NAME} in {task_path} or any of its parent directories.')
+            raise RuntimeError(
+                f'Could not find {CONTEXT_FILE_NAME}'
+                f' in {task_path} or any of its parent directories.')
 
         # context path is the enclosing folder
         root_path = os.path.dirname(context_file)
 
         return TaskImage(
-            name      = task_name,
-            task_path = task_path,
-            root_path = root_path,
+            name=task_name,
+            task_path=task_path,
+            root_path=root_path,
         )
