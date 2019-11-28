@@ -7,6 +7,7 @@ verify_ssl = true
 pytest = "*"
 pytest-sugar = "*"
 pytest-cov = "*"
+flake8 = "*"
 
 [packages]
 click = "*"
