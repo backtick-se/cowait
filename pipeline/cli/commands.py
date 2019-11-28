@@ -1,22 +1,24 @@
 import os.path
 from .task_image import TaskImage
+from .context import PipelineContext
 from ..engine import get_cluster_provider
 from ..tasks import TaskDefinition
 
 
 def build(task: str) -> TaskImage:
-    image = TaskImage.create(task)
-    print('context path:', image.root)
+    context = PipelineContext.open()
+    image = TaskImage.open(context, task)
+    print('context path:', context.path)
 
     # find task-specific requirements.txt
     # if it exists, it will be copied to the container, and installed
-    requirements = image.find_file_rel('requirements.txt')
+    requirements = context.file_rel('requirements.txt')
     if requirements:
         print('found custom requirements.txt:', requirements)
 
     # find custom Dockerfile
     # if it exists, build it and extend that instead of the default base image
-    dockerfile = image.find_file('Dockerfile')
+    dockerfile = context.file('Dockerfile')
     if dockerfile:
         print('found custom Dockerfile:',
               os.path.relpath(dockerfile, image.root))
@@ -46,6 +48,7 @@ def run(
     env: dict = {},
     upstream=None
 ):
+    context = PipelineContext.open()
     image = f'johanhenriksson/pipeline-task:{task}'
 
     # grab cluster provider
@@ -55,7 +58,10 @@ def run(
     taskdef = TaskDefinition(
         name=task,
         image=image,
-        config=config,
+        config={
+            **context.config,
+            **config,
+        },
         inputs=inputs,
         env=env,
         namespace='default',

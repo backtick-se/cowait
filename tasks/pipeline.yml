@@ -1,0 +1,8 @@
+version: 1
+pipeline:
+  cluster:
+    provider: 
+      type: kubernetes
+
+  node:
+    port: 1338

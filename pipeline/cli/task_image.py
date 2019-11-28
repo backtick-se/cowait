@@ -1,31 +1,18 @@
 import os
 import docker
-from .utils import find_file_in_parents
-from .const import CONTEXT_FILE_NAME, DEFAULT_BASE_IMAGE
+from .const import DEFAULT_BASE_IMAGE
+from .context import PipelineContext
 
 client = docker.from_env()
 
 
 class TaskImage(object):
-    def __init__(self, name, task_path, root_path, base_image=None):
+    def __init__(self, context, name, task_path, base_image=None):
+        self.context = context
         self.name = name
         self.path = task_path
-        self.root = root_path
         self.base = base_image if base_image else DEFAULT_BASE_IMAGE
         self.image = None
-
-    def find_file(self, file_name):
-        """ Find a file within the task context and return its full path """
-        return find_file_in_parents(self.path, file_name)
-
-    def find_file_rel(self, file_name):
-        """
-        Find a file within the task context and return its relative path
-        """
-        abs_path = self.find_file(file_name)
-        if not abs_path:
-            return None
-        return os.path.relpath(abs_path, self.root)
 
     def build_custom_base(self, dockerfile):
         """ Build a custom image and set it as the base image for this task """
@@ -40,7 +27,7 @@ class TaskImage(object):
         """ Build task image """
 
         # create temporary dockerfile
-        df_path = os.path.join(self.root, '__dockerfile__')
+        df_path = os.path.join(self.context.path, '__dockerfile__')
         with open(df_path, 'w') as df:
             # extend base image
             print(f'FROM {self.base}', file=df)
@@ -56,7 +43,7 @@ class TaskImage(object):
 
         # build image
         self.image, logs = client.images.build(
-            path=self.root,
+            path=self.context.path,
             dockerfile=df_path,
         )
 
@@ -96,29 +83,16 @@ class TaskImage(object):
         )
 
     @staticmethod
-    def create(task_name, work_dir=None):
-        if not work_dir:
-            work_dir = os.getcwd()
-
+    def open(context: PipelineContext, task_name: str):
         task_parts = task_name.split('.')
-        task_path = os.path.join(work_dir, *task_parts)
+        task_path = os.path.join(context.path, *task_parts)
 
         # ensure directory exists
         if not os.path.isdir(task_path):
             raise FileNotFoundError(f'Task directory not found at {task_path}')
 
-        # find context file
-        context_file = find_file_in_parents(task_path, CONTEXT_FILE_NAME)
-        if context_file is None:
-            raise RuntimeError(
-                f'Could not find {CONTEXT_FILE_NAME}'
-                f' in {task_path} or any of its parent directories.')
-
-        # context path is the enclosing folder
-        root_path = os.path.dirname(context_file)
-
         return TaskImage(
+            context=context,
             name=task_name,
             task_path=task_path,
-            root_path=root_path,
         )
