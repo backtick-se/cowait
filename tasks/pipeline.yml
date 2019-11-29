@@ -1,5 +1,20 @@
 version: 1
 pipeline:
+  repo: johanhenriksson/pipeline-task
+
   cluster:
-    provider: 
-      type: docker
+    type: docker
+    network: tasks
+
+  storage:
+    pipeline:
+      type: s3
+      bucket: localhost:9000/hello
+      access_id: 123
+      secret_key: 456
+
+    lazy_output:
+      type: s3
+      bucket: localhost:9000/tasks/lazy
+      access_id: 123
+      secret_key: 456

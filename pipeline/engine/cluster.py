@@ -13,6 +13,9 @@ class ClusterTask(TaskDefinition):
         super().__init__(**kwargs)
         self.cluster = cluster
 
+    def destroy(self):
+        self.cluster.destroy(self.id)
+
 
 class ClusterProvider(ABC):
     def __init__(self, type, args={}):

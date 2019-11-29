@@ -11,15 +11,15 @@ class Flow(Task):
     def handle(self, id: str, type: str, **msg):
         # complete future when we get a return message from a subtask
         if type == 'return' and id in self.tasks:
-            future = self.tasks[id]
-            if not future.done():
-                future.set_result(msg['result'])
+            task = self.tasks[id]
+            if not task.result.done():
+                task.result.set_result(msg['result'])
 
         # fail future when we get an error message from a subtask
         if type == 'fail' and id in self.tasks:
-            future = self.tasks[id]
-            if not future.done():
-                future.set_exception(TaskError(msg['error']))
+            task = self.tasks[id]
+            if not task.result.done():
+                task.result.set_exception(TaskError(msg['error']))
 
     async def run(self, **inputs) -> Any:
         self.tasks = {}
@@ -50,7 +50,7 @@ class Flow(Task):
         image: str = None,
         env: dict = {},
         **inputs,
-    ) -> asyncio.Future:
+    ) -> Task:
         """
         Spawn a child task.
 
@@ -62,8 +62,8 @@ class Flow(Task):
 
         # await any inputs
         for key, value in inputs.items():
-            if isinstance(value, asyncio.Future):
-                inputs[key] = await value
+            if isinstance(value, TaskDefinition):
+                inputs[key] = await value.result
 
         taskdef = TaskDefinition(
             name=name,
@@ -80,28 +80,10 @@ class Flow(Task):
 
         task = self.cluster.spawn(taskdef)
 
-        # return a future
-        future = asyncio.Future()
-        self.tasks[task.id] = future
-        return await future
+        # attach a future
+        task.result = asyncio.Future()
 
-    def define(
-        self,
-        name: str,
-        image: str = None,
-        env: dict = {},
-        **inputs,
-    ) -> callable:
-        base_inputs = inputs
-
-        async def task(**inputs):
-            return await self.task(
-                name=name,
-                image=image,
-                env=env,
-                **base_inputs,
-                **inputs,
-            )
+        self.tasks[task.id] = task
         return task
 
     @abstractmethod

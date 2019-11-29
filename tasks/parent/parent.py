@@ -4,6 +4,9 @@ from lazy.lazy import Lazy
 
 
 class LazyParentTask(Flow):
+    image = 'johanhenriksson/pipeline-task:parent'
+    command = 'python -u main.py'
+
     async def plan(
         self,
         duration,

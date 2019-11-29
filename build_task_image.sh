@@ -6,4 +6,7 @@ TAG="base"
 IMAGE="johanhenriksson/pipeline-task:$TAG"
 
 docker build --tag $IMAGE .
-docker push $IMAGE
+
+if [ "$1" == "--push" ]; then
+    docker push $IMAGE
+fi

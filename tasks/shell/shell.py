@@ -1,14 +1,16 @@
+import os
 import asyncio
 from pipeline.tasks import Task
 
 
 class ShellTask(Task):
-    async def run(self, command):
-        # spawn shell command
+    async def run(self, command, **inputs):
+        # run shell command
         process = await asyncio.create_subprocess_shell(
             command,
             stderr=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
+            env=os.environ,  # inherit environment
         )
 
         # setup stream readers
