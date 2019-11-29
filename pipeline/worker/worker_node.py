@@ -45,7 +45,6 @@ class WorkerNode(Node):
             await self.api.fail(
                 f'Caught exception in {taskdef.id}:\n'
                 f'{e.error}')
-            raise e
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """

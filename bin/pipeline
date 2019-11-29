@@ -4,10 +4,17 @@ import click
 import pipeline.cli
 
 
+def option_val(val):
+    try:
+        return json.loads(val)
+    except json.JSONDecodeError:
+        return val
+
+
 def option_dict(opts):
     options = {}
-    for opt in opts:
-        options[opt[0]] = json.loads(opt[1])
+    for [key, val] in opts:
+        options[key] = option_val(val)
     return options
 
 

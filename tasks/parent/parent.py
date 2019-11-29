@@ -1,6 +1,6 @@
 import random
-import asyncio
-from pipeline.flows import Flow
+from pipeline.flows import Flow, join
+from lazy.lazy import Lazy
 
 
 class LazyParentTask(Flow):
@@ -10,19 +10,21 @@ class LazyParentTask(Flow):
         max_duration=0,
         count=2,
         crash_at=-1,
+        concurrent=True,
         **inputs,
     ):
         if max_duration < duration:
             max_duration = duration
 
-        tasks = []
-        for _ in range(0, count):
-            t = self.task(
+        def make_task():
+            return self.task(
                 name='lazy',
-                image='johanhenriksson/pipeline-task:lazy',
+                image=Lazy.image,
                 duration=random.randint(duration, max_duration),
-                crash_at=crash_at,
-            )
-            tasks.append(t)
+                crash_at=crash_at)
 
-        return await asyncio.gather(*tasks)
+        if concurrent:
+            tasks = [make_task() for _ in range(0, count)]
+            return await join(*tasks)
+        else:
+            return [await make_task() for _ in range(0, count)]
