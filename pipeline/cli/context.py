@@ -8,12 +8,15 @@ client = docker.from_env()
 
 
 class PipelineContext(object):
-    def __init__(self, path: str, config: dict):
+    def __init__(self, path: str, definition: dict):
         self.path = path
-        self.config = config
+        self.definition = definition
 
     def __getitem__(self, key):
-        return self.config.get(key)
+        return self.definition.get(key)
+
+    def get(self, key, default):
+        return self.definition.get(key, default)
 
     def file(self, file_name: str) -> str:
         """ Find a file within the task context and return its full path """
@@ -27,6 +30,11 @@ class PipelineContext(object):
         if not abs_path:
             return None
         return os.path.relpath(abs_path, self.root)
+
+    def coalesce(self, key, value, default):
+        if value is not None:
+            return value
+        return self.get(key, default)
 
     @staticmethod
     def open(root_path: str = None):
@@ -46,12 +54,12 @@ class PipelineContext(object):
             if 'version' not in context_def or context_def['version'] != 1:
                 raise RuntimeError('Invalid pipeline context version')
 
-            config = context_def.get('pipeline', {})
+            context = context_def.get('pipeline', {})
 
         # context path is the enclosing folder
         root_path = os.path.dirname(context_file_path)
 
         return PipelineContext(
             path=root_path,
-            config=config,
+            definition=context,
         )

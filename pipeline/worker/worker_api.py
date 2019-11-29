@@ -9,8 +9,10 @@ class WorkerAPI:
     Upstream API client.
     """
 
-    def __init__(self, node: Node):
+    def __init__(self, node: Node, taskdef: TaskDefinition):
+        self.taskdef = taskdef
         self.node = node
+        self.id = taskdef.id
 
     async def send(self, msg: dict) -> None:
         await self.node.send(msg)
@@ -24,19 +26,19 @@ class WorkerAPI:
             kwargs (dict): Message fields
         """
         await self.send({
-            'id': self.node.id,
+            'id': self.id,
             'type': type,
             **msg,
         })
 
-    async def init(self, taskdef: TaskDefinition) -> None:
+    async def init(self) -> None:
         """
         Send a task initialization message.
 
         Arguments:
             taskdef (TaskDefinition): New task definition
         """
-        await self.msg('init', task=taskdef.serialize())
+        await self.msg('init', task=self.taskdef.serialize())
 
     async def run(self) -> None:
         """ Send status update: Running """

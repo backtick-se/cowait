@@ -1,36 +1,61 @@
 
 
+import asyncio
+from contextlib import nullcontext
 from pipeline.network import Node
-from pipeline.tasks import TaskDefinition
+from pipeline.tasks import TaskError, StopException
+from pipeline.utils import StreamCapturing
 from .worker_api import WorkerAPI
-from .service import FlowLogger
+from .loader import load_task_class
 
 
-async def create_worker_node(taskdef: TaskDefinition) -> Node:
-    """
-    Create a worker node.
-    """
+class WorkerNode(Node):
+    def __init__(self, cluster, taskdef):
+        super().__init__()
+        self.cluster = cluster
+        self.api = WorkerAPI(self, taskdef)
 
-    node = Node(taskdef.id)
-    node.api = WorkerAPI(node)
+    async def run(self, taskdef):
+        try:
+            await self.api.init()
 
-    if not taskdef.parent:
-        # set up root node
-        if taskdef.upstream:
-            # this is the root task but an upstream has been specified.
-            # connect upstream and forward events.
-            print('~~ root: connecting upstream')
-            await node.connect(taskdef.upstream)
-        else:
-            # if we dont have anywhere to forward events, log them to stdout.
-            # logs will be picked up by docker/kubernetes.
-            print('~~ root: stdout mode')
-            node.attach(FlowLogger())
+            # run task within a log capture context
+            with self.capture_logs():
+                # todo: perhaps we want to use an external process for this?
+                # - easy to capture stdin/stdout
+                # - error isolation
+                # - language agnosticism!
 
-    else:
-        # set up child node
-        # connect upstream and forward events.
-        print('~~ child: connecting upstream')
-        await node.connect(taskdef.upstream)
+                # instantiate
+                TaskClass = load_task_class(taskdef.name)
+                task = TaskClass(taskdef, self.cluster, self)
 
-    return node
+                # run task
+                await self.api.run()
+                result = await task.run(**taskdef.inputs)
+
+            # submit result
+            await self.api.done(result)
+
+        except StopException:
+            await self.api.stop()
+
+        except TaskError as e:
+            # pass subtask errors upstream
+            await self.api.fail(
+                f'Caught exception in {taskdef.id}:\n'
+                f'{e.error}')
+            raise e
+
+    def capture_logs(self) -> StreamCapturing:
+        """ Sets up a stream capturing context, forwarding logs to the node """
+        if not self.upstream:
+            return nullcontext()
+
+        def stdout(x):
+            return asyncio.ensure_future(self.api.log('stdout', x))
+
+        def stderr(x):
+            return asyncio.ensure_future(self.api.log('stderr', x))
+
+        return StreamCapturing(stdout, stderr)

@@ -1,20 +1,19 @@
 import docker
-from pipeline.tasks import Task, TaskContext, TaskDefinition
-from .cluster import ClusterProvider
+from pipeline.tasks import TaskDefinition
+from .cluster import ClusterProvider, ClusterTask
 
 
-class DockerTask(Task):
+class DockerTask(ClusterTask):
     def __init__(
         self,
         cluster: ClusterProvider,
         taskdef: TaskDefinition,
         container
     ):
-        super().__init__(TaskContext(
+        super().__init__(
             cluster=cluster,
             taskdef=taskdef,
-            node=None,
-        ))
+        )
         self.container = container
 
 
@@ -24,7 +23,7 @@ class DockerProvider(ClusterProvider):
         self.docker = docker.from_env()
         self.tasks = {}
 
-    def spawn(self, taskdef: TaskDefinition):
+    def spawn(self, taskdef: TaskDefinition) -> DockerTask:
         container = self.docker.containers.run(
             detach=True,
             image=taskdef.image,

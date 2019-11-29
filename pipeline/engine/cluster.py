@@ -3,8 +3,15 @@ import json
 from abc import ABC, abstractmethod
 from typing import Iterable
 from marshmallow import Schema, fields
-from pipeline.tasks import Task, TaskDefinition
+from pipeline.tasks import TaskDefinition
 from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
+
+
+class ClusterTask(TaskDefinition):
+    def __init__(self, taskdef: TaskDefinition, cluster: ClusterProvider):
+        kwargs = taskdef.serialize()
+        super().__init__(**kwargs)
+        self.cluster = cluster
 
 
 class ClusterProvider(ABC):
@@ -13,7 +20,7 @@ class ClusterProvider(ABC):
         self.args = args
 
     @abstractmethod
-    def spawn(self, taskdef: TaskDefinition) -> Task:
+    def spawn(self, taskdef: TaskDefinition) -> ClusterTask:
         """ Spawn a task in the cluster """
         pass
 
@@ -31,12 +38,12 @@ class ClusterProvider(ABC):
         pass
 
     @abstractmethod
-    def wait(self, task: Task) -> None:
+    def wait(self, task: ClusterTask) -> None:
         """ Wait for task to exit """
         pass
 
     @abstractmethod
-    def logs(self, task: Task) -> Iterable[str]:
+    def logs(self, task: ClusterTask) -> Iterable[str]:
         """ Stream logs from task """
         pass
 

@@ -1,36 +1,23 @@
-from abc import ABC
 from typing import Any
 from .errors import StopException
-from .context import TaskContext
+from .definition import TaskDefinition
 
 
-class Task(ABC):
+class Task(TaskDefinition):
     """
     Task base class.
-
-    Attributes:
-        id (str): Task id
-        name (str): Task import name
-        image (str): Task image
-        inputs (dict): Input arguments
-        parent (str): Parent task id
-        cluster (ClusterProvider): Cluster provider
-        upstream (UpstreamConnector): Upstream connection
     """
 
-    def __init__(self, context: TaskContext):
-        """
-        Arguments:
-            context (TaskContext): Task execution context
-        """
-        self.id = context.id
-        self.name = context.name
-        self.image = context.image
-        self.inputs = context.inputs
-        self.parent = context.parent
-        self.upstream = context.upstream
-        self.cluster = context.cluster
-        self.node = context.node
+    def __init__(
+        self,
+        taskdef,
+        cluster,
+        node,
+    ):
+        kwargs = taskdef.serialize()
+        super().__init__(**kwargs)
+        self.cluster = cluster
+        self.node = node
 
     def run(self, **inputs: dict) -> Any:
         pass

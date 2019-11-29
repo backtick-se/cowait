@@ -1,3 +1,4 @@
+from pipeline.utils import uuid
 from .client import Client
 from .server import Server
 
@@ -7,8 +8,8 @@ class Node(object):
     Tree network node.
     """
 
-    def __init__(self, id):
-        self.id = id
+    def __init__(self):
+        self.id = 'node-%s' % uuid(8)
         self.upstream = None
         self.daemon = None
         self.handlers = []
@@ -39,18 +40,11 @@ class Node(object):
         Send a message upstream. Also executed by handlers (?)
         """
 
-        if isinstance(msg, list):
-            for m in msg:
-                await self.send(m)
-        else:
-            if 'id' not in msg:
-                msg['id'] = self.id
+        if self.upstream:
+            await self.upstream.send(msg)
 
-            if self.upstream:
-                await self.upstream.send(msg)
-
-            for handler in self.handlers:
-                handler.handle(**msg)
+        for handler in self.handlers:
+            handler.handle(**msg)
 
     def attach(self, handler: callable) -> None:
         self.handlers.append(handler)

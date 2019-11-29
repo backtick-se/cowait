@@ -5,4 +5,3 @@ from .errors import TaskError, TaskNotFoundError, StopException
 
 from .task import Task
 from .definition import TaskDefinition
-from .context import TaskContext

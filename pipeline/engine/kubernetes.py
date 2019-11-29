@@ -2,9 +2,9 @@ import os
 import time
 import kubernetes
 from kubernetes import client, config, watch
-from pipeline.tasks import Task, TaskContext, TaskDefinition
+from pipeline.tasks import TaskDefinition
 from .const import ENV_TASK_CLUSTER
-from .cluster import ClusterProvider
+from .cluster import ClusterProvider, ClusterTask
 
 # for now, all tasks live in the same namespace.
 NAMESPACE = 'default'
@@ -12,7 +12,7 @@ LABEL_TASK_ID = 'pipeline/task'
 LABEL_PARENT_ID = 'pipeline/parent'
 
 
-class KubernetesTask(Task):
+class KubernetesTask(ClusterTask):
     def __init__(
         self,
         cluster: ClusterProvider,
@@ -20,11 +20,10 @@ class KubernetesTask(Task):
         job,
         pod,
     ):
-        super().__init__(TaskContext(
+        super().__init__(
             cluster=cluster,
             taskdef=taskdef,
-            node=None,
-        ))
+        )
         self.job = job
         self.pod = pod
 

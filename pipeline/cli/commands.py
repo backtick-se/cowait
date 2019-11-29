@@ -4,6 +4,15 @@ from .context import PipelineContext
 from ..engine import get_cluster_provider
 from ..tasks import TaskDefinition
 
+HEADER_WIDTH = 80
+
+
+def printheader(title: str = None):
+    if title is None:
+        print(f'--'.ljust(HEADER_WIDTH, '-'))
+    else:
+        print(f'-- {title}: '.upper().ljust(HEADER_WIDTH, '-'))
+
 
 def build(task: str) -> TaskImage:
     context = PipelineContext.open()
@@ -54,23 +63,26 @@ def run(
     # grab cluster provider
     cluster = get_cluster_provider(type=provider)
 
-    # define task
+    # create task definition
     taskdef = TaskDefinition(
         name=task,
         image=image,
         config={
-            **context.config,
+            **context.get('worker', {}),
             **config,
         },
         inputs=inputs,
-        env=env,
+        env={
+            **context.get('environment', {}),
+            **env,
+        },
         namespace='default',
         upstream=upstream,
         parent=None,  # root task
     )
 
     # print execution info
-    print('-- TASK: -----------------------------------------------')
+    printheader('task')
     print('   task:      ', taskdef.id)
     print('   provider:  ', provider)
     if upstream:
@@ -79,15 +91,16 @@ def run(
     print('   inputs:    ', inputs)
     print('   env:       ', env)
 
-    # run task
+    # submit task to cluster
     task = cluster.spawn(taskdef)
 
     # capture & print logs
     logs = cluster.logs(task)
-    print('-- TASK OUTPUT: ---------------------------------------')
+    printheader('task output')
     for log in logs:
         print(log, flush=True)
-    print('-------------------------------------------------------')
+
+    printheader()
 
 
 def push(task: str) -> TaskImage:

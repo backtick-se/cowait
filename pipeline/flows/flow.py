@@ -1,28 +1,28 @@
 import asyncio
 from typing import Any
 from abc import abstractmethod
-from pipeline.tasks import Task, TaskContext, TaskDefinition, TaskError
+from pipeline.tasks import Task, TaskDefinition, TaskError
 from pipeline.network import get_local_connstr, PORT
 
 
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-    def __init__(self, context: TaskContext):
-        super().__init__(context)
-        self.tasks = {}
-
     def handle(self, id: str, type: str, **msg):
+        # complete future when we get a return message from a subtask
         if type == 'return' and id in self.tasks:
             future = self.tasks[id]
             if not future.done():
                 future.set_result(msg['result'])
+
+        # fail future when we get an error message from a subtask
         if type == 'fail' and id in self.tasks:
             future = self.tasks[id]
             if not future.done():
                 future.set_exception(TaskError(msg['error']))
 
     async def run(self, **inputs) -> Any:
+        self.tasks = {}
         self.node.bind(PORT)
         self.node.attach(self)
 
@@ -48,6 +48,7 @@ class Flow(Task):
         self,
         name: str,
         image: str = None,
+        env: dict = {},
         **inputs,
     ) -> asyncio.Future:
         """
@@ -60,18 +61,21 @@ class Flow(Task):
         """
 
         # await any inputs
-        arguments = {}
         for key, value in inputs.items():
             if isinstance(value, asyncio.Future):
-                value = await value
-            arguments[key] = value
+                inputs[key] = await value
 
         taskdef = TaskDefinition(
             name=name,
-            inputs=arguments,
+            inputs=inputs,
             parent=self.id,
             image=image if image else self.image,
             upstream=get_local_connstr(),
+            config=self.config,
+            env={
+                **self.env,
+                **env,
+            },
         )
 
         task = self.cluster.spawn(taskdef)
@@ -81,17 +85,22 @@ class Flow(Task):
         self.tasks[task.id] = future
         return await future
 
-    def define(self, name: str, image: str = None, **inputs):
+    def define(
+        self,
+        name: str,
+        image: str = None,
+        env: dict = {},
+        **inputs,
+    ) -> callable:
         base_inputs = inputs
 
         async def task(**inputs):
             return await self.task(
                 name=name,
                 image=image,
-                **{
-                    **base_inputs,
-                    **inputs,
-                },
+                env=env,
+                **base_inputs,
+                **inputs,
             )
         return task
 
