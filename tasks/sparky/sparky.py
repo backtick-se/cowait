@@ -1,3 +1,4 @@
+from pyspark.sql import Row
 from pipeline.flows import SparkFlow
 
 
@@ -6,9 +7,9 @@ class SparkyTask(SparkFlow):
         print('dataframe test')
 
         df = spark.createDataFrame([
-            {'name': 'johan', 'items': 3},
-            {'name': 'erik', 'items': 1},
-            {'name': 'andreas', 'items': 44},
+            Row(name='johan', items=3),
+            Row(name='erik', items=1),
+            Row(name='andreas', items=44),
         ])
 
         df.show()
