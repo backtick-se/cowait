@@ -4,6 +4,9 @@ from pyspark.conf import SparkConf
 from pipeline.flows import Flow
 from pipeline.tasks import Task, sleep
 
+MSG_LEADER = 'I have been elected leader!'
+MSG_REGISTER = 'Successfully registered with master'
+
 
 def conf_from_context(app_name, master, **spark):
     return SparkConf() \
@@ -26,25 +29,23 @@ class SparkFlow(Flow):
 
     def handle(self, id: str, type: str, **msg) -> bool:
         if type == 'log':
-            if self.master:
-                if id == self.master.id:
-                    if 'I have been elected leader!' in msg['data']:
-                        print('~~ spark master ready')
-                        self.master.ready.set_result(self.master)
-                    if not self.spark_logs:
-                        # disable master logs
-                        return False
-
-            for worker in self.workers:
-                if id == worker.id:
-                    if 'Successfully registered with master' in msg['data']:
-                        print(f'~~ spark worker {worker.id} ready')
-                        worker.ready.set_result(worker)
-                    if not self.spark_logs:
-                        # disable worker logs
-                        return False
+            if not self.on_log(id=id, **msg):
+                return False
 
         return super().handle(id, type, **msg)
+
+    def on_log(self, id, file, data, **msg) -> bool:
+        if self.master and id == self.master.id:
+            if MSG_LEADER in data:
+                print('~~ spark master ready')
+                self.master.ready.set_result(self.master)
+
+        for worker in self.workers:
+            if id == worker.id and MSG_REGISTER in data:
+                print(f'~~ spark worker {worker.id} ready')
+                worker.ready.set_result(worker)
+
+        return self.spark_logs
 
     async def before(self, inputs: dict) -> dict:
         inputs = await super().before(inputs)
@@ -52,10 +53,11 @@ class SparkFlow(Flow):
         self.spark_config = await self.setup_cluster()
 
         print('~~ starting spark session')
-        inputs['spark'] = SparkSession.builder \
+        self.spark = SparkSession.builder \
             .config(conf=conf_from_context(**self.spark_config)) \
             .getOrCreate()
 
+        inputs['spark'] = self.spark
         return inputs
 
     async def after(self, result, inputs):
@@ -83,7 +85,8 @@ class SparkFlow(Flow):
 
     async def setup_cluster(self, num_workers=2, **config) -> str:
         print(f'~~ creating spark cluster...')
-        print(f'~~     num_workers = {num_workers}')
+        print(f'~~   num_workers = {num_workers}')
+
         # create spark master
         self.master = await self.task(
             name='shell',
@@ -100,8 +103,7 @@ class SparkFlow(Flow):
         self.master.ready = asyncio.Future()
         master_uri = f'spark://{self.master.id}:7077'
 
-        # give master a little head start
-        await sleep(2)
+        await sleep(1)
 
         # create spark workers
         self.workers = []
