@@ -25,7 +25,8 @@ class Node(object):
         async def handle(conn, msg):
             # received upstream message
             for handler in self.handlers:
-                handler.handle(**msg)
+                if not handler.handle(**msg):
+                    return
 
         await self.daemon.serve(handle)
 
@@ -40,14 +41,15 @@ class Node(object):
         Send a message upstream. Also executed by handlers (?)
         """
 
+        for handler in self.handlers:
+            if not handler.handle(**msg):
+                return
+
         if self.upstream:
             await self.upstream.send(msg)
 
-        for handler in self.handlers:
-            handler.handle(**msg)
-
     def attach(self, handler: callable) -> None:
-        self.handlers.append(handler)
+        self.handlers.insert(0, handler)
 
     def detach(self, handler: callable) -> None:
         self.handlers.remove(handler)

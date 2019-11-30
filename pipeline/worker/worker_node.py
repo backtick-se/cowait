@@ -32,7 +32,15 @@ class WorkerNode(Node):
 
                 # run task
                 await self.api.run()
-                result = await task.run(**taskdef.inputs)
+
+                # before hook - transform input
+                inputs = await task.before(taskdef.inputs)
+
+                # task code
+                result = await task.run(**inputs)
+
+                # after hook - transform result
+                result = await task.after(result, inputs)
 
             # submit result
             await self.api.done(result)

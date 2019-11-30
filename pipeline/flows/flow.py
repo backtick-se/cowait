@@ -8,7 +8,7 @@ from pipeline.network import get_local_connstr, PORT
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-    def handle(self, id: str, type: str, **msg):
+    def handle(self, id: str, type: str, **msg) -> bool:
         # complete future when we get a return message from a subtask
         if type == 'return' and id in self.tasks:
             task = self.tasks[id]
@@ -21,7 +21,9 @@ class Flow(Task):
             if not task.result.done():
                 task.result.set_exception(TaskError(msg['error']))
 
-    async def run(self, **inputs) -> Any:
+        return True
+
+    async def before(self, inputs):
         self.tasks = {}
         self.node.bind(PORT)
         self.node.attach(self)
@@ -29,11 +31,12 @@ class Flow(Task):
         # run task daemon in the background
         asyncio.create_task(self.node.serve())
 
-        try:
-            return await self.plan(**inputs)
-        except Exception as e:
-            self.stop()
-            raise e
+        return inputs
+
+    async def run(self, **inputs) -> Any:
+        # left for compability.
+        # remove later
+        return await self.plan(**inputs)
 
     def stop(self):
         # ask the cluster to destroy any children
