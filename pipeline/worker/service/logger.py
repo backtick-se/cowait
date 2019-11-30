@@ -4,7 +4,7 @@ from .service import NodeService
 
 class FlowLogger(NodeService):
     def on_init(self, task: dict):
-        print('~~ Create', task['id'], 'from', task['image'], task['inputs'])
+        print('~~ create', task['id'], 'from', task['image'], task['inputs'])
 
     def on_status(self, id, status):
         print('~~', id, 'changed status to', status)

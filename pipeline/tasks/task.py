@@ -19,8 +19,14 @@ class Task(TaskDefinition):
         self.cluster = cluster
         self.node = node
 
-    def run(self, **inputs: dict) -> Any:
+    async def before(self, inputs: dict) -> dict:
+        return inputs
+
+    async def run(self, **inputs: dict) -> Any:
         pass
+
+    async def after(self, result: Any, inputs: dict) -> Any:
+        return result
 
     def stop(self) -> None:
         """

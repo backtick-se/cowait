@@ -13,6 +13,7 @@ from pipeline.tasks import Task
 
 class Lazy(Task):
     image = 'johanhenriksson/pipeline-task:lazy'
+    command = 'python -u main.py'
 
     async def run(self, duration, crash_at=-1, **inputs):
         print('sleeping...')

@@ -50,6 +50,11 @@ class TaskImage(object):
         # remove temproary dockerfile
         os.unlink(df_path)
 
+        self.image.tag(
+            repository='johanhenriksson/pipeline',
+            tag=self.name,
+        )
+
         return logs
 
     def push(self, repository):

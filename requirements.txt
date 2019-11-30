@@ -1,6 +1,6 @@
 -i https://pypi.org/simple
 cachetools==3.1.1
-certifi==2019.9.11
+certifi==2019.11.28
 chardet==3.0.4
 click==7.0
 cloudpickle==1.2.2

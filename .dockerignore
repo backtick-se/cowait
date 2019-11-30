@@ -12,7 +12,6 @@ __pycache__/
 .vscode
 .gitignore
 
-README.md
 build_task_image.sh
 Dockerfile
 pytest.ini

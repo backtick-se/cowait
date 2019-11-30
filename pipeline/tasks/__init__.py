@@ -1,5 +1,7 @@
 # flake8: noqa: F401
 
+from asyncio import sleep
+
 from .status import WORK, WAIT, DONE, STOP, FAIL
 from .errors import TaskError, TaskNotFoundError, StopException
 
