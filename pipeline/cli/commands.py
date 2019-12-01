@@ -1,6 +1,8 @@
+import sys
 import os.path
 from .task_image import TaskImage
 from .context import PipelineContext
+from .utils import ExitTrap
 from ..engine import get_cluster_provider
 from ..tasks import TaskDefinition
 
@@ -11,7 +13,7 @@ def printheader(title: str = None):
     if title is None:
         print(f'--'.ljust(HEADER_WIDTH, '-'))
     else:
-        print(f'-- {title}: '.upper().ljust(HEADER_WIDTH, '-'))
+        print(f'-- {title} '.upper().ljust(HEADER_WIDTH, '-'))
 
 
 def build(task: str) -> TaskImage:
@@ -94,11 +96,18 @@ def run(
     # submit task to cluster
     task = cluster.spawn(taskdef)
 
-    # capture & print logs
-    logs = cluster.logs(task)
-    printheader('task output')
-    for log in logs:
-        print(log, flush=True)
+    def destroy(*args):
+        print()
+        printheader('interrupt')
+        cluster.destroy(task.id)
+        sys.exit(0)
+
+    with ExitTrap(destroy):
+        # capture & print logs
+        logs = cluster.logs(task)
+        printheader('task output')
+        for log in logs:
+            print(log, flush=True)
 
     printheader()
 

@@ -1,5 +1,34 @@
 import os
+from signal import signal, SIGINT
 from .const import CONTEXT_FILE_NAME
+
+
+class ExitTrap():
+    def __init__(self, callback: callable, single=True):
+        self.callback = callback
+        self.prev_handler = None
+        self.single = single
+
+    def __enter__(self):
+        self.attach(self.callback)
+
+    def __exit__(self, *exc):
+        self.reset()
+
+    def attach(self, callback):
+        def handler(a, b):
+            if self.single:
+                self.reset()
+            callback()
+
+        self.reset()
+        old = signal(SIGINT, handler)
+        self.prev_handler = old
+
+    def reset(self):
+        if self.prev_handler is not None:
+            signal(SIGINT, self.prev_handler)
+            self.prev_handler = None
 
 
 def find_file_in_parents(start_path, file_name):
