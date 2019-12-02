@@ -20,6 +20,7 @@ RUN wget -O spark.tgz https://www-eu.apache.org/dist/spark/spark-2.4.4/spark-2.4
 ENV SPARK_HOME=/spark-2.4.4-bin-hadoop2.7
 ENV PATH=$SPARK_HOME/python:$PATH:$SPARK_HOME/bin
 ENV PYTHONPATH=/app:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
+COPY spark-defaults.conf /spark-2.4.4-bin-hadoop2.7/conf
 
 RUN mkdir /app
 WORKDIR /app

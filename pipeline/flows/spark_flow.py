@@ -1,22 +1,40 @@
+import os  # stinky, dont read envs here
 import asyncio
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pipeline.flows import Flow
 from pipeline.tasks import Task, sleep
+from pipeline.network import get_local_ip
 
 MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
 
+SPARK_PACKAGES = [
+    'com.amazonaws:aws-java-sdk-pom:1.10.34',
+    'org.apache.hadoop:hadoop-aws:2.6.0',
+]
 
-def conf_from_context(app_name, master, **spark):
-    return SparkConf() \
+SPARK_DEFAULTS = {
+    'spark.executor.instances': '2',
+    'spark.dynamicAllocation.enabled': 'true',
+
+    # packages
+    'spark.jars.packages': ','.join(SPARK_PACKAGES),
+
+    # hadoop config
+    'spark.hadoop.fs.s3a.access.key': os.getenv('AWS_ACCESS_KEY_ID'),
+    'spark.hadoop.fs.s3a.secret.key': os.getenv('AWS_SECRET_ACCESS_KEY'),
+    'spark.hadoop.fs.s3a.endpoint': 's3-eu-west-1.amazonaws.com',
+}
+
+
+def conf_from_context(app_name, master, config):
+    sc = SparkConf() \
         .setAppName(app_name) \
-        .setMaster(master) \
-        .set('spark.cores.max', spark.get('cores.max', 3)) \
-        .set('spark.executor.cores', spark.get('executor.cores', 1)) \
-        .set('spark.executor.memory', spark.get('executor.memory', '800m')) \
-        .set('spark.driver.cores', spark.get('driver.cores', 1)) \
-        .set('spark.driver.memory', spark.get('driver.memory', '800m'))
+        .setMaster(master)
+    for option, value in config.items():
+        sc.set(option, value)
+    return sc
 
 
 class SparkFlow(Flow):
@@ -24,7 +42,7 @@ class SparkFlow(Flow):
         super().__init__(taskdef, cluster, node)
         self.master = None
         self.workers = []
-        self.spark_config = {}
+        self.spark_context = {}
         self.spark_logs = taskdef.inputs.get('spark.logs', False)
 
     def handle(self, id: str, type: str, **msg) -> bool:
@@ -50,11 +68,14 @@ class SparkFlow(Flow):
     async def before(self, inputs: dict) -> dict:
         inputs = await super().before(inputs)
 
-        self.spark_config = await self.setup_cluster()
+        self.spark_context = await self.setup_cluster()
+
+        conf = conf_from_context(**self.spark_context)
+        conf.set('spark.driver.host', get_local_ip())
 
         print('~~ starting spark session')
         self.spark = SparkSession.builder \
-            .config(conf=conf_from_context(**self.spark_config)) \
+            .config(conf=conf) \
             .getOrCreate()
 
         inputs['spark'] = self.spark
@@ -80,7 +101,7 @@ class SparkFlow(Flow):
             image=image,
             env=env,
             **inputs,
-            spark=self.spark_config,
+            spark=self.spark_context,
         )
 
     async def setup_cluster(self, num_workers=2, **config) -> str:
@@ -95,13 +116,12 @@ class SparkFlow(Flow):
                 'spark-class',
                 'org.apache.spark.deploy.master.Master',
             ]),
-            env={
-                'SPARK_WORKER_CORES': config.get('worker.cores', 1),
-                'SPARK_WORKER_MEMORY': config.get('worker.memory', '1g'),
+            ports={
+                '8080': '8080',
             },
         )
         self.master.ready = asyncio.Future()
-        master_uri = f'spark://{self.master.id}:7077'
+        master_uri = f'spark://{self.master.ip}:7077'
 
         await sleep(1)
 
@@ -117,8 +137,7 @@ class SparkFlow(Flow):
                     master_uri,
                 ]),
                 env={
-                    'SPARK_WORKER_CORES': config.get('worker.cores', 1),
-                    'SPARK_WORKER_MEMORY': config.get('worker.memory', '1g'),
+                    'SPARK_WORKER_CORES': '2',
                 },
             )
             w.ready = asyncio.Future()
@@ -134,5 +153,8 @@ class SparkFlow(Flow):
         return {
             'app_name': self.id,
             'master': master_uri,
-            **config,
+            'config': {
+                **SPARK_DEFAULTS,
+                **config,
+            },
         }

@@ -26,6 +26,7 @@ class KubernetesTask(ClusterTask):
         )
         self.job = job
         self.pod = pod
+        self.ip = self.pod.status.pod_ip
 
 
 class KubernetesProvider(ClusterProvider):
@@ -149,7 +150,7 @@ class KubernetesProvider(ClusterProvider):
         env = super().create_env(taskdef)
         env_list = []
         for name, value in env.items():
-            env_list.append(client.V1EnvVar(name, value))
+            env_list.append(client.V1EnvVar(str(name), str(value)))
         return env_list
 
     def destroy_all(self, task_id) -> None:

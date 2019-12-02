@@ -2,6 +2,8 @@ import docker
 from pipeline.tasks import TaskDefinition
 from .cluster import ClusterProvider, ClusterTask
 
+NETWORK = 'tasks'
+
 
 class DockerTask(ClusterTask):
     def __init__(
@@ -15,6 +17,7 @@ class DockerTask(ClusterTask):
             taskdef=taskdef,
         )
         self.container = container
+        self.ip = taskdef.id  # id should be routable within docker
 
 
 class DockerProvider(ClusterProvider):
@@ -29,7 +32,7 @@ class DockerProvider(ClusterProvider):
             image=taskdef.image,
             name=taskdef.id,
             hostname=taskdef.id,
-            network='tasks',
+            network=NETWORK,
             environment=self.create_env(taskdef),
             volumes={
                 '/var/run/docker.sock': {
@@ -42,8 +45,10 @@ class DockerProvider(ClusterProvider):
                 'task_parent': taskdef.parent,
             },
         )
+
         print('~~ created docker container with id',
               container.id[:12], 'for task', taskdef.id)
+
         return DockerTask(self, taskdef, container)
 
     def destroy_all(self) -> None:
@@ -52,6 +57,7 @@ class DockerProvider(ClusterProvider):
                 'label': 'task',
             },
         )
+
         for container in containers:
             container.remove(force=True)
 
@@ -63,21 +69,22 @@ class DockerProvider(ClusterProvider):
         )
 
     def destroy_children(self, parent_id: str) -> list:
-        tasks = []
         children = self.find_child_containers(parent_id)
+
+        tasks = []
         for child in children:
-            child = self.destroy(child.labels['task'])
-            tasks += child
+            tasks += self.destroy(child.labels['task'])
+
         return tasks
 
     def destroy(self, task_id):
         def kill_family(container):
-            kills = []
             container_task_id = container.labels['task']
-            print('~~ docker: kill', container_task_id,
-                  '->', container.id[:12])
+            print('~~ docker kill', container.id[:12],
+                  '->', container_task_id)
 
             children = self.find_child_containers(container_task_id)
+            kills = []
             for child in children:
                 kills += kill_family(child)
 
