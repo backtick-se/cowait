@@ -37,9 +37,13 @@ def option_dict(opts):
               multiple=True,
               help='define enviornment variable')
 @click.option('--upstream',
-              type=(str),
+              type=str,
               help='root task upstream uri')
-def run(task: str, provider: str, input, config, env, upstream: str):
+@click.option('--build',
+              type=bool, is_flag=True,
+              help='build and push first',
+              default=False)
+def run(task: str, provider: str, input, config, env, upstream: str, build: bool):
     pipeline.cli.run(
         task,
         provider=provider,
@@ -47,6 +51,7 @@ def run(task: str, provider: str, input, config, env, upstream: str):
         config=option_dict(config),
         env=option_dict(env),
         upstream=upstream,
+        build=build,
     )
 
 

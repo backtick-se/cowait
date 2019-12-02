@@ -57,8 +57,12 @@ def run(
     inputs: dict = {},
     config: dict = {},
     env: dict = {},
-    upstream=None
+    build: bool = False,
+    upstream: str = None,
 ):
+    if build:
+        push(task)
+
     context = PipelineContext.open()
     image = f'johanhenriksson/pipeline-task:{task}'
 
