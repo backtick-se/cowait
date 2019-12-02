@@ -99,8 +99,12 @@ class KubernetesProvider(ClusterProvider):
         print('~~ created kubenetes pod with name', pod.metadata.name)
         return KubernetesTask(self, taskdef, job, pod)
 
-    def destroy(self, task_id):
+    def kill(self, task_id):
         self.core.delete_collection_namespaced_pod(
+            namespace=NAMESPACE,
+            label_selector=f'{LABEL_TASK_ID}={task_id}',
+        )
+        self.batch.delete_collection_namespaced_job(
             namespace=NAMESPACE,
             label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
@@ -153,25 +157,39 @@ class KubernetesProvider(ClusterProvider):
             env_list.append(client.V1EnvVar(str(name), str(value)))
         return env_list
 
-    def destroy_all(self, task_id) -> None:
+    def destroy_all(self) -> list:
+        raise NotImplementedError()
+
+    def destroy(self, task_id) -> list:
         def kill_family(task_id):
+            print('~~ kubernetes kill', task_id)
+
             kills = []
             children = self.get_task_child_pods(task_id)
-            for child in children.items:
+            for child in children:
                 child_id = child.metadata.labels[LABEL_TASK_ID]
                 kills += kill_family(child_id)
 
-            self.destroy(task_id)
+            self.kill(task_id)
             kills.append(task_id)
+            return kills
 
         return kill_family(task_id)
 
     def destroy_children(self, parent_id: str) -> list:
+        # delete jobs
+        self.batch.delete_collection_namespaced_job(
+            namespace=NAMESPACE,
+            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
+        )
+
+        # get a list of child pods
         children = self.core.list_namespaced_pod(
             namespace=NAMESPACE,
             label_selector=f'{LABEL_PARENT_ID}={parent_id}',
         )
 
+        # destroy child pods
         self.core.delete_collection_namespaced_pod(
             namespace=NAMESPACE,
             label_selector=f'{LABEL_PARENT_ID}={parent_id}',
