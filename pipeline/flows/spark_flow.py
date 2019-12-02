@@ -10,8 +10,8 @@ MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
 
 SPARK_PACKAGES = [
-    'com.amazonaws:aws-java-sdk-pom:1.10.34',
-    'org.apache.hadoop:hadoop-aws:2.6.0',
+    'com.amazonaws:aws-java-sdk-pom:1.11.375',
+    'org.apache.hadoop:hadoop-aws:3.2.0',
 ]
 
 SPARK_DEFAULTS = {
@@ -25,6 +25,17 @@ SPARK_DEFAULTS = {
     'spark.hadoop.fs.s3a.access.key': os.getenv('AWS_ACCESS_KEY_ID'),
     'spark.hadoop.fs.s3a.secret.key': os.getenv('AWS_SECRET_ACCESS_KEY'),
     'spark.hadoop.fs.s3a.endpoint': 's3-eu-west-1.amazonaws.com',
+
+    # 'spark.hadoop.fs.s3a.committer.magic.enabled': 'true',
+    # 'spark.hadoop.fs.s3a.committer.name': 'magic',
+
+    'spark.hadoop.fs.s3a.path.style.access': 'true',
+    'spark.hadoop.fs.s3a.fast.upload': 'true',
+    'spark.hadoop.fs.s3a.fast.upload.buffer': 'bytebuffer',
+    'spark.hadoop.fs.s3a.path.style.access': 'true',
+    'spark.hadoop.fs.s3a.multipart.size': '128M',
+    'spark.hadoop.fs.s3a.fast.upload.active.blocks': '4',
+    'spark.hadoop.fs.s3a.committer.name': 'partitioned',
 }
 
 
