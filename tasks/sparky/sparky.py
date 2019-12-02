@@ -1,11 +1,11 @@
 import pyspark.sql.functions as F
-from pyspark.sql.types import StructType, StructField, StringType, \
-    TimestampType, IntegerType, FloatType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
 from pipeline.flows import SparkFlow
 
+TIMESTAMP = "yyyy-MM-dd'D'HH:mm:ss.SSS"
 
 BitmexTrades = StructType([
-    StructField('timestamp', TimestampType(), True),
+    StructField('timestamp', StringType(), True),
     StructField('symbol', StringType(), True),
     StructField('side', StringType(), True),
     StructField('size', IntegerType(), True),
@@ -19,26 +19,20 @@ BitmexTrades = StructType([
 
 
 class SparkyTask(SparkFlow):
-    # perhaps packages should be defined per-task?
-    packages = [
-        'org.apache.hadoop:hadoop-aws:2.6.0',
-        'com.amazonaws:aws-java-sdk-pom:1.10.34',
-    ]
-
     async def run(
         self,
         spark,
-        period='2014*',
+        filter='2014*',
         start='2014-01-01',
         end='2015-01-01',
+        mode='append',
         **inputs,
     ):
         print('bitmex trades csv->parquet')
 
         df = spark.read \
-            .option('timestampFormat', "yyyy-MM-dd'D'HH:mm:ss.SSSSSS") \
             .csv(
-                f's3a://stackpoint-spark/data/bitmex/trades/{period}.csv.gz',
+                f's3a://stackpoint-spark/data/bitmex/trades/{filter}.csv.gz',
                 header=True,
                 schema=BitmexTrades,
             )
@@ -52,11 +46,13 @@ class SparkyTask(SparkFlow):
         df = df.drop('homeNotional')
         df = df.drop('foreignNotional')
 
+        # cut milli/nanoseconds and convert to timestamp
+        df = df.withColumn("timestamp", F.to_timestamp(F.substring(df.timestamp, 0, 23), TIMESTAMP))
+
+        # create partitioning columns
         df = df.withColumn("year", F.year(df.timestamp))
         df = df.withColumn("month", F.month(df.timestamp))
         df = df.withColumn("day", F.dayofmonth(df.timestamp))
-
-        df = df.sort(df.timestamp.desc())
 
         df.limit(5).show()
 
@@ -66,11 +62,13 @@ class SparkyTask(SparkFlow):
         volume = df.agg(F.sum("size")).collect()[0][0]
         print(f'total volume: ${volume}')
 
+        print('writing parquet')
         df.write \
-            .mode("overwrite", "true") \
+            .mode(mode) \
             .partitionBy(['year', 'month', 'day']) \
             .parquet('s3a://stackpoint-spark/data/bitmex/parquet/trades')
 
+        print('done writing')
         return {
             'trades': count,
             'volume': volume,
