@@ -81,24 +81,29 @@ class SparkFlow(Flow):
 
         self.spark_context = await self.setup_cluster()
 
-        conf = conf_from_context(**self.spark_context)
-        conf.set('spark.driver.host', get_local_ip())
+        # create spark context
+        # perhaps this should be optional?
+        # in case no spark code is run in the flow itself
+        if True:
+            conf = conf_from_context(**self.spark_context)
+            conf.set('spark.driver.host', get_local_ip())
 
-        print('~~ starting spark session')
-        self.spark = SparkSession.builder \
-            .config(conf=conf) \
-            .getOrCreate()
+            print('~~ starting spark session')
+            self.spark = SparkSession.builder \
+                .config(conf=conf) \
+                .getOrCreate()
 
-        inputs['spark'] = self.spark
+            inputs['spark'] = self.spark
+
         return inputs
 
-    async def after(self, result, inputs):
+    async def after(self, inputs: dict):
         print('~~ destroying spark cluster')
         self.master.destroy()
         for worker in self.workers:
             worker.destroy()
 
-        return await super().after(result, inputs)
+        await super().after(inputs)
 
     async def task(
         self,
@@ -128,7 +133,7 @@ class SparkFlow(Flow):
                 'org.apache.spark.deploy.master.Master',
             ]),
             ports={
-                '8080': '8080',
+                '8080/tcp': '8080',
             },
         )
         self.master.ready = asyncio.Future()

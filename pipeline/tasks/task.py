@@ -25,8 +25,8 @@ class Task(TaskDefinition):
     async def run(self, **inputs: dict) -> Any:
         pass
 
-    async def after(self, result: Any, inputs: dict) -> Any:
-        return result
+    async def after(self, inputs: dict) -> Any:
+        pass
 
     def stop(self) -> None:
         """

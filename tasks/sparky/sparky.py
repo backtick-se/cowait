@@ -37,8 +37,6 @@ class SparkyTask(SparkFlow):
                 schema=BitmexTrades,
             )
 
-        # df.timestamp.cast(DateType())
-
         df = df.filter(df.timestamp >= start) \
                .filter(df.timestamp < end)
 
@@ -48,28 +46,26 @@ class SparkyTask(SparkFlow):
 
         # cut milli/nanoseconds and convert to timestamp
         df = df.withColumn("timestamp", F.to_timestamp(F.substring(df.timestamp, 0, 23), TIMESTAMP))
-
-        # create partitioning columns
-        df = df.withColumn("year", F.year(df.timestamp))
-        df = df.withColumn("month", F.month(df.timestamp))
-        df = df.withColumn("day", F.dayofmonth(df.timestamp))
+        df = df.withColumn("time", F.unix_timestamp(df.timestamp))
+        df = df.withColumn("date", F.from_unixtime(df.time, "yyyyMMdd"))
+        df.drop('timestamp')
 
         df.limit(5).show()
 
         count = df.count()
         print(f'{count} trades')
 
-        volume = df.agg(F.sum("size")).collect()[0][0]
-        print(f'total volume: ${volume}')
+        #volume = df.agg(F.sum("size")).collect()[0][0]
+        #print(f'total volume: ${volume}')
 
         print('writing parquet')
         df.write \
             .mode(mode) \
-            .partitionBy(['year', 'month', 'day']) \
+            .partitionBy(['date']) \
             .parquet('s3a://stackpoint-spark/data/bitmex/parquet/trades')
 
         print('done writing')
         return {
             'trades': count,
-            'volume': volume,
+            # 'volume': volume,
         }

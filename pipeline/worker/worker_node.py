@@ -36,14 +36,16 @@ class WorkerNode(Node):
                 # before hook - transform input
                 inputs = await task.before(taskdef.inputs)
 
-                # task code
-                result = await task.run(**inputs)
+                try:
+                    # task code
+                    result = await task.run(**inputs)
 
-                # after hook - transform result
-                result = await task.after(result, inputs)
+                    # submit result
+                    await self.api.done(result)
 
-            # submit result
-            await self.api.done(result)
+                finally:
+                    # after hook
+                    await task.after(inputs)
 
         except StopException:
             await self.api.stop()

@@ -27,6 +27,7 @@ class DockerProvider(ClusterProvider):
         self.tasks = {}
 
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
+        ports = taskdef.inputs.get('ports', None)
         container = self.docker.containers.run(
             detach=True,
             image=taskdef.image,
@@ -44,6 +45,7 @@ class DockerProvider(ClusterProvider):
                 'task': taskdef.id,
                 'task_parent': taskdef.parent,
             },
+            ports=ports,
         )
 
         print('~~ created docker container with id',
