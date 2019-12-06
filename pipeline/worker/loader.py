@@ -5,8 +5,17 @@ from pipeline.tasks import TaskNotFoundError
 
 def load_task_class(task_name: str) -> TypeVar:
     try:
-        module = importlib.import_module(task_name)
-        task_class = getattr(module, 'Task')
+        module_name = task_name
+        class_name = 'Task'
+
+        if '.' in task_name:
+            dot = task_name.rfind('.')
+            module_name = task_name[:dot]
+            class_name = task_name[dot+1:]
+
+        module = importlib.import_module(module_name)
+        task_class = getattr(module, class_name)
+
         return task_class
 
     except ModuleNotFoundError:

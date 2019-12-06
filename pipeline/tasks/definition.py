@@ -3,6 +3,14 @@ from marshmallow import Schema, fields, post_load
 from ..utils import uuid
 
 
+def generate_task_id(name: str) -> str:
+    if '.' in name:
+        dot = name.rfind('.')
+        name = name[dot+1:]
+
+    return '%s-%s' % (name.lower(), uuid())
+
+
 class TaskDefinition(object):
     """
     Defines a Task :)
@@ -44,7 +52,7 @@ class TaskDefinition(object):
             meta (dict): Freeform metadata
             env (dict): Environment variables
         """
-        self.id = '%s-%s' % (name, uuid()) if not id else id
+        self.id = generate_task_id(name) if not id else id
         self.name = name
         self.image = image
         self.parent = parent
