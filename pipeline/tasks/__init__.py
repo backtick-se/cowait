@@ -7,3 +7,6 @@ from .errors import TaskError, TaskNotFoundError, StopException
 
 from .task import Task
 from .definition import TaskDefinition
+
+from .flow import Flow
+from .ops import join

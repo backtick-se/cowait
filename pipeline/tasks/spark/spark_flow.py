@@ -2,8 +2,7 @@ import os  # stinky, dont read envs here
 import asyncio
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
-from pipeline.flows import Flow
-from pipeline.tasks import Task, sleep
+from pipeline.tasks import Task, Flow, sleep
 from pipeline.network import get_local_ip
 
 MSG_LEADER = 'I have been elected leader!'

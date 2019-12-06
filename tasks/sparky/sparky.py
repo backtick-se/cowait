@@ -1,6 +1,6 @@
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
-from pipeline.flows import SparkFlow
+from pipeline.tasks.spark import SparkFlow
 
 TIMESTAMP = "yyyy-MM-dd'D'HH:mm:ss.SSS"
 

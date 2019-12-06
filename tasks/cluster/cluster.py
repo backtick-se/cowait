@@ -1,5 +1,5 @@
 from pipeline.tasks import sleep
-from pipeline.flows import SparkFlow
+from pipeline.tasks.spark import SparkFlow
 
 
 class SparkClusterTask(SparkFlow):
