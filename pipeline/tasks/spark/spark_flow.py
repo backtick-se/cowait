@@ -125,12 +125,7 @@ class SparkFlow(Flow):
 
         # create spark master
         self.master = await self.task(
-            name='shell',
-            image=self.image,
-            command=' '.join([
-                'spark-class',
-                'org.apache.spark.deploy.master.Master',
-            ]),
+            name='pipeline.tasks.spark.SparkMaster',
             ports={
                 '8080/tcp': '8080',
             },
@@ -144,16 +139,11 @@ class SparkFlow(Flow):
         self.workers = []
         for i in range(0, num_workers):
             w = await self.task(
-                name='shell',
-                image=self.image,
-                command=' '.join([
-                    'spark-class',
-                    'org.apache.spark.deploy.worker.Worker',
-                    master_uri,
-                ]),
+                name='pipeline.tasks.spark.SparkWorker',
                 env={
                     'SPARK_WORKER_CORES': '2',
                 },
+                master=master_uri,
             )
             w.ready = asyncio.Future()
             self.workers.append(w)
