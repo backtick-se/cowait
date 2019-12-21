@@ -1,11 +1,11 @@
 import _ from 'lodash'
-import zmq from 'zeromq'
 import http from 'http'
 import express from 'express'
 import socketio from 'socket.io'
+import WebSocket from 'ws'
 import { Metastore } from './metastore'
 
-const ZMQ_PORT = 1337
+const PORT = 1337
 const WS_PORT = 1338
 
 const app = express()
@@ -57,7 +57,7 @@ app.get('/meta/:kind/:id', async (req, res) => {
 io.on('connection', client => { 
     console.log('new client')
     const tasks = metastore.getAll('task')
-    for(var task of tasks) {
+    for(const task of tasks) {
         client.emit('msg', {
             id: task.id,
             type: 'init',
@@ -70,25 +70,25 @@ io.on('connection', client => {
     });
 });
 
-// zmq handler
-let sock = zmq.socket("pull");
-sock.on("message", function(msg) {
-    console.log("recv: %s", msg.toString());
-    const event = JSON.parse(msg.toString())
 
-    try {
-        handle_update(event)
-    }
-    catch(e) {
-        console.log('caught error:', e)
-    }
+const wss = new WebSocket.Server({ port: PORT })
 
-    io.sockets.emit('msg', event)
+wss.on('connection', function connection(ws) {
+    ws.on('message', msg => {
+        console.log("recv: %s", msg.toString());
+        const event = JSON.parse(msg.toString())
+
+        try {
+            handle_update(event)
+        }
+        catch(e) {
+            console.log('caught error:', e)
+        }
+
+        io.sockets.emit('msg', event)
+    })
 });
 
-// zmq listen
-console.log('listening for nodes')
-sock.bindSync(`tcp://*:${ZMQ_PORT}`);
 
 // websocket listen
 server.listen(WS_PORT, () => {
