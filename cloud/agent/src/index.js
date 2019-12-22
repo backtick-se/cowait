@@ -1,23 +1,32 @@
 import _ from 'lodash'
-import http from 'http'
 import express from 'express'
-import socketio from 'socket.io'
-import WebSocket from 'ws'
+import expressWs from 'express-ws'
+import EventEmitter from 'events'
 import { Metastore } from './metastore'
 
 const PORT = 1337
-const WS_PORT = 1338
 
 const app = express()
-const server = http.Server(app)
-const io = socketio(server)
+expressWs(app)
 
 const metastore = new Metastore([ 'task' ])
+let subscribers = [ ]
+let tasks = [ ]
 
-function handle_update({ id, type, ...msg }) {
+function handle_update({ id, type, ...msg }, conn) {
     switch(type) {
+    case 'subscribe':
+        subscribers.push(conn)
+        conn.send({
+            type: 'subscribed',
+            channels: ['events'],
+        })
+        console.log('added subscriber')
+        break
+
     case 'init':
         metastore.set('task', id, msg.task) 
+        tasks[id] = conn
         break
 
     case 'status':
@@ -26,10 +35,12 @@ function handle_update({ id, type, ...msg }) {
 
     case 'return':
         metastore.update('task', id, task => _.set(task, 'result', msg.result))
+        delete tasks[id]
         break
 
     case 'fail':
         metastore.update('task', id, task => _.set(task, 'error', msg.error))
+        delete tasks[id]
         break
 
     case 'log':
@@ -54,45 +65,50 @@ app.get('/meta/:kind/:id', async (req, res) => {
     res.json(metastore.get(req.params.kind, req.params.id))
 })
 
-io.on('connection', client => { 
+class Connection extends EventEmitter {
+    constructor(ws) {
+        super()
+        this.ws = ws
+    }
+
+    send = msg => {
+        this.ws.send(JSON.stringify(msg))
+    }
+}
+
+app.ws('/', (ws, req) => {
+    let conn = new Connection(ws)
     console.log('new client')
+
     const tasks = metastore.getAll('task')
     for(const task of tasks) {
-        client.emit('msg', {
+        conn.send({
             id: task.id,
             type: 'init',
             task,
         })
     }
 
-    client.on('disconnect', () => { 
-        console.log('disconnect')
-    });
-});
-
-
-const wss = new WebSocket.Server({ port: PORT })
-
-wss.on('connection', function connection(ws) {
     ws.on('message', msg => {
-        console.log("recv: %s", msg.toString());
         const event = JSON.parse(msg.toString())
+        console.log(event)
 
         try {
-            handle_update(event)
+            handle_update(event, conn)
         }
         catch(e) {
             console.log('caught error:', e)
         }
 
-        io.sockets.emit('msg', event)
+        _.each(subscribers, sub => sub.send(event))
     })
-});
 
+    ws.on('close', () => {
+        console.log('remove subscriber')
+        subscribers = _.filter(subscribers, sub => sub.ws !== ws)
+    })
+})
 
-// websocket listen
-server.listen(WS_PORT, () => {
-    console.log('listening for websockets')
-});
-
-console.log('im on hostname', process.env.HOSTNAME)
+app.listen(PORT, () => {
+    console.log('im on hostname', process.env.HOSTNAME)
+})
