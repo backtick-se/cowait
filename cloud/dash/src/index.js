@@ -1,5 +1,4 @@
 import React from 'react'
-import io from 'socket.io-client'
 import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from 'styled-components'
@@ -10,6 +9,8 @@ import { theme, GlobalStyle } from './theme'
 import TaskView from './views/TaskView'
 import TaskListView from './views/TaskListView'
 import ErrorBoundary from './ErrorBoundary'
+
+import PipeClient from './PipeClient'
 
 function App() {
     return <ThemeProvider theme={theme}>
@@ -33,14 +34,15 @@ const store = createStore({
     logging: false,
 })
 
-let socket = io('http://localhost:1338')
-socket.on('connect', () => {
+let client = new PipeClient('ws://localhost:1337')
+client.on('connect', () => {
     console.log('clear store')
     store.dispatch({ type: 'clear' })
 })
-socket.on('msg', event => {
+client.on('message', event => {
     store.dispatch(event)
 })
+client.connect()
 
 render(
     <Provider store={store}>
