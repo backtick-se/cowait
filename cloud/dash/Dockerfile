@@ -1,7 +1,7 @@
 FROM node:latest
 RUN mkdir /app
 WORKDIR /app
-EXPOSE 1337 1338
+EXPOSE 1339
 
 COPY ./package.json .
 RUN npm install

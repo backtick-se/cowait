@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom'
 import { View } from '../components/ui'
 import TaskItem from '../components/task/TaskItem'
 
-function TaskView({ }) {
-    let { taskId } = useParams();
+function TaskView() {
+    let { taskId } = useParams()
 
     return <View title={taskId}>
         <TaskItem id={taskId} />

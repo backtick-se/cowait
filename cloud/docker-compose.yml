@@ -12,7 +12,18 @@ services:
       - tasks
     ports:
       - '1337:1337'
-      - '1338:1338'
     volumes:
       - './agent/src:/app/src:ro'
       - './agent/data:/app/data'
+
+  dash:
+    image: 'johanhenriksson/pipeline-dash'
+    build: './dash'
+    hostname: 'dash'
+    networks:
+      - default
+      - tasks
+    ports:
+      - '1339:1339'
+    volumes:
+      - './dash/src:/app/src:ro'
