@@ -18,7 +18,7 @@ app.get('/meta/:kind/:id', (req, res) => { res.json(metastore.get(req.params.kin
 const agent = new TaskAgent()
 agent.attach(Subscriptions)
 agent.attach(MetastoreFeed, metastore)
-app.ws('/', agent.addClient)
+app.ws('/', agent.handle)
 
 // logs
 agent.on('subscribe', () => { console.log('added subscriber') })

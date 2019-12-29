@@ -15,7 +15,7 @@ export class TaskAgent extends EventEmitter {
         this.components.push(new Component(this, ...args))
     }
 
-    addClient = ws => {
+    handle = ws => {
         let conn = new Connection(ws)
         this.connections.push(conn)
     
@@ -32,22 +32,25 @@ export class TaskAgent extends EventEmitter {
 
         this.emit('connect', conn)
     }
-    
-    broadcast = event => {
-        this.send(event, this.connections)
-    }
 
     send = (msg, predicate = AllConnections) => {
+        // send to matching connections if predicate is a function
         if (_.isFunction(predicate)) {
             _.each(this.connections, conn => {
                 if (predicate(conn)) {
                     conn.send(msg)
                 }
             })
+            return
         }
+
+        // send to each connection if predicate is an array
         if (_.isArray(predicate)) {
             _.each(predicate, conn => conn.send(msg))
+            return
         }
+
+        throw new Error('Expected predicate to be a function or an array')
     }
 }
 
