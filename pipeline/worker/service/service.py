@@ -1,9 +1,10 @@
 import json
 import traceback
+from pipeline.network import NodeService
 
 
-class NodeService(object):
-    def handle(self, id: str, type: str, **msg):
+class WorkerService(NodeService):
+    def handle_upstream(self, id: str, type: str, **msg):
         if type == 'init':
             self.on_init(msg['task'])
         elif type == 'fail':

@@ -7,16 +7,6 @@ from .worker_node import WorkerNode
 from .service import FlowLogger
 
 
-async def serve_upstream(node):
-    print('listening for downstream messages')
-    while True:
-        msg = await node.upstream.recv()
-        if msg is None:
-            break
-        print(msg)
-    print('closing downstream loop')
-
-
 async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     """
     Executes a task on this worker node.
@@ -30,7 +20,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         print('~~ connecting upstream')
         await node.connect(taskdef.upstream)
 
-        asyncio.create_task(serve_upstream(node))
+        # handle downstream messages
+        asyncio.create_task(node.serve_downstream())
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up by docker/kubernetes.

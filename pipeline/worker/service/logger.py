@@ -1,8 +1,8 @@
 import json
-from .service import NodeService
+from .service import WorkerService
 
 
-class FlowLogger(NodeService):
+class FlowLogger(WorkerService):
     def on_init(self, task: dict):
         print('~~ create', task['id'], 'from', task['image'], task['inputs'])
 
@@ -20,3 +20,6 @@ class FlowLogger(NodeService):
 
     def on_log(self, id, file, data):
         print(data, end='')
+
+    def handle_downstream(self, **msg):
+        print('~~ downstream', msg)

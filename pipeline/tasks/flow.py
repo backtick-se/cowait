@@ -8,7 +8,10 @@ from pipeline.network import get_local_connstr, PORT
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-    def handle(self, id: str, type: str, **msg) -> bool:
+    def handle_downstream(self, **msg: dict) -> bool:
+        pass
+
+    def handle_upstream(self, id: str, type: str, **msg: dict) -> bool:
         # complete future when we get a return message from a subtask
         if type == 'return' and id in self.tasks:
             task = self.tasks[id]
@@ -29,7 +32,7 @@ class Flow(Task):
         self.node.attach(self)
 
         # run task daemon in the background
-        asyncio.create_task(self.node.serve())
+        asyncio.create_task(self.node.serve_upstream())
 
         return inputs
 

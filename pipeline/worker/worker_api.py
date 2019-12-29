@@ -14,9 +14,6 @@ class WorkerAPI:
         self.node = node
         self.id = taskdef.id
 
-    async def send(self, msg: dict) -> None:
-        await self.node.send(msg)
-
     async def msg(self, type: str, **msg) -> None:
         """
         Send a message upstream.
@@ -25,7 +22,7 @@ class WorkerAPI:
             type (str): Message type
             kwargs (dict): Message fields
         """
-        await self.send({
+        await self.node.send_up({
             'id': self.id,
             'type': type,
             **msg,
