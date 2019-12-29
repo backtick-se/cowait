@@ -7,3 +7,4 @@ from .client import Client
 from .server import Server
 from .conn import Conn
 from .node import Node
+from .service import NodeService

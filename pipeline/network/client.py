@@ -40,7 +40,8 @@ class Client:
 
     async def recv(self):
         try:
-            return await self.ws.recv()
+            msg = await self.ws.recv()
+            return json.loads(msg)
         except ConnectionClosedOK:
             return None
 

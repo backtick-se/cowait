@@ -1,5 +1,5 @@
 import random
-from pipeline.flows import Flow, join
+from pipeline.tasks import Flow, join
 from lazy.lazy import Lazy
 
 

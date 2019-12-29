@@ -1,10 +1,10 @@
 from datetime import datetime
 from marshmallow import Schema, fields, post_load
 from pipeline.tasks.status import WAIT, WORK
-from .service import NodeService
+from .service import WorkerService
 
 
-class TaskList(NodeService):
+class TaskList(WorkerService):
     def __init__(self):
         self.items = {}
 
