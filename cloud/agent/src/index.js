@@ -23,6 +23,12 @@ app.ws('/', agent.handle)
 // logs
 agent.on('subscribe', () => { console.log('added subscriber') })
 agent.on('close', () => { console.log('removed subscriber') })
+agent.on('connect', conn => {
+    conn.send({
+        type: 'test',
+        msg: 'hello world',
+    })
+})
 
 // create express app
 app.listen(PORT, () => {

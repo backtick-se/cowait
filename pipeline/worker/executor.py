@@ -1,9 +1,20 @@
+import asyncio
 import traceback
 from pipeline.engine import ClusterProvider
 from pipeline.network import ConnectionClosedOK, ConnectionClosedError
 from pipeline.tasks import TaskDefinition
 from .worker_node import WorkerNode
 from .service import FlowLogger
+
+
+async def serve_upstream(node):
+    print('listening for downstream messages')
+    while True:
+        msg = await node.upstream.recv()
+        if msg is None:
+            break
+        print(msg)
+    print('closing downstream loop')
 
 
 async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
@@ -18,6 +29,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         # forward events upstream
         print('~~ connecting upstream')
         await node.connect(taskdef.upstream)
+
+        asyncio.create_task(serve_upstream(node))
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up by docker/kubernetes.
