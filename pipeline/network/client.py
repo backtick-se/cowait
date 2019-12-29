@@ -1,7 +1,7 @@
 import json
 import asyncio
 import websockets
-from websockets.exceptions import ConnectionClosed
+from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
 
 class Client:
@@ -39,7 +39,10 @@ class Client:
             pass
 
     async def recv(self):
-        raise NotImplementedError('downstream recv not yet supported')
+        try:
+            return await self.ws.recv()
+        except ConnectionClosedOK:
+            return None
 
     async def close(self):
         if self.ws is None:
