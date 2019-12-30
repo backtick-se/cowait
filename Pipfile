@@ -9,6 +9,7 @@ pytest-sugar = "*"
 pytest-cov = "*"
 flake8 = "*"
 autopep8 = "*"
+pytest-asyncio = "*"
 
 [packages]
 click = "*"
