@@ -7,7 +7,7 @@ class LazyParentTask(Flow):
     image = 'johanhenriksson/pipeline-task:parent'
     command = 'python -u main.py'
 
-    async def plan(
+    async def run(
         self,
         duration,
         max_duration=0,
