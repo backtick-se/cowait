@@ -1,29 +1,28 @@
 import json
 import websockets
+from pipeline.utils import EventEmitter
 from .conn import Conn
 
 ANY_IP = '0.0.0.0'
 
 
-class Server:
+class Server(EventEmitter):
     def __init__(self, port: int):
+        super().__init__()
         self.ws = None
         self.port = port
         self.conns = []
 
-    async def serve(self, handler: callable) -> None:
-        async def handle(ws, path):
-            await self.on_client(ws, handler)
-
+    async def serve(self) -> None:
         # serve websockets
         self.ws = await websockets.serve(
-            handle,
+            self.handle_client,
             host=ANY_IP,
             port=self.port,
         )
         await self.ws.wait_closed()
 
-    async def on_client(self, ws, handler: callable) -> None:
+    async def handle_client(self, ws, path: str) -> None:
         conn = Conn(ws)
         self.conns.append(conn)
 
@@ -32,8 +31,7 @@ class Server:
                 msg = await conn.recv()
                 if msg is None:
                     break
-
-                await handler(conn, msg)
+                await self.emit(**msg)
 
         except websockets.exceptions.ConnectionClosedOK:
             pass

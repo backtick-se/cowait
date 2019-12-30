@@ -22,7 +22,7 @@ class WorkerAPI:
             type (str): Message type
             kwargs (dict): Message fields
         """
-        await self.node.send_up({
+        await self.node.parent.send({
             'id': self.id,
             'type': type,
             **msg,
