@@ -16,16 +16,15 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     node = WorkerNode(cluster, taskdef)
 
     if taskdef.upstream:
-        # forward events upstream
         print('~~ connecting upstream')
         await node.connect(taskdef.upstream)
 
         # handle downstream messages
-        asyncio.create_task(node.serve_downstream())
+        asyncio.create_task(node.parent.serve())
     else:
         # if we dont have anywhere to forward events, log them to stdout.
-        # logs will be picked up by docker/kubernetes.
-        node.attach(FlowLogger())
+        # logs will be picked up from the top level task by docker/kubernetes.
+        node.parent = FlowLogger()
 
     try:
         # run task

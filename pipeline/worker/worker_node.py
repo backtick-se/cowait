@@ -58,7 +58,8 @@ class WorkerNode(Node):
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """
-        if not self.upstream:
+        # hack to avoid stdout loop
+        if self.parent.ws is None:
             return nullcontext()
 
         def stdout(x):

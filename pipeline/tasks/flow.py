@@ -2,37 +2,26 @@ import asyncio
 from typing import Any
 from abc import abstractmethod
 from pipeline.tasks import Task, TaskDefinition, TaskError
-from pipeline.network import get_local_connstr, PORT
+from pipeline.network import get_local_connstr
 
 
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-    def handle_downstream(self, **msg: dict) -> bool:
-        pass
-
-    def handle_upstream(self, id: str, type: str, **msg: dict) -> bool:
-        # complete future when we get a return message from a subtask
-        if type == 'return' and id in self.tasks:
-            task = self.tasks[id]
-            if not task.result.done():
-                task.result.set_result(msg['result'])
-
-        # fail future when we get an error message from a subtask
-        if type == 'fail' and id in self.tasks:
-            task = self.tasks[id]
-            if not task.result.done():
-                task.result.set_exception(TaskError(msg['error']))
-
-        return True
-
     async def before(self, inputs):
         self.tasks = {}
-        self.node.bind(PORT)
-        self.node.attach(self)
+
+        # subscribe to child task status updates
+        self.node.children.on('return', self.on_child_return)
+        self.node.children.on('fail', self.on_child_fail)
+
+        # forward child events to parent
+        async def forward(**msg):
+            await self.node.parent.send(msg)
+        self.node.children.on('*', forward)
 
         # run task daemon in the background
-        asyncio.create_task(self.node.serve_upstream())
+        asyncio.create_task(self.node.children.serve())
 
         return inputs
 
@@ -96,3 +85,13 @@ class Flow(Task):
     async def plan(self, **inputs):
         """ Virtual method for scheduling subtasks """
         return None
+
+    async def on_child_return(self, id, result, **msg):
+        task = self.tasks[id]
+        if not task.result.done():
+            task.result.set_result(result)
+
+    async def on_child_fail(self, id, error, **msg):
+        task = self.tasks[id]
+        if not task.result.done():
+            task.result.set_exception(TaskError(error))
