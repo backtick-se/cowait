@@ -8,7 +8,7 @@ from pipeline.network import get_local_connstr
 class Flow(Task):
     """ Serves as the base class for all tasks with children """
 
-    async def before(self, inputs):
+    async def before(self, inputs: dict) -> None:
         self.tasks = {}
 
         # subscribe to child task status updates
@@ -25,12 +25,12 @@ class Flow(Task):
 
         return inputs
 
-    async def run(self, **inputs) -> Any:
-        # left for compability.
-        # remove later
-        return await self.plan(**inputs)
+    @abstractmethod
+    async def run(self, **inputs: dict) -> Any:
+        """ Virtual method for scheduling subtasks """
+        return None
 
-    def stop(self):
+    def stop(self) -> None:
         # ask the cluster to destroy any children
         # children = self.cluster.destroy_children(self.id)
 
@@ -44,7 +44,7 @@ class Flow(Task):
         name: str,
         image: str = None,
         env: dict = {},
-        **inputs,
+        **inputs: dict,
     ) -> Task:
         """
         Spawn a child task.
@@ -81,17 +81,12 @@ class Flow(Task):
         self.tasks[task.id] = task
         return task
 
-    @abstractmethod
-    async def plan(self, **inputs):
-        """ Virtual method for scheduling subtasks """
-        return None
-
-    async def on_child_return(self, id, result, **msg):
+    async def on_child_return(self, id: str, result: Any, **msg: dict) -> None:
         task = self.tasks[id]
         if not task.result.done():
             task.result.set_result(result)
 
-    async def on_child_fail(self, id, error, **msg):
+    async def on_child_fail(self, id: str, error: str, **msg: dict) -> None:
         task = self.tasks[id]
         if not task.result.done():
             task.result.set_exception(TaskError(error))
