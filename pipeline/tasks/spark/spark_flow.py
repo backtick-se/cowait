@@ -38,7 +38,7 @@ SPARK_DEFAULTS = {
 }
 
 
-def conf_from_context(app_name, master, config):
+def conf_from_cluster(app_name, master, config):
     sc = SparkConf() \
         .setAppName(app_name) \
         .setMaster(master)
@@ -52,17 +52,9 @@ class SparkFlow(Flow):
         super().__init__(taskdef, cluster, node)
         self.master = None
         self.workers = []
-        self.spark_context = {}
-        self.spark_logs = taskdef.inputs.get('spark.logs', False)
+        self.spark_cluster = {}
 
-    def handle(self, id: str, type: str, **msg) -> bool:
-        if type == 'log':
-            if not self.on_log(id=id, **msg):
-                return False
-
-        return super().handle(id, type, **msg)
-
-    def on_log(self, id, file, data, **msg) -> bool:
+    async def on_log(self, id, file, data, **msg) -> None:
         if self.master and id == self.master.id:
             if MSG_LEADER in data:
                 print('~~ spark master ready')
@@ -73,18 +65,20 @@ class SparkFlow(Flow):
                 print(f'~~ spark worker {worker.id} ready')
                 worker.ready.set_result(worker)
 
-        return self.spark_logs
-
     async def before(self, inputs: dict) -> dict:
         inputs = await super().before(inputs)
 
-        self.spark_context = await self.setup_cluster()
+        # subscribe to logs
+        self.node.children.on('log', self.on_log)
+
+        # create cluster
+        await self.setup_cluster()
 
         # create spark context
         # perhaps this should be optional?
         # in case no spark code is run in the flow itself
         if True:
-            conf = conf_from_context(**self.spark_context)
+            conf = conf_from_cluster(**self.spark_cluster)
             conf.set('spark.driver.host', get_local_ip())
 
             print('~~ starting spark session')
@@ -92,6 +86,7 @@ class SparkFlow(Flow):
                 .config(conf=conf) \
                 .getOrCreate()
 
+            print('~~ spark session ready')
             inputs['spark'] = self.spark
 
         return inputs
@@ -116,10 +111,10 @@ class SparkFlow(Flow):
             image=image,
             env=env,
             **inputs,
-            spark=self.spark_context,
+            spark=self.spark_cluster,
         )
 
-    async def setup_cluster(self, num_workers=2, **config) -> str:
+    async def setup_cluster(self, num_workers=2, **config) -> None:
         print(f'~~ creating spark cluster...')
         print(f'~~   num_workers = {num_workers}')
 
@@ -155,7 +150,7 @@ class SparkFlow(Flow):
         ]
         await asyncio.gather(*tasks)
 
-        return {
+        self.spark_cluster = {
             'app_name': self.id,
             'master': master_uri,
             'config': {
