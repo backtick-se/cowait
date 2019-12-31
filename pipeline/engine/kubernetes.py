@@ -86,6 +86,11 @@ class KubernetesProvider(ClusterProvider):
 
         # create job
         job = self.batch.create_namespaced_job(taskdef.namespace, jobdef)
+
+        # todo: if the task exposes ports, create a service
+        # perhaps before the pod waiting?
+
+        # wait for pod to become ready
         while True:
             pod = self.get_task_pod(taskdef.id)
             if pod and pod.status.phase != 'Pending':

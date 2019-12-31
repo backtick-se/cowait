@@ -29,5 +29,10 @@ class LazyParentTask(Flow):
         if concurrent:
             tasks = [await make_task() for _ in range(0, count)]
             return await join(*tasks)
+
         else:
-            return [await make_task() for _ in range(0, count)]
+            async def await_task():
+                task = await make_task()
+                return await task.result
+
+            return [await await_task() for _ in range(0, count)]

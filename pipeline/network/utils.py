@@ -1,7 +1,7 @@
 import socket
 
 
-PORT = 13838
+PORT = 1337
 
 
 def get_local_ip():

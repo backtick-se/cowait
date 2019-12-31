@@ -1,10 +1,9 @@
 from datetime import datetime
 from marshmallow import Schema, fields, post_load
 from pipeline.tasks.status import WAIT, WORK
-from .service import WorkerService
 
 
-class TaskList(WorkerService):
+class TaskList(object):
     def __init__(self):
         self.items = {}
 
@@ -16,6 +15,18 @@ class TaskList(WorkerService):
 
     def task_ids(self):
         return self.items.keys()
+
+    def attach(self, node):
+        node.on('init', self.on_init)
+        node.on('status', self.on_status)
+        node.on('fail', self.on_fail)
+        node.on('return', self.on_return)
+
+    def detach(self, node):
+        node.off('init', self.on_init)
+        node.off('status', self.on_status)
+        node.off('fail', self.on_fail)
+        node.off('return', self.on_return)
 
     def on_init(self, task: dict):
         task = TaskListItem(**task)
