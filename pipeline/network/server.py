@@ -14,7 +14,6 @@ class Server(EventEmitter):
         self.conns = []
 
     async def serve(self) -> None:
-        # serve websockets
         self.ws = await websockets.serve(
             self.handle_client,
             host=ANY_IP,

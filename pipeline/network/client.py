@@ -57,7 +57,7 @@ class Client(EventEmitter):
             event = await self.recv()
             if event is None:
                 return
-            self.emit(**event, conn=self)
+            await self.emit(**event)
 
     async def close(self):
         if self.ws is None:

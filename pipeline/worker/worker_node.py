@@ -6,6 +6,7 @@ from pipeline.network import Node
 from pipeline.tasks import TaskError, StopException
 from pipeline.utils import StreamCapturing
 from .worker_api import WorkerAPI
+from .service import FlowLogger
 from .loader import load_task_class
 
 
@@ -59,7 +60,7 @@ class WorkerNode(Node):
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """
         # hack to avoid stdout loop
-        if self.parent.ws is None:
+        if isinstance(self.parent, FlowLogger):
             return nullcontext()
 
         def stdout(x):
