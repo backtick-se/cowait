@@ -2,7 +2,7 @@
 cd "$(dirname "$0")"
 set -e
 
-TAG="base"
+TAG="latest"
 IMAGE="johanhenriksson/pipeline-task:$TAG"
 
 docker build --tag $IMAGE .
