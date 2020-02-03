@@ -1,7 +1,6 @@
 .git/
-build/
-cloud/
 dist/
+**/node_modules/
 pipeline.egg-info/
 dask-worker-space/
 .pytest_cache/

@@ -201,6 +201,7 @@ def agent(provider: str) -> None:
         inputs={
             'ports': {
                 '1337': '1337',
+                '1338': '1338',
             },
         },
     )

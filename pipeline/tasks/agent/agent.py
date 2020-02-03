@@ -1,29 +1,51 @@
-import json
 import asyncio
-from pipeline.tasks import Task, sleep
-from pipeline.network import Conn
+from aiohttp import web
+from pipeline.tasks import Task, TaskDefinition, sleep
+from pipeline.network import Conn, get_local_connstr
+from .tasklist import TaskList
+from .subscriptions import Subscriptions
+from .api import Dashboard, TaskAPI
 
 
-class AgentTask(Task):
+class Agent(Task):
     async def before(self, inputs: dict) -> None:
-        self.tasks = {}
-        self.subscribers = []
-        self.node.children.on('subscribe', self.subscribe)
-        self.node.children.on('__close', self.unsubscribe)
+        self.tasks = TaskList()
+        self.subs = Subscriptions()
 
-        # forward any messages to subscribers
-        self.node.children.on('*', self.forward)
+        async def send_state(conn: Conn) -> None:
+            for task in self.tasks.values():
+                await conn.send({
+                    'type': 'init',
+                    'id': task['id'],
+                    'task': task,
+                })
 
-        self.node.children.on('init', self.on_init)
-        self.node.children.on('status', self.on_status)
-        self.node.children.on('return', self.on_return)
-        self.node.children.on('fail', self.on_fail)
-        self.node.children.on('log', self.on_log)
+        # subscriber events
+        self.node.children.on('subscribe', self.subs.subscribe)
+        self.node.children.on('__close', self.subs.unsubscribe)
+        self.node.children.on('*', self.subs.forward)
+        self.subs.on('subscribe', send_state)
+
+        # task events
+        self.node.children.on('init', self.tasks.on_init)
+        self.node.children.on('status', self.tasks.on_status)
+        self.node.children.on('return', self.tasks.on_return)
+        self.node.children.on('fail', self.tasks.on_fail)
+        self.node.children.on('log', self.tasks.on_log)
 
         # run task daemon in the background
         asyncio.create_task(self.node.children.serve())
 
-        # todo: api web server
+        app = web.Application()
+        app.add_routes(TaskAPI(self).routes('/api/1/tasks'))
+        app.add_routes(Dashboard().routes())
+
+        asyncio.create_task(web._run_app(
+            app=app,
+            port=1338,
+            print=False,
+            handle_signals=False,
+        ))
 
         return inputs
 
@@ -33,53 +55,21 @@ class AgentTask(Task):
             await sleep(1.0)
         return {}
 
-    async def forward(self, conn: Conn, **msg):
-        if conn in self.subscribers:
-            return
+    def spawn(self,
+              name: str,
+              image: str = None,
+              inputs: dict = {},
+              config: dict = {},
+              env: dict = {}
+              ) -> TaskDefinition:
+        taskdef = TaskDefinition(
+            name=name,
+            inputs=inputs,
+            image=image if image else self.image,
+            upstream=get_local_connstr(),
+            config=config,
+            env=env,
+        )
 
-        for subscriber in self.subscribers:
-            await subscriber.send(msg)
-
-    async def subscribe(self, conn: Conn, **msg):
-        print(f'~~ add subscriber {conn.remote_ip}:{conn.remote_port}')
-        self.subscribers.append(conn)
-
-        # send task info
-        for task in self.tasks.values():
-            await conn.send({
-                'id': task['id'],
-                'type': 'init',
-                'task': task,
-            })
-
-    async def unsubscribe(self, conn: Conn, **msg):
-        print(f'~~ drop subscriber {conn.remote_ip}:{conn.remote_port}')
-        if conn in self.subscribers:
-            self.subscribers.remove(conn)
-
-    async def on_init(self, conn: Conn, id: str, task: dict, **msg):
-        print('~~ create', task['id'], 'from', task['image'], task['inputs'])
-        self.tasks[id] = task
-
-    async def on_status(self, conn: Conn, id, status, **msg):
-        print('~~', id, 'changed status to', status)
-        if id in self.tasks:
-            self.tasks[id]['status'] = status
-
-    async def on_fail(self, conn: Conn, id, error, **msg):
-        print('~~', id, 'failed with error:')
-        print(error.strip())
-        if id in self.tasks:
-            self.tasks[id]['error'] = error
-
-    async def on_return(self, conn: Conn, id, result, **msg):
-        print('~~', id, 'returned:')
-        print(json.dumps(result, indent=2))
-        if id in self.tasks:
-            self.tasks[id]['result'] = result
-
-    async def on_log(self, conn: Conn, id, file, data, **msg):
-        if id in self.tasks:
-            if 'log' not in self.tasks[id]:
-                self.tasks[id]['log'] = ''
-            self.tasks[id]['log'] += data
+        self.cluster.spawn(taskdef)
+        return taskdef
