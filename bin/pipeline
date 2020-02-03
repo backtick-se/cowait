@@ -85,6 +85,15 @@ def destroy(provider):
     pipeline.cli.destroy(provider)
 
 
+@click.command(help='list tasks')
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
+def ps(provider):
+    pipeline.cli.list_tasks(provider)
+
+
 if __name__ == '__main__':
     @click.group()
     def cli():
@@ -94,5 +103,6 @@ if __name__ == '__main__':
     cli.add_command(build)
     cli.add_command(push)
     cli.add_command(destroy)
+    cli.add_command(ps)
 
     cli()
