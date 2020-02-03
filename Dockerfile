@@ -23,11 +23,11 @@ RUN wget -O spark.tgz https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION
 
 ENV SPARK_HOME=/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}
 ENV PATH=$SPARK_HOME/python:$PATH:$SPARK_HOME/bin
-ENV PYTHONPATH=/app:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-${PY4J_VERSION}-src.zip:$PYTHONPATH
+ENV PYTHONPATH=/app:/app/context:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-${PY4J_VERSION}-src.zip:$PYTHONPATH
 COPY spark-defaults.conf /spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/conf
 
 # create working directory
-RUN mkdir /app
+RUN mkdir -p /app/context
 WORKDIR /app
 
 # install python requirements

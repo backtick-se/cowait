@@ -1,6 +1,5 @@
 import os
 import docker
-from .const import DEFAULT_BASE_IMAGE
 from .context import PipelineContext
 
 client = docker.from_env()
@@ -11,11 +10,8 @@ class TaskImage(object):
         self.name = name
         self.context = context
 
-    def build(self, base: str = None, requirements: str = None):
+    def build(self, base, requirements: str = None):
         """ Build task image """
-
-        if base is None or base == 'default':
-            base = DEFAULT_BASE_IMAGE
 
         # create temporary dockerfile
         df_path = os.path.join(self.context.path, '__dockerfile__')
@@ -24,17 +20,17 @@ class TaskImage(object):
             print(f'FROM {base}', file=df)
 
             # install task-specific requirements
+            requirements = self.context.file_rel('requirements.txt')
             if requirements:
-                print(
-                    f'COPY ./{requirements} ./task_requirements.txt', file=df)
-                print('RUN pip install -r ./task_requirements.txt', file=df)
+                print(f'COPY ./{requirements} ./requirements.txt', file=df)
+                print('RUN pip install -r ./requirements.txt', file=df)
 
             # copy source code
-            print('COPY . .', file=df)
+            print('COPY . context/', file=df)
 
         # build image
         self.image, logs = self.build_image(
-            path=self.context.path,
+            path=self.context.root_path,
             dockerfile=df_path,
         )
 

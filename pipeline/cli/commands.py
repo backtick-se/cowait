@@ -1,6 +1,7 @@
 import sys
 import json
 import os.path
+from .const import DEFAULT_BASE_IMAGE, DEFAULT_PROVIDER
 from .task_image import TaskImage
 from .context import PipelineContext
 from .utils import ExitTrap
@@ -10,11 +11,18 @@ from ..tasks import TaskDefinition
 HEADER_WIDTH = 80
 
 
-def printheader(title: str = None):
+def printheader(title: str = None) -> None:
     if title is None:
         print(f'--'.ljust(HEADER_WIDTH, '-'))
     else:
         print(f'-- {title} '.upper().ljust(HEADER_WIDTH, '-'))
+
+
+def get_context_cluster(context, provider: str = None):
+    return get_cluster_provider(
+        type=context.coalesce('cluster.type', provider, DEFAULT_PROVIDER),
+        args=context.get('cluster', {}),
+    )
 
 
 def build(task: str) -> TaskImage:
@@ -30,7 +38,7 @@ def build(task: str) -> TaskImage:
 
     # find custom Dockerfile
     # if it exists, build it and extend that instead of the default base image
-    base_image = 'default'
+    base_image = DEFAULT_BASE_IMAGE
     dockerfile = image.context.file('Dockerfile')
     if dockerfile:
         print('found custom Dockerfile:', image.context.relpath(dockerfile))
@@ -71,13 +79,8 @@ def run(
         push(task)
 
     context = PipelineContext.open()
+    cluster = get_context_cluster(context, provider)
     image = context.get_task_image(task)
-
-    # grab cluster provider
-    cluster = get_cluster_provider(
-        type=context.coalesce('cluster.type', provider, 'kubernetes'),
-        args=context.get('cluster', {}),
-    )
 
     # create task definition
     taskdef = TaskDefinition(
@@ -164,17 +167,50 @@ def push(task: str) -> TaskImage:
 
 
 def destroy(provider: str) -> None:
+    context = PipelineContext.open()
+
     # grab cluster provider
-    cluster = get_cluster_provider(type=provider)
+    cluster = get_cluster_provider(
+        type=context.coalesce('cluster.type', provider, DEFAULT_PROVIDER),
+        args=context.get('cluster', {}),
+    )
 
     # kill all tasks
     cluster.destroy_all()
 
 
 def list_tasks(provider: str) -> None:
-    # grab cluster provider
-    cluster = get_cluster_provider(type=provider)
+    context = PipelineContext.open()
+    cluster = get_context_cluster(context, provider)
 
     tasks = cluster.list_all()
     for task in tasks:
         print(task)
+
+
+def agent(provider: str) -> None:
+    context = PipelineContext.open()
+    cluster = get_context_cluster(context, provider)
+
+    # create task definition
+    taskdef = TaskDefinition(
+        id='agent',
+        name='tasks.agent',
+        image=DEFAULT_BASE_IMAGE,
+        namespace='default',
+    )
+
+    task = cluster.spawn(taskdef)
+
+    def destroy(*args):
+        print()
+        printheader('interrupt')
+        cluster.destroy(task.id)
+        sys.exit(0)
+
+    with ExitTrap(destroy):
+        # capture & print logs
+        logs = cluster.logs(task)
+        printheader('task output')
+        for log in logs:
+            print(log, flush=True)
