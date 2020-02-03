@@ -43,7 +43,15 @@ def option_dict(opts):
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
-def run(task: str, provider: str, input, config, env, upstream: str, build: bool):
+@click.option('--detach',
+              type=bool, is_flag=True,
+              help='run in detached mode',
+              default=False)
+def run(
+    task: str, provider: str,
+    input, config, env,
+    upstream: str, build: bool, detach: bool
+):
     pipeline.cli.run(
         task,
         provider=provider,
@@ -52,6 +60,7 @@ def run(task: str, provider: str, input, config, env, upstream: str, build: bool
         env=option_dict(env),
         upstream=upstream,
         build=build,
+        detach=detach,
     )
 
 
