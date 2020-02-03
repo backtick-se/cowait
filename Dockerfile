@@ -14,7 +14,7 @@ RUN apt-get install -y openjdk-8-jre-headless
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 # install spark
-ENV SPARK_VERSION=3.0.0-preview
+ENV SPARK_VERSION=3.0.0-preview2
 ENV HADOOP_VERSION=3.2
 ENV PY4J_VERSION=0.10.8.1
 
