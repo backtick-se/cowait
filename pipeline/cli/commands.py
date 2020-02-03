@@ -59,6 +59,7 @@ def run(
     env: dict = {},
     build: bool = False,
     upstream: str = None,
+    detach: bool = False,
 ):
     if build:
         push(task)
@@ -99,6 +100,11 @@ def run(
 
     # submit task to cluster
     task = cluster.spawn(taskdef)
+
+    if detach:
+        print('~~ running in detached mode')
+        printheader()
+        return
 
     def destroy(*args):
         print()
