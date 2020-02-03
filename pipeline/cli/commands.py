@@ -17,30 +17,35 @@ def printheader(title: str = None):
 
 
 def build(task: str) -> TaskImage:
-    context = PipelineContext.open()
-    image = TaskImage.open(context, task)
-    print('context path:', context.path)
+    image = TaskImage.open(task)
+    print('context path:', image.context.root_path)
+    print('task path:', image.context.relpath(image.context.path))
 
     # find task-specific requirements.txt
     # if it exists, it will be copied to the container, and installed
-    requirements = context.file_rel('requirements.txt')
+    requirements = image.context.file_rel('requirements.txt')
     if requirements:
         print('found custom requirements.txt:', requirements)
 
     # find custom Dockerfile
     # if it exists, build it and extend that instead of the default base image
-    dockerfile = context.file('Dockerfile')
+    base_image = 'default'
+    dockerfile = image.context.file('Dockerfile')
     if dockerfile:
-        print('found custom Dockerfile:',
-              os.path.relpath(dockerfile, image.root))
+        print('found custom Dockerfile:', image.context.relpath(dockerfile))
         print('building custom base image...')
-        logs = image.build_custom_base(dockerfile)
+
+        base, logs = TaskImage.build_image(
+            path=os.path.dirname(dockerfile),
+            dockerfile='Dockerfile',
+        )
         for log in logs:
             if 'stream' in log:
                 print(log['stream'], flush=True, end='')
 
     print('building task image...')
     logs = image.build(
+        base=base_image,
         requirements=requirements,
     )
 
