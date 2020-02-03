@@ -165,6 +165,9 @@ class KubernetesProvider(ClusterProvider):
     def destroy_all(self) -> list:
         raise NotImplementedError()
 
+    def list_all(self) -> list:
+        raise NotImplementedError()
+
     def destroy(self, task_id) -> list:
         def kill_family(task_id):
             print('~~ kubernetes kill', task_id)

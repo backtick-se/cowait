@@ -1,0 +1,6 @@
+# test context
+version: 1
+pipeline:
+  repo: repo
+  cluster:
+    type: docker

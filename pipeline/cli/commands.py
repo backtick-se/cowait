@@ -1,4 +1,5 @@
 import sys
+import json
 import os.path
 from .task_image import TaskImage
 from .context import PipelineContext
@@ -70,10 +71,13 @@ def run(
         push(task)
 
     context = PipelineContext.open()
-    image = f'johanhenriksson/pipeline-task:{task}'
+    image = context.get_task_image(task)
 
     # grab cluster provider
-    cluster = get_cluster_provider(type=provider)
+    cluster = get_cluster_provider(
+        type=context.coalesce('cluster.type', provider, 'kubernetes'),
+        args=context.get('cluster', {}),
+    )
 
     # create task definition
     taskdef = TaskDefinition(
@@ -89,7 +93,7 @@ def run(
             **env,
         },
         namespace='default',
-        upstream=upstream,
+        upstream=context.coalesce('upstream', upstream, None),
         parent=None,  # root task
     )
 
@@ -130,12 +134,32 @@ def run(
 def push(task: str) -> TaskImage:
     image = build(task)
 
-    print('pushing...')
-    logs = image.push('johanhenriksson/pipeline-task')
-    for _ in logs:
-        pass
+    sys.stdout.write('pushing...')
+    logs = image.push()
+    progress = {}
+    for log in logs:
+        rows = log.decode('utf-8').split('\r\n')
+        for data in rows:
+            if len(data) == 0:
+                continue
+            update = json.loads(data.strip())
+            if 'id' in update and 'progressDetail' in update:
+                id = update['id']
+                progress[id] = update['progressDetail']
 
-    print('done')
+        current = 0
+        total = 0
+        for detail in progress.values():
+            current += detail.get('current', 0)
+            total += detail.get('total', 0)
+
+        if total > 0:
+            pct = 100 * min(current / total, 1.0)
+            sys.stdout.write(f'\rpushing... {pct:0.2f}%')
+            sys.stdout.flush()
+
+    sys.stdout.write(f'\rpushing... done     \n')
+    sys.stdout.flush()
     return image
 
 

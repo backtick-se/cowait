@@ -41,26 +41,31 @@ class TaskImage(object):
         # remove temproary dockerfile
         os.unlink(df_path)
 
+        # always tag image so that it works locally
         self.image.tag(
-            repository='johanhenriksson/pipeline',
-            tag=self.name,
+            repository=self.get_image_name(),
+            tag='latest'
         )
 
         return logs
 
-    def push(self, repository):
+    def get_image_name(self):
+        repository = self.context['repo']
+        return f'{repository}/{self.name}'
+
+    def push(self):
         """ Push task image to a repository """
         if not self.image:
             raise RuntimeError('Task must be built first')
 
         self.image.tag(
-            repository=repository,
-            tag=self.name,
+            repository=self.get_image_name(),
+            tag='latest',
         )
 
         logs = client.images.push(
-            repository=repository,
-            tag=self.name,
+            repository=self.get_image_name(),
+            tag='latest',
             stream=True
         )
         return logs

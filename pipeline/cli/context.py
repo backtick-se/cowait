@@ -15,10 +15,21 @@ class PipelineContext(object):
         self.definition = definition
 
     def __getitem__(self, key: str) -> any:
-        return self.definition.get(key)
+        return self.get(key, required=True)
 
-    def get(self, key: str, default: any) -> any:
-        return self.definition.get(key, default)
+    def get(self, key: str, default: any = None, required: bool = True):
+        path = key.split('.')
+        value = self.definition
+        for part in path:
+            if not isinstance(value, dict) or part not in value:
+                value = None
+                break
+            value = value.get(part, default)
+        if value is None:
+            if default is None and required:
+                raise KeyError()
+            return default
+        return value
 
     def file(self, file_name: str) -> str:
         """ Find a file within the task context and return its full path """
@@ -44,13 +55,17 @@ class PipelineContext(object):
     def coalesce(self, key: str, value: any, default: any) -> any:
         if value is not None:
             return value
-        return self.get(key, default)
+        return self.get(key, default, required=False)
 
     def cwd(self, path: str) -> None:
         """
         Navigate within the context. Returns a new context.
         """
-        new_path = os.path.join(self.path, path)
+        new_path = os.path.abspath(os.path.join(self.path, path))
+
+        if not os.path.isdir(new_path):
+            raise RuntimeError(f'Target directory {new_path} does not exist')
+
         if not self.includes(new_path):
             raise RuntimeError(f'Target path is outside context directory')
 
@@ -60,11 +75,18 @@ class PipelineContext(object):
             definition=self.definition,
         )
 
+    def get_task_image(self, task):
+        repo = self['repo']
+        return f'{repo}/{task}:latest'
+
     @staticmethod
     def open(path: str = None):
         # if no path is provided, open at the current directory
         if not path:
             path = os.getcwd()
+
+        # ensure path is absolute
+        path = os.path.abspath(path)
 
         # ensure the provided path is an actual directory
         if not os.path.isdir(path):
