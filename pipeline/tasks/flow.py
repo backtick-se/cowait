@@ -16,7 +16,7 @@ class Flow(Task):
         self.node.children.on('fail', self.on_child_fail)
 
         # forward child events to parent
-        async def forward(**msg):
+        async def forward(conn, **msg):
             await self.node.parent.send(msg)
         self.node.children.on('*', forward)
 
@@ -81,12 +81,12 @@ class Flow(Task):
         self.tasks[task.id] = task
         return task
 
-    async def on_child_return(self, id: str, result: Any, **msg: dict) -> None:
+    async def on_child_return(self, conn, id: str, result: Any, **msg: dict) -> None:
         task = self.tasks[id]
         if not task.result.done():
             task.result.set_result(result)
 
-    async def on_child_fail(self, id: str, error: str, **msg: dict) -> None:
+    async def on_child_fail(self, conn, id: str, error: str, **msg: dict) -> None:
         task = self.tasks[id]
         if not task.result.done():
             task.result.set_exception(TaskError(error))

@@ -195,9 +195,14 @@ def agent(provider: str) -> None:
     # create task definition
     taskdef = TaskDefinition(
         id='agent',
-        name='tasks.agent',
+        name='pipeline.tasks.agent',
         image=DEFAULT_BASE_IMAGE,
         namespace='default',
+        inputs={
+            'ports': {
+                '1337': '1337',
+            },
+        },
     )
 
     task = cluster.spawn(taskdef)
