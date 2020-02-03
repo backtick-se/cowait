@@ -26,17 +26,19 @@ class Server(EventEmitter):
         self.conns.append(conn)
 
         try:
+            await self.emit(type='__connect', conn=conn)
             while True:
                 msg = await conn.recv()
                 if msg is None:
                     break
-                await self.emit(**msg)
+                await self.emit(**msg, conn=conn)
 
         except websockets.exceptions.ConnectionClosedOK:
             pass
 
         finally:
             self.conns.remove(conn)
+            await self.emit(type='__close', conn=conn)
 
     async def send(self, msg: dict) -> None:
         if self.ws is None:
