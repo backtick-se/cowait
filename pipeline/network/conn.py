@@ -25,3 +25,11 @@ class Conn:
 
         except ConnectionClosedOK:
             pass
+
+    @property
+    def remote_ip(self):
+        return self.ws.remote_address[0]
+
+    @property
+    def remote_port(self):
+        return self.ws.remote_address[1]
