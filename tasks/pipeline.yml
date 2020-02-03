@@ -1,43 +1,4 @@
 version: 1
 pipeline:
-  # docker repo setup
-  repo: johanhenriksson/pipeline-task
-
-  environment:
-    AWS_ACCESS_KEY_ID: 'AKIASMZJSEC3JBSJKUMZ'
-    AWS_SECRET_ACCESS_KEY: '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'
-
-  # cluster provider defaults
-  cluster:
-    type: docker
-    network: tasks
-
-  # maybe we could have storage presets here
-  storage:
-    pipeline:
-      type: s3
-      bucket: localhost:9000/hello
-      access_id: 123
-      secret_key: 456
-
-    lazy_output:
-      type: s3
-      bucket: localhost:9000/tasks/lazy
-      access_id: 123
-      secret_key: 456
-
-  # since we're generating the dockerfile anyway, we could do it dynamically
-  image:
-    # why not add extra packages to the os?
-    apt-get:
-      - build-essential
-      - curl
-      
-    # spark support
-    # adds instructions for installing spark in the task image
-    spark: 
-      version: 2.4.4
-      hadoop: 2.7
-      packages:
-        - com.amazonaws:aws-java-sdk-pom:1.10.34
-        - org.apache.hadoop:hadoop-aws:2.6.0
+  repo: docker.backtick.se
+  provider: docker

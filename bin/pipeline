@@ -94,6 +94,15 @@ def ps(provider):
     pipeline.cli.list_tasks(provider)
 
 
+@click.command(help='deploy pipeline agent')
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
+def agent(provider: str):
+    pipeline.cli.agent(provider)
+
+
 if __name__ == '__main__':
     @click.group()
     def cli():
@@ -104,5 +113,6 @@ if __name__ == '__main__':
     cli.add_command(push)
     cli.add_command(destroy)
     cli.add_command(ps)
+    cli.add_command(agent)
 
     cli()

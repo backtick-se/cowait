@@ -9,9 +9,16 @@ def load_task_class(task_name: str) -> TypeVar:
         class_name = 'Task'
 
         if '.' in task_name:
+            # make sure the task name does not end with a dot
             dot = task_name.rfind('.')
-            module_name = task_name[:dot]
-            class_name = task_name[dot+1:]
+            if dot == 0 or dot == len(task_name)-1:
+                raise TaskNotFoundError(f'Illegal task name: {task_name}')
+
+            if task_name[dot+1].isupper():
+                # if the first character after the last dot is uppercase,
+                # consider it a class name.
+                module_name = task_name[:dot]
+                class_name = task_name[dot+1:]
 
         module = importlib.import_module(module_name)
         task_class = getattr(module, class_name)

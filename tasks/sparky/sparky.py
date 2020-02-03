@@ -55,8 +55,8 @@ class SparkyTask(SparkFlow):
         count = df.count()
         print(f'{count} trades')
 
-        #volume = df.agg(F.sum("size")).collect()[0][0]
-        #print(f'total volume: ${volume}')
+        volume = df.agg(F.sum("size")).collect()[0][0]
+        print(f'total volume: ${volume}')
 
         print('writing parquet')
         df.write \
@@ -67,5 +67,5 @@ class SparkyTask(SparkFlow):
         print('done writing')
         return {
             'trades': count,
-            # 'volume': volume,
+            'volume': volume,
         }
