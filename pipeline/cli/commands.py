@@ -145,3 +145,12 @@ def destroy(provider: str) -> None:
 
     # kill all tasks
     cluster.destroy_all()
+
+
+def list_tasks(provider: str) -> None:
+    # grab cluster provider
+    cluster = get_cluster_provider(type=provider)
+
+    tasks = cluster.list_all()
+    for task in tasks:
+        print(task)

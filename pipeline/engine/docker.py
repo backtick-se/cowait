@@ -24,7 +24,6 @@ class DockerProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('docker', args)
         self.docker = docker.from_env()
-        self.tasks = {}
 
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
         ports = taskdef.inputs.get('ports', None)
@@ -53,7 +52,17 @@ class DockerProvider(ClusterProvider):
 
         return DockerTask(self, taskdef, container)
 
+    def list_all(self) -> list:
+        """ Returns a list of all running tasks """
+        containers = self.docker.containers.list(
+            filters={
+                'label': 'task',
+            },
+        )
+        return map(lambda c: c.labels['task'], containers)
+
     def destroy_all(self) -> None:
+        """ Destroys all running tasks """
         containers = self.docker.containers.list(
             filters={
                 'label': 'task',
@@ -64,6 +73,7 @@ class DockerProvider(ClusterProvider):
             container.remove(force=True)
 
     def find_child_containers(self, parent_id: str) -> list:
+        """ Finds all child containers of a given task id """
         return self.docker.containers.list(
             filters={
                 'label': f'task_parent={parent_id}',
@@ -71,6 +81,7 @@ class DockerProvider(ClusterProvider):
         )
 
     def destroy_children(self, parent_id: str) -> list:
+        """ Destroy all child tasks of a given task id """
         children = self.find_child_containers(parent_id)
 
         tasks = []
@@ -80,6 +91,7 @@ class DockerProvider(ClusterProvider):
         return tasks
 
     def destroy(self, task_id):
+        """ Destroy a specific task id and all its descendants """
         def kill_family(container):
             container_task_id = container.labels['task']
             print('~~ docker kill', container.id[:12],
@@ -103,10 +115,12 @@ class DockerProvider(ClusterProvider):
         return kill_family(container)
 
     def logs(self, task: DockerTask):
+        """ Stream task logs """
         for log in task.container.logs(stream=True):
             if log[-1] == 10:  # newline
                 log = log[:-1]
             yield str(log, encoding='utf-8')
 
     def wait(self, task: DockerTask):
+        """ Wait for a task to finish """
         raise NotImplementedError()
