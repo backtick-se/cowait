@@ -5,6 +5,7 @@ import {
 } from 'redux'
 import { createLogger } from 'redux-logger'
 import tasks from './tasks'
+import socket from './socket'
 
 export function createStore({ logging }) {
     let middleware = [ ]
@@ -15,6 +16,7 @@ export function createStore({ logging }) {
     return createReduxStore(
         combineReducers({
             tasks: tasks.reducer,
+            socket: socket.reducer,
         }),
         applyMiddleware(
             ...middleware
