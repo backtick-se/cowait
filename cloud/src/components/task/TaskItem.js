@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import Task from './Task'
 
-function TaskItem({ id, task, render }) {
+function TaskItem({ id, task, render, ...props }) {
     if (!task) {
         return <p>loading</p>
     }
     const RenderElement = render
-    return <RenderElement {...task} />
+    return <RenderElement {...task} {...props} />
 }
 
 TaskItem.defaultProps = {
