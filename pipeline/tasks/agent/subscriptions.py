@@ -1,5 +1,6 @@
 from pipeline.network import Conn
 from pipeline.utils import EventEmitter
+from websockets.exceptions import ConnectionClosedError
 
 
 class Subscriptions(EventEmitter):
@@ -12,7 +13,10 @@ class Subscriptions(EventEmitter):
             return
 
         for subscriber in self.subscribers:
-            await subscriber.send(msg)
+            try:
+                await subscriber.send(msg)
+            except ConnectionClosedError:
+                pass
 
     async def subscribe(self, conn: Conn, **msg):
         print(f'~~ add subscriber {conn.remote_ip}:{conn.remote_port}')
@@ -23,10 +27,12 @@ class Subscriptions(EventEmitter):
         )
 
     async def unsubscribe(self, conn: Conn, **msg):
-        print(f'~~ drop subscriber {conn.remote_ip}:{conn.remote_port}')
         if conn in self.subscribers:
+            print(f'~~ drop subscriber {conn.remote_ip}:{conn.remote_port}')
             self.subscribers.remove(conn)
             await self.emit(
                 type='unsubscribe',
                 conn=conn,
             )
+        else:
+            print(f'~~ drop task {conn.remote_ip}:{conn.remote_port}')

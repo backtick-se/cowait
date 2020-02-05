@@ -3,10 +3,12 @@ import time
 import kubernetes
 from kubernetes import client, config, watch
 from pipeline.tasks import TaskDefinition
+from pipeline.network import PORT
 from .const import ENV_TASK_CLUSTER
 from .cluster import ClusterProvider, ClusterTask
 
 DEFAULT_NAMESPACE = 'default'
+DEFAULT_SUBDOMAIN = 'tasks'
 LABEL_TASK_ID = 'pipeline/task'
 LABEL_PARENT_ID = 'pipeline/parent'
 
@@ -46,16 +48,18 @@ class KubernetesProvider(ClusterProvider):
     def namespace(self):
         return self.args.get('namespace', DEFAULT_NAMESPACE)
 
+    @property
+    def subdomain(self):
+        return self.args.get('subdomain', DEFAULT_SUBDOMAIN)
+
     def spawn(self, taskdef: TaskDefinition, timeout=30) -> KubernetesTask:
         # container definition
         container = client.V1Container(
             name=taskdef.id,
             image=taskdef.image,
             env=self.create_env(taskdef),
-            ports=[
-                client.V1ContainerPort(container_port=1337)
-            ],
-            image_pull_policy='Always',
+            ports=self.create_ports(taskdef),
+            image_pull_policy='Always',  # taskdef field??
         )
 
         pod = self.core.create_namespaced_pod(
@@ -71,20 +75,14 @@ class KubernetesProvider(ClusterProvider):
                 ),
                 spec=client.V1PodSpec(
                     hostname=taskdef.id,
-                    subdomain='tasks',
-                    containers=[container],
+                    subdomain=self.subdomain,
                     restart_policy='Never',
-                    image_pull_secrets=[
-                        # todo: this should be standardized
-                        client.V1LocalObjectReference(
-                            name='docker',
-                        ),
-                    ],
+                    image_pull_secrets=self.get_pull_secrets(),
+
+                    containers=[container],
                 ),
             ),
         )
-
-        # todo: if the task exposes ports, create a service
 
         # wait for pod to become ready
         while True:
@@ -135,13 +133,6 @@ class KubernetesProvider(ClusterProvider):
         except Exception:
             self.logs(task)
 
-    def create_env(self, taskdef: TaskDefinition):
-        env = super().create_env(taskdef)
-        env_list = []
-        for name, value in env.items():
-            env_list.append(client.V1EnvVar(str(name), str(value)))
-        return env_list
-
     def destroy_all(self) -> list:
         raise NotImplementedError()
 
@@ -182,3 +173,36 @@ class KubernetesProvider(ClusterProvider):
             child.metadata.labels[LABEL_TASK_ID]
             for child in children.items
         ]
+
+    def create_env(self, taskdef: TaskDefinition):
+        env = super().create_env(taskdef)
+        env_list = []
+        for name, value in env.items():
+            env_list.append(client.V1EnvVar(str(name), str(value)))
+        return env_list
+
+    def create_ports(self, taskdef: TaskDefinition) -> list:
+        portlist = [
+            # always expose default port
+            client.V1ContainerPort(
+                protocl='TCP',
+                container_port=PORT,
+                host_port=PORT,
+            ),
+        ]
+        for port, host_port in taskdef.ports:
+            protocol = 'TCP'
+            if '/' in port:
+                slash = port.find('/')
+                protocol = port[slash+1:]
+                port = port[:slash]
+            portlist.append(client.V1ContainerPort(
+                protocol=protocol.upper(),
+                container_port=port,
+                host_port=host_port,
+            ))
+        return portlist
+
+    def get_pull_secrets(self):
+        secrets = self.args.get('pull_secrets', [])
+        return map(lambda s: client.V1LocalObjectReference(name=s), secrets)

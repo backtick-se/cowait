@@ -1,5 +1,6 @@
 import json
 import websockets
+from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 from pipeline.utils import EventEmitter
 from .conn import Conn
 
@@ -33,7 +34,10 @@ class Server(EventEmitter):
                     break
                 await self.emit(**msg, conn=conn)
 
-        except websockets.exceptions.ConnectionClosedOK:
+        except ConnectionClosedOK:
+            pass
+
+        except ConnectionClosedError:
             pass
 
         finally:
