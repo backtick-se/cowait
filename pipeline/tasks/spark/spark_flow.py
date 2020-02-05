@@ -1,5 +1,6 @@
 import os  # stinky, dont read envs here
 import asyncio
+from concurrent.futures import Future
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pipeline.tasks import Task, Flow, sleep
@@ -89,6 +90,7 @@ class SparkFlow(Flow):
             print('~~ spark session ready')
             inputs['spark'] = self.spark
 
+        await asyncio.sleep(0)
         return inputs
 
     async def after(self, inputs: dict):
@@ -125,7 +127,7 @@ class SparkFlow(Flow):
                 '8080/tcp': '8080',
             },
         )
-        self.master.ready = asyncio.Future()
+        self.master.ready = Future()
         master_uri = f'spark://{self.master.ip}:7077'
 
         await sleep(1)
@@ -140,15 +142,17 @@ class SparkFlow(Flow):
                 },
                 master=master_uri,
             )
-            w.ready = asyncio.Future()
+            w.ready = Future()
             self.workers.append(w)
 
         print('~~ waiting for cluster nodes')
-        tasks = [
-            self.master.ready,
-            *map(lambda w: w.ready, self.workers),
-        ]
-        await asyncio.gather(*tasks)
+        await asyncio.gather(
+            asyncio.wrap_future(self.master.ready),
+            *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
+        )
+
+        print('~~ spark cluster ready')
+        await asyncio.sleep(0)
 
         self.spark_cluster = {
             'app_name': self.id,
