@@ -6,8 +6,7 @@ from pipeline.tasks import TaskDefinition
 from .const import ENV_TASK_CLUSTER
 from .cluster import ClusterProvider, ClusterTask
 
-# for now, all tasks live in the same namespace.
-NAMESPACE = 'default'
+DEFAULT_NAMESPACE = 'default'
 LABEL_TASK_ID = 'pipeline/task'
 LABEL_PARENT_ID = 'pipeline/parent'
 
@@ -17,14 +16,12 @@ class KubernetesTask(ClusterTask):
         self,
         cluster: ClusterProvider,
         taskdef: TaskDefinition,
-        job,
         pod,
     ):
         super().__init__(
             cluster=cluster,
             taskdef=taskdef,
         )
-        self.job = job
         self.pod = pod
         self.ip = self.pod.status.pod_ip
 
@@ -45,50 +42,49 @@ class KubernetesProvider(ClusterProvider):
         self.core = client.CoreV1Api(
             kubernetes.client.ApiClient(configuration))
 
+    @property
+    def namespace(self):
+        return self.args.get('namespace', DEFAULT_NAMESPACE)
+
     def spawn(self, taskdef: TaskDefinition, timeout=30) -> KubernetesTask:
         # container definition
         container = client.V1Container(
             name=taskdef.id,
             image=taskdef.image,
             env=self.create_env(taskdef),
-            ports=[client.V1ContainerPort(container_port=1337)],
+            ports=[
+                client.V1ContainerPort(container_port=1337)
+            ],
             image_pull_policy='Always',
         )
 
-        # job definition
-        jobdef = client.V1Job(
-            api_version='batch/v1',
-            kind='Job',
-            status=client.V1JobStatus(),
-            metadata=client.V1ObjectMeta(
-                namespace=taskdef.namespace,
-                name=taskdef.id,
-            ),
-            spec=client.V1JobSpec(
-                backoff_limit=0,
-                ttl_seconds_after_finished=600,
-                template=client.V1PodTemplateSpec(
-                    metadata=client.V1ObjectMeta(
-                        name=taskdef.id,
-                        labels={
-                            LABEL_TASK_ID: taskdef.id,
-                            LABEL_PARENT_ID: taskdef.parent,
-                        },
-                    ),
-                    spec=client.V1PodSpec(
-                        hostname=taskdef.id,
-                        containers=[container],
-                        restart_policy='Never'
-                    ),
+        pod = self.core.create_namespaced_pod(
+            namespace=self.namespace,
+            body=client.V1Pod(
+                metadata=client.V1ObjectMeta(
+                    name=taskdef.id,
+                    namespace=self.namespace,
+                    labels={
+                        LABEL_TASK_ID: taskdef.id,
+                        LABEL_PARENT_ID: taskdef.parent,
+                    },
+                ),
+                spec=client.V1PodSpec(
+                    hostname=taskdef.id,
+                    subdomain='tasks',
+                    containers=[container],
+                    restart_policy='Never',
+                    image_pull_secrets=[
+                        # todo: this should be standardized
+                        client.V1LocalObjectReference(
+                            name='docker',
+                        ),
+                    ],
                 ),
             ),
         )
 
-        # create job
-        job = self.batch.create_namespaced_job(taskdef.namespace, jobdef)
-
         # todo: if the task exposes ports, create a service
-        # perhaps before the pod waiting?
 
         # wait for pod to become ready
         while True:
@@ -102,47 +98,31 @@ class KubernetesProvider(ClusterProvider):
 
         # wrap & return task
         print('~~ created kubenetes pod with name', pod.metadata.name)
-        return KubernetesTask(self, taskdef, job, pod)
+        return KubernetesTask(self, taskdef, pod)
 
     def kill(self, task_id):
         self.core.delete_collection_namespaced_pod(
-            namespace=NAMESPACE,
-            label_selector=f'{LABEL_TASK_ID}={task_id}',
-        )
-        self.batch.delete_collection_namespaced_job(
-            namespace=NAMESPACE,
+            namespace=self.namespace,
             label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
         return task_id
 
     def get_task_pod(self, task_id):
         res = self.core.list_namespaced_pod(
-            namespace=NAMESPACE,
+            namespace=self.namespace,
             label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
         return res.items[0] if len(res.items) > 0 else None
 
     def get_task_child_pods(self, task_id: str):
         res = self.core.list_namespaced_pod(
-            namespace=NAMESPACE,
+            namespace=self.namespace,
             label_selector=f'{LABEL_PARENT_ID}={task_id}',
         )
         return res.items
 
     def wait(self, task: KubernetesTask) -> None:
-        while True:
-            res = self.batch.read_namespaced_job(
-                name=task.job.metadata.name,
-                namespace=task.job.metadata.namespace,
-            )
-
-            if res.status.failed:
-                raise RuntimeError('Task failed')
-
-            if res.status.succeeded:
-                break
-
-            time.sleep(0.5)
+        raise NotImplementedError()
 
     def logs(self, task: KubernetesTask):
         try:
@@ -150,7 +130,7 @@ class KubernetesProvider(ClusterProvider):
             return w.stream(
                 self.core.read_namespaced_pod_log,
                 name=task.pod.metadata.name,
-                namespace=task.pod.metadata.namespace,
+                namespace=self.namespace,
             )
         except Exception:
             self.logs(task)
@@ -185,21 +165,15 @@ class KubernetesProvider(ClusterProvider):
         return kill_family(task_id)
 
     def destroy_children(self, parent_id: str) -> list:
-        # delete jobs
-        self.batch.delete_collection_namespaced_job(
-            namespace=NAMESPACE,
-            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
-        )
-
         # get a list of child pods
         children = self.core.list_namespaced_pod(
-            namespace=NAMESPACE,
+            namespace=self.namespace,
             label_selector=f'{LABEL_PARENT_ID}={parent_id}',
         )
 
         # destroy child pods
         self.core.delete_collection_namespaced_pod(
-            namespace=NAMESPACE,
+            namespace=self.namespace,
             label_selector=f'{LABEL_PARENT_ID}={parent_id}',
         )
 

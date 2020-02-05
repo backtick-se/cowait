@@ -7,7 +7,6 @@ def test_taskdef_serialization():
         'image':     'pipeline/task:lazy',
         'name':      'lazy',
         'parent':    'root',
-        'namespace': 'default',
         'config':    {},
         'env':       {},
         'meta':      {},
