@@ -4,7 +4,7 @@ from pipeline.engine import ClusterProvider
 from pipeline.network import ConnectionClosedOK, ConnectionClosedError
 from pipeline.tasks import TaskDefinition
 from .worker_node import WorkerNode
-from .service import FlowLogger
+from .service import FlowLogger, NopLogger
 
 
 async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
@@ -16,11 +16,14 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     node = WorkerNode(cluster, taskdef)
 
     if taskdef.upstream:
-        print('~~ connecting upstream')
-        await node.connect(taskdef.upstream)
+        if taskdef.upstream == 'disabled':
+            node.parent = NopLogger()
+        else:
+            print('~~ connecting upstream')
+            await node.connect(taskdef.upstream)
 
-        # handle downstream messages
-        asyncio.create_task(node.parent.serve())
+            # handle downstream messages
+            node.io.create_task(node.parent.serve())
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up from the top level task by docker/kubernetes.
