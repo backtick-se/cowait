@@ -11,6 +11,7 @@ def test_taskdef_serialization():
         'env':       {},
         'meta':      {},
         'inputs':    {},
+        'ports':     {},
         'upstream':  None,
     }
 

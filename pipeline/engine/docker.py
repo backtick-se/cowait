@@ -3,6 +3,8 @@ from pipeline.tasks import TaskDefinition
 from .cluster import ClusterProvider, ClusterTask
 
 DEFAULT_NETWORK = 'tasks'
+LABEL_TASK_ID = 'pipeline/task'
+LABEL_PARENT_ID = 'pipeline/parent'
 
 
 class DockerTask(ClusterTask):
@@ -44,8 +46,8 @@ class DockerProvider(ClusterProvider):
                 },
             },
             labels={
-                'task': taskdef.id,
-                'task_parent': taskdef.parent,
+                LABEL_TASK_ID: taskdef.id,
+                LABEL_PARENT_ID: taskdef.parent,
             },
             ports=taskdef.ports,
         )
@@ -59,16 +61,16 @@ class DockerProvider(ClusterProvider):
         """ Returns a list of all running tasks """
         containers = self.docker.containers.list(
             filters={
-                'label': 'task',
+                'label': LABEL_TASK_ID,
             },
         )
-        return map(lambda c: c.labels['task'], containers)
+        return list(map(lambda c: c.labels[LABEL_TASK_ID], containers))
 
     def destroy_all(self) -> None:
         """ Destroys all running tasks """
         containers = self.docker.containers.list(
             filters={
-                'label': 'task',
+                'label': LABEL_TASK_ID,
             },
         )
 
@@ -79,7 +81,7 @@ class DockerProvider(ClusterProvider):
         """ Finds all child containers of a given task id """
         return self.docker.containers.list(
             filters={
-                'label': f'task_parent={parent_id}',
+                'label': f'{LABEL_PARENT_ID}={parent_id}',
             },
         )
 
@@ -89,14 +91,14 @@ class DockerProvider(ClusterProvider):
 
         tasks = []
         for child in children:
-            tasks += self.destroy(child.labels['task'])
+            tasks += self.destroy(child.labels[LABEL_TASK_ID])
 
         return tasks
 
     def destroy(self, task_id):
         """ Destroy a specific task id and all its descendants """
         def kill_family(container):
-            container_task_id = container.labels['task']
+            container_task_id = container.labels[LABEL_TASK_ID]
             print('~~ docker kill', container.id[:12],
                   '->', container_task_id)
 
