@@ -2,7 +2,7 @@ import docker
 from pipeline.tasks import TaskDefinition
 from .cluster import ClusterProvider, ClusterTask
 
-NETWORK = 'tasks'
+DEFAULT_NETWORK = 'tasks'
 
 
 class DockerTask(ClusterTask):
@@ -25,14 +25,17 @@ class DockerProvider(ClusterProvider):
         super().__init__('docker', args)
         self.docker = docker.from_env()
 
+    @property
+    def network(self):
+        return self.args.get('network', DEFAULT_NETWORK)
+
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
-        ports = taskdef.inputs.get('ports', None)
         container = self.docker.containers.run(
             detach=True,
             image=taskdef.image,
             name=taskdef.id,
             hostname=taskdef.id,
-            network=NETWORK,
+            network=self.network,
             environment=self.create_env(taskdef),
             volumes={
                 '/var/run/docker.sock': {
@@ -44,7 +47,7 @@ class DockerProvider(ClusterProvider):
                 'task': taskdef.id,
                 'task_parent': taskdef.parent,
             },
-            ports=ports,
+            ports=taskdef.ports,
         )
 
         print('~~ created docker container with id',
@@ -111,8 +114,11 @@ class DockerProvider(ClusterProvider):
             kills.append(task_id)
             return kills
 
-        container = self.docker.containers.get(task_id)
-        return kill_family(container)
+        try:
+            container = self.docker.containers.get(task_id)
+            return kill_family(container)
+        except docker.errors.NotFound:
+            return [task_id]
 
     def logs(self, task: DockerTask):
         """ Stream task logs """

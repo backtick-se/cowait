@@ -21,7 +21,7 @@ const TaskHeader = styled.div`
 const TaskHeaderLink = styled(Link)`
     color: #222;
     text-decoration: none;
-    cursor: pointer
+    cursor: pointer;
     margin-right: 0.5em;
 
     &:hover {
@@ -37,7 +37,7 @@ const TaskImage = styled.label`
 
 const TaskWrapper = styled(Bubble)`
     margin-bottom: 2rem;
-    padding 0.5rem;
+    padding: 0.5rem;
 `
 
 const ParentWrapper = styled.div`
@@ -45,7 +45,7 @@ const ParentWrapper = styled.div`
     font-size: 1.1rem;
 `
 
-function Task({ id, status, image, parent, result, error, children, inputs }) {
+function Task({ id, status, image, parent, result, error, children, inputs, maxLogHeight }) {
     return <TaskWrapper>
         <TaskHeader>
             <h2>
@@ -61,7 +61,7 @@ function Task({ id, status, image, parent, result, error, children, inputs }) {
         <TaskError error={error} />
         <TaskInputs inputs={inputs} />
         <TaskChildren children={children} />
-        <TaskLog id={id} />
+        <TaskLog id={id} maxHeight={maxLogHeight} />
         <TaskResult result={result} />
     </TaskWrapper>
 }

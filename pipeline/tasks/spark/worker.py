@@ -1,4 +1,4 @@
-from pipeline.tasks.sys import ShellTask
+from pipeline.tasks.shell import ShellTask
 
 
 class SparkWorker(ShellTask):

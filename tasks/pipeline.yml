@@ -1,4 +1,28 @@
 version: 1
 pipeline:
   repo: docker.backtick.se
-  provider: docker
+
+  # cluster provider configuration
+  cluster: 
+    type: docker
+    network: tasks
+    namespace: default
+
+  # better cluster config format?
+  # pros: 
+  # - allows configuring multiple providers
+  # - no name conflicts
+  # - less abstraction required
+  # - easier deserialization
+  provider:
+    type: docker
+    docker:
+      network: tasks
+    kubernetes:
+      namespace: default
+    backtick:
+      key: BACKTICK_CLOUD_KEY
+
+  environment:
+    AWS_ACCESS_KEY_ID: AKIASMZJSEC3JBSJKUMZ
+    AWS_SECRET_ACCESS_KEY: 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

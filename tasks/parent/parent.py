@@ -1,11 +1,11 @@
+import time
 import random
 from pipeline.tasks import Flow, join
 from lazy.lazy import Lazy
 
 
 class LazyParentTask(Flow):
-    image = 'johanhenriksson/pipeline-task:parent'
-    command = 'python -u main.py'
+    image = 'docker.backtick.se/parent'
 
     async def run(
         self,
@@ -14,6 +14,7 @@ class LazyParentTask(Flow):
         count=2,
         crash_at=-1,
         concurrent=True,
+        block=False,
         **inputs,
     ):
         if max_duration < duration:
@@ -23,11 +24,17 @@ class LazyParentTask(Flow):
             return await self.task(
                 name='lazy',
                 image=Lazy.image,
+                block=block,
                 duration=random.randint(duration, max_duration),
                 crash_at=crash_at)
 
         if concurrent:
             tasks = [await make_task() for _ in range(0, count)]
+            print('waiting for tasks')
+            
+            print('block for a bit')
+            time.sleep(10)
+
             return await join(*tasks)
 
         else:

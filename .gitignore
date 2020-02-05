@@ -5,6 +5,7 @@ dask-worker-space/
 .pytest_cache/
 __pycache__/
 *.pyc
-
+htmlcov/
+.coverage
 .DS_Store
 .vscode

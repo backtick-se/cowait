@@ -1,12 +1,12 @@
 
 
-import asyncio
 from contextlib import nullcontext
 from pipeline.network import Node
 from pipeline.tasks import TaskError, StopException
 from pipeline.utils import StreamCapturing
 from .worker_api import WorkerAPI
 from .service import FlowLogger
+from .io_thread import IOThread
 from .loader import load_task_class
 
 
@@ -15,8 +15,11 @@ class WorkerNode(Node):
         super().__init__()
         self.cluster = cluster
         self.api = WorkerAPI(self, taskdef)
+        self.io = IOThread()
 
     async def run(self, taskdef):
+        self.io.start()
+
         try:
             await self.api.init()
 
@@ -34,19 +37,12 @@ class WorkerNode(Node):
                 # run task
                 await self.api.run()
 
-                # before hook - transform input
                 inputs = await task.before(taskdef.inputs)
+                result = await task.run(**inputs)
+                await task.after(inputs)
 
-                try:
-                    # task code
-                    result = await task.run(**inputs)
-
-                    # submit result
-                    await self.api.done(result)
-
-                finally:
-                    # after hook
-                    await task.after(inputs)
+                # submit result
+                await self.api.done(result)
 
         except StopException:
             await self.api.stop()
@@ -63,10 +59,10 @@ class WorkerNode(Node):
         if isinstance(self.parent, FlowLogger):
             return nullcontext()
 
-        def stdout(x):
-            return asyncio.ensure_future(self.api.log('stdout', x))
+        def logger(file):
+            def callback(x):
+                nonlocal file
+                self.io.create_task(self.api.log(file, x))
+            return callback
 
-        def stderr(x):
-            return asyncio.ensure_future(self.api.log('stderr', x))
-
-        return StreamCapturing(stdout, stderr)
+        return StreamCapturing(logger('stdout'), logger('stderr'))

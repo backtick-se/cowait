@@ -95,7 +95,6 @@ def run(
             **context.get('environment', {}),
             **env,
         },
-        namespace='default',
         upstream=context.coalesce('upstream', upstream, None),
         parent=None,  # root task
     )
@@ -192,17 +191,16 @@ def agent(provider: str) -> None:
     context = PipelineContext.open()
     cluster = get_context_cluster(context, provider)
 
+    cluster.destroy('agent')
+
     # create task definition
     taskdef = TaskDefinition(
         id='agent',
         name='pipeline.tasks.agent',
         image=DEFAULT_BASE_IMAGE,
-        namespace='default',
-        inputs={
-            'ports': {
-                '1337': '1337',
-                '1338': '1338',
-            },
+        ports={
+            '1337': '1337',
+            '1338': '1338',
         },
     )
 

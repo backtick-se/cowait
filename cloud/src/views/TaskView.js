@@ -7,7 +7,7 @@ function TaskView() {
     let { taskId } = useParams()
 
     return <View title={taskId}>
-        <TaskItem id={taskId} />
+        <TaskItem id={taskId} maxLogHeight={40} />
     </View>
 }
 

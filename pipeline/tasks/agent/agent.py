@@ -1,4 +1,3 @@
-import asyncio
 from aiohttp import web
 from pipeline.tasks import Task, TaskDefinition, sleep
 from pipeline.network import Conn, get_local_connstr
@@ -33,14 +32,15 @@ class Agent(Task):
         self.node.children.on('fail', self.tasks.on_fail)
         self.node.children.on('log', self.tasks.on_log)
 
-        # run task daemon in the background
-        asyncio.create_task(self.node.children.serve())
+        # run task websocket coroutine on io thread
+        self.node.io.create_task(self.node.children.serve())
 
         app = web.Application()
         app.add_routes(TaskAPI(self).routes('/api/1/tasks'))
         app.add_routes(Dashboard().routes())
 
-        asyncio.create_task(web._run_app(
+        # run web server coroutine on io thread
+        self.node.io.create_task(web._run_app(
             app=app,
             port=1338,
             print=False,
@@ -60,7 +60,8 @@ class Agent(Task):
               image: str = None,
               inputs: dict = {},
               config: dict = {},
-              env: dict = {}
+              ports: dict = {},
+              env: dict = {},
               ) -> TaskDefinition:
         taskdef = TaskDefinition(
             name=name,
@@ -68,6 +69,7 @@ class Agent(Task):
             image=image if image else self.image,
             upstream=get_local_connstr(),
             config=config,
+            ports=ports,
             env=env,
         )
 

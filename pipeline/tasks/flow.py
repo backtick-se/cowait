@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 from abc import abstractmethod
+from concurrent.futures import Future
 from pipeline.tasks import Task, TaskDefinition, TaskError
 from pipeline.network import get_local_connstr
 
@@ -21,7 +22,7 @@ class Flow(Task):
         self.node.children.on('*', forward)
 
         # run task daemon in the background
-        asyncio.create_task(self.node.children.serve())
+        self.node.io.create_task(self.node.children.serve())
 
         return inputs
 
@@ -43,6 +44,7 @@ class Flow(Task):
         self,
         name: str,
         image: str = None,
+        ports: dict = {},
         env: dict = {},
         **inputs: dict,
     ) -> Task:
@@ -58,7 +60,7 @@ class Flow(Task):
         # await any inputs
         for key, value in inputs.items():
             if isinstance(value, TaskDefinition):
-                inputs[key] = await value.result
+                inputs[key] = await asyncio.wrap_future(value.result)
 
         taskdef = TaskDefinition(
             name=name,
@@ -67,6 +69,7 @@ class Flow(Task):
             image=image if image else self.image,
             upstream=get_local_connstr(),
             config=self.config,
+            ports=ports,
             env={
                 **self.env,
                 **env,
@@ -76,7 +79,7 @@ class Flow(Task):
         task = self.cluster.spawn(taskdef)
 
         # attach a future
-        task.result = asyncio.Future()
+        task.result = Future()
 
         self.tasks[task.id] = task
         return task
