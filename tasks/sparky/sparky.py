@@ -1,5 +1,6 @@
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
+from pipeline.tasks import sleep
 from pipeline.tasks.spark import SparkFlow
 
 TIMESTAMP = "yyyy-MM-dd'D'HH:mm:ss.SSS"
@@ -29,6 +30,8 @@ class SparkyTask(SparkFlow):
         **inputs,
     ):
         print('bitmex trades csv->parquet')
+
+        await sleep(0.1)
 
         df = spark.read \
             .csv(
