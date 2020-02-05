@@ -30,7 +30,7 @@ async def main():
         os._exit(1)
 
     # clean exit
-    print(f'~~ {taskdef.id} completed')
+    # print(f'~~ {taskdef.id} completed')
     os._exit(0)
 
 if __name__ == '__main__':
