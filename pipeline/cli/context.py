@@ -59,12 +59,8 @@ class PipelineContext(object):
             return value
         return self.get(key, default, required=False)
 
-    def get_task_image(self, task):
-        repository = self.get('repo', required=False)
-        image = task.lower()
-        if repository is None:
-            repository = os.path.basename(self.root_path)
-        return f'{repository}/{image}'.lower()
+    def get_image_name(self):
+        return self.get('image', os.path.basename(self.root_path))
 
     @staticmethod
     def open():

@@ -65,15 +65,13 @@ def run(
 
 
 @click.command(help='build a task')
-@click.argument('task')
-def build(task: str):
-    pipeline.cli.build(task)
+def build():
+    pipeline.cli.build()
 
 
 @click.command(help='push a task to the registry')
-@click.argument('task')
-def push(task: str):
-    pipeline.cli.push(task)
+def push():
+    pipeline.cli.push()
 
 
 @click.command(help='destroy tasks')

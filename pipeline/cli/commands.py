@@ -25,9 +25,10 @@ def get_context_cluster(context, provider: str = None):
     )
 
 
-def build(task: str) -> TaskImage:
-    image = TaskImage.open(task)
+def build() -> TaskImage:
+    image = TaskImage.open()
     print('context path:', image.context.root_path)
+    print('image:', image.name)
 
     # find task-specific requirements.txt
     # if it exists, it will be copied to the container, and installed
@@ -79,7 +80,7 @@ def run(
 
     context = PipelineContext.open()
     cluster = get_context_cluster(context, provider)
-    image = context.get_task_image(task)
+    image = context.get_image_name()
 
     # create task definition
     taskdef = TaskDefinition(
@@ -132,8 +133,8 @@ def run(
     printheader()
 
 
-def push(task: str) -> TaskImage:
-    image = build(task)
+def push() -> TaskImage:
+    image = build()
 
     sys.stdout.write('pushing...')
     logs = image.push()
