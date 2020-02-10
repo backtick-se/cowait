@@ -4,19 +4,16 @@ from websockets.exceptions import ConnectionClosedOK
 
 class Conn:
     """
-    Represents a server->client connection.
+    Represents a client->server connection.
     """
 
     def __init__(self, ws):
         self.ws = ws
+        self.id = None
 
     async def recv(self):
-        try:
-            js = await self.ws.recv()
-            return json.loads(js)
-
-        except ConnectionClosedOK:
-            return None
+        js = await self.ws.recv()
+        return json.loads(js)
 
     async def send(self, msg: dict) -> None:
         try:
