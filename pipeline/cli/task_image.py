@@ -49,7 +49,9 @@ class TaskImage(object):
         return logs
 
     def push(self):
-        """ Push task image to a repository """
+        """
+        Push context image to a remote registry.
+        """
         if not self.image:
             raise RuntimeError('Task must be built first')
 
@@ -65,37 +67,11 @@ class TaskImage(object):
         )
         return logs
 
-    def run(self):
-        """ Run task in a container """
-        if not self.image:
-            raise RuntimeError('Task must be built first')
-
-        return client.containers.run(
-            image=self.image.id,
-            detach=True,
-            environment={
-                'PYTHONUNBUFFERED': '0',
-            },
-        )
-
     @staticmethod
     def open(context: PipelineContext = None):
         # automatically create context
         if context is None:
             context = PipelineContext.open()
-
-        # find task folder path
-        """
-        task_parts = task_name.split('.')
-        split_idx = len(task_parts) - 1
-        for i, part in enumerate(task_parts):
-            if part[0].isupper():
-                split_idx = i
-                break
-
-        task_path = os.path.join(context.root_path, *task_parts[:split_idx])
-        context = context.cwd(task_path)
-        """
 
         return TaskImage(
             context=context,
