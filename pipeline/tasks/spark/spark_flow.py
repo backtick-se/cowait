@@ -101,14 +101,14 @@ class SparkFlow(Flow):
 
         await super().after(inputs)
 
-    async def task(
+    def task(
         self,
         name: str,
         image: str = None,
         env: dict = {},
         **inputs,
     ) -> Task:
-        return await super().task(
+        return super().task(
             name=name,
             image=image,
             env=env,
@@ -121,8 +121,8 @@ class SparkFlow(Flow):
         print(f'~~   num_workers = {num_workers}')
 
         # create spark master
-        self.master = await self.task(
-            name='pipeline.tasks.spark.SparkMaster',
+        self.master = self.task(
+            name='pipeline.tasks.spark.master',
             ports={
                 '8080/tcp': '8080',
             },
@@ -135,8 +135,8 @@ class SparkFlow(Flow):
         # create spark workers
         self.workers = []
         for i in range(0, num_workers):
-            w = await self.task(
-                name='pipeline.tasks.spark.SparkWorker',
+            w = self.task(
+                name='pipeline.tasks.spark.worker',
                 env={
                     'SPARK_WORKER_CORES': '2',
                 },

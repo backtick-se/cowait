@@ -55,7 +55,7 @@ class Flow(Task):
             kwargs (dict): Input arguments
         """
 
-        if issubclass(name, Task):
+        if not isinstance(name, str) and issubclass(name, Task):
             name = name.__module__
 
         # todo: throw error if any input is a coroutine
