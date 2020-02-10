@@ -1,3 +1,0 @@
-version: 1
-pipeline:
-  image: docker.backtick.se/core
