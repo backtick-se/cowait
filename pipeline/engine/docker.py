@@ -97,6 +97,10 @@ class DockerProvider(ClusterProvider):
 
     def destroy(self, task_id):
         """ Destroy a specific task id and all its descendants """
+
+        # optimization: grab a list of all tasks at once, instead of querying
+        # for every child.
+
         def kill_family(container):
             container_task_id = container.labels[LABEL_TASK_ID]
             print('~~ docker kill', container.id[:12],
@@ -110,8 +114,7 @@ class DockerProvider(ClusterProvider):
             try:
                 container.remove(force=True)
             except docker.errors.NotFound:
-                print('~~ docker: kill: task', task_id,
-                      'container not found:', container.id[:12])
+                pass
 
             kills.append(task_id)
             return kills

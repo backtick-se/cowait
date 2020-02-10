@@ -14,7 +14,7 @@ class TaskImage(object):
         """ Build task image """
 
         # create temporary dockerfile
-        df_path = os.path.join(self.context.path, '__dockerfile__')
+        df_path = os.path.join(self.context.root_path, '__dockerfile__')
         with open(df_path, 'w') as df:
             # extend base image
             print(f'FROM {base}', file=df)
@@ -46,8 +46,7 @@ class TaskImage(object):
         return logs
 
     def get_image_name(self):
-        repository = self.context['repo']
-        return f'{repository}/{self.name}'
+        return self.context.get_task_image(self.name)
 
     def push(self):
         """ Push task image to a repository """
@@ -85,9 +84,18 @@ class TaskImage(object):
         if context is None:
             context = PipelineContext.open()
 
+        # find task folder path
+        """
         task_parts = task_name.split('.')
-        task_path = os.path.join(context.root_path, *task_parts)
+        split_idx = len(task_parts) - 1
+        for i, part in enumerate(task_parts):
+            if part[0].isupper():
+                split_idx = i
+                break
+
+        task_path = os.path.join(context.root_path, *task_parts[:split_idx])
         context = context.cwd(task_path)
+        """
 
         return TaskImage(
             name=task_name,
