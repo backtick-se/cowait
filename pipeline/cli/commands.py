@@ -26,22 +26,23 @@ def get_context_cluster(context, provider: str = None):
 
 
 def build() -> TaskImage:
-    image = TaskImage.open()
-    print('context path:', image.context.root_path)
+    context = PipelineContext.open()
+    image = TaskImage.open(context)
+    print('context path:', context.root_path)
     print('image:', image.name)
 
     # find task-specific requirements.txt
     # if it exists, it will be copied to the container, and installed
-    requirements = image.context.file_rel('requirements.txt')
+    requirements = context.file_rel('requirements.txt')
     if requirements:
         print('found custom requirements.txt:', requirements)
 
     # find custom Dockerfile
     # if it exists, build it and extend that instead of the default base image
-    base_image = DEFAULT_BASE_IMAGE
-    dockerfile = image.context.file('Dockerfile')
+    base_image = context.get('base', DEFAULT_BASE_IMAGE)
+    dockerfile = context.file('Dockerfile')
     if dockerfile:
-        print('found custom Dockerfile:', image.context.relpath(dockerfile))
+        print('found custom Dockerfile:', context.relpath(dockerfile))
         print('building custom base image...')
 
         base, logs = TaskImage.build_image(
@@ -76,8 +77,6 @@ def run(
     upstream: str = None,
     detach: bool = False,
 ):
-    print('task:', task)
-    print('image:', image)
     if build:
         push(task)
 
