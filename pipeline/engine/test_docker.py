@@ -5,6 +5,9 @@ import docker
 from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from pipeline.tasks import TaskDefinition
 
+TEST_IMAGE = 'docker.backtick.se/core'
+TEST_TASK = 'tests.basic'
+
 
 def test_create_docker_task():
     dp = DockerProvider()
@@ -13,8 +16,8 @@ def test_create_docker_task():
     env_vars = {'hello': 'team'}
 
     taskdef = TaskDefinition(
-        name='test',
-        image='docker.backtick.se/test',
+        name=TEST_TASK,
+        image=TEST_IMAGE,
         parent='parent',
         env=env_vars,
         inputs={
@@ -65,8 +68,8 @@ def test_kill_docker_task():
     dp = DockerProvider()
 
     task = dp.spawn(TaskDefinition(
-        name='test',
-        image='docker.backtick.se/test',
+        name=TEST_TASK,
+        image=TEST_IMAGE,
         inputs={'forever': True},
     ))
 
@@ -85,8 +88,8 @@ def test_docker_child_task():
     dp = DockerProvider()
 
     task = dp.spawn(TaskDefinition(
-        name='test',
-        image='docker.backtick.se/test',
+        name=TEST_TASK,
+        image=TEST_IMAGE,
         inputs={'child': True},
     ))
 
