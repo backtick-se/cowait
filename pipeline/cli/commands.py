@@ -67,6 +67,7 @@ def build() -> TaskImage:
 
 def run(
     task: str,
+    image: str,
     provider: str,
     inputs: dict = {},
     config: dict = {},
@@ -75,12 +76,15 @@ def run(
     upstream: str = None,
     detach: bool = False,
 ):
+    print('task:', task)
+    print('image:', image)
     if build:
         push(task)
 
     context = PipelineContext.open()
     cluster = get_context_cluster(context, provider)
-    image = context.get_image_name()
+    if image is None:
+        image = context.get_image_name()
 
     # create task definition
     taskdef = TaskDefinition(
@@ -135,6 +139,10 @@ def run(
 
 def push() -> TaskImage:
     image = build()
+
+    if '/' not in image.name:
+        print('Error: You must specify a full image name before you can push')
+        return
 
     sys.stdout.write('pushing...')
     logs = image.push()

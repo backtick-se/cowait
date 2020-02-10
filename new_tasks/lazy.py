@@ -10,7 +10,7 @@ Outputs:
 import time
 import asyncio
 from pipeline.tasks import Flow
-from subtasks import DurationDecider
+from duration_decider import DurationDecider
 
 
 class Lazy(Flow):

@@ -20,6 +20,7 @@ def option_dict(opts):
 
 @click.command(help='run a task')
 @click.argument('task', type=str)
+@click.argument('image', type=str, required=False)
 @click.option('--provider',
               default='docker',
               type=str,
@@ -48,12 +49,12 @@ def option_dict(opts):
               help='run in detached mode',
               default=False)
 def run(
-    task: str, provider: str,
+    image: str, task: str, provider: str,
     input, config, env,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
-        task,
+        task, image,
         provider=provider,
         inputs=option_dict(input),
         config=option_dict(config),
