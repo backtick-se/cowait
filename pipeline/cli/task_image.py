@@ -6,9 +6,12 @@ client = docker.from_env()
 
 
 class TaskImage(object):
-    def __init__(self, name, context):
-        self.name = name
+    def __init__(self, context):
         self.context = context
+
+    @property
+    def name(self):
+        return self.context.get_image_name()
 
     def build(self, base, requirements: str = None):
         """ Build task image """
@@ -39,14 +42,11 @@ class TaskImage(object):
 
         # always tag image so that it works locally
         self.image.tag(
-            repository=self.get_image_name(),
+            repository=self.name,
             tag='latest'
         )
 
         return logs
-
-    def get_image_name(self):
-        return self.context.get_task_image(self.name)
 
     def push(self):
         """ Push task image to a repository """
@@ -54,12 +54,12 @@ class TaskImage(object):
             raise RuntimeError('Task must be built first')
 
         self.image.tag(
-            repository=self.get_image_name(),
+            repository=self.name,
             tag='latest',
         )
 
         logs = client.images.push(
-            repository=self.get_image_name(),
+            repository=self.name,
             tag='latest',
             stream=True
         )
@@ -79,7 +79,7 @@ class TaskImage(object):
         )
 
     @staticmethod
-    def open(task_name: str, context: PipelineContext = None):
+    def open(context: PipelineContext = None):
         # automatically create context
         if context is None:
             context = PipelineContext.open()
@@ -98,7 +98,6 @@ class TaskImage(object):
         """
 
         return TaskImage(
-            name=task_name,
             context=context,
         )
 
