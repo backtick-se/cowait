@@ -33,8 +33,7 @@ class FlowLogger(EventEmitter):
         print(error.strip())
 
     async def on_return(self, id, result, **msg):
-        print('~~', id, 'returned:')
-        print(json.dumps(result, indent=2))
+        print('~~', id, 'returned:', json.dumps(result, indent=2))
 
     async def on_log(self, id, file, data, **msg):
         print(data, end='')
