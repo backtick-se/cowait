@@ -1,4 +1,3 @@
-import asyncio
 import traceback
 from pipeline.engine import ClusterProvider
 from pipeline.network import ConnectionClosedOK, ConnectionClosedError

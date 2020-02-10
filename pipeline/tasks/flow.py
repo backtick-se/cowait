@@ -40,7 +40,7 @@ class Flow(Task):
         #    self.node.send_stop(id=child_id)
         pass
 
-    async def task(
+    def task(
         self,
         name: str,
         image: str = None,
@@ -57,10 +57,15 @@ class Flow(Task):
             kwargs (dict): Input arguments
         """
 
+        if issubclass(name, Task):
+            name = name.__module__
+
         # await any inputs
+        """
         for key, value in inputs.items():
             if isinstance(value, TaskDefinition):
                 inputs[key] = await asyncio.wrap_future(value.result)
+        """
 
         taskdef = TaskDefinition(
             name=name,
@@ -77,19 +82,15 @@ class Flow(Task):
         )
 
         task = self.cluster.spawn(taskdef)
-
-        # attach a future
-        task.result = Future()
-
         self.tasks[task.id] = task
         return task
 
     async def on_child_return(self, conn, id: str, result: Any, **msg: dict) -> None:
         task = self.tasks[id]
-        if not task.result.done():
-            task.result.set_result(result)
+        if not task.future.done():
+            task.future.set_result(result)
 
     async def on_child_fail(self, conn, id: str, error: str, **msg: dict) -> None:
         task = self.tasks[id]
-        if not task.result.done():
-            task.result.set_exception(TaskError(error))
+        if not task.future.done():
+            task.future.set_exception(TaskError(error))

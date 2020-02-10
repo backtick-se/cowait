@@ -9,9 +9,8 @@ client = docker.from_env()
 
 
 class PipelineContext(object):
-    def __init__(self, root_path: str, definition: dict, path: str = None):
+    def __init__(self, root_path: str, definition: dict):
         self.root_path = root_path
-        self.path = root_path if path is None else path
         self.definition = definition
 
     def __getitem__(self, key: str) -> any:
@@ -27,13 +26,16 @@ class PipelineContext(object):
             value = value.get(part, default)
         if value is None:
             if default is None and required:
-                raise KeyError()
+                raise KeyError(f'{key} not set in context')
             return default
         return value
 
     def file(self, file_name: str) -> str:
         """ Find a file within the task context and return its full path """
-        return find_file_in_parents(self.path, file_name)
+        path = os.path.join(self.root_path, file_name)
+        if not os.path.isfile(path):
+            return None
+        return path
 
     def file_rel(self, file_name: str) -> str:
         """
@@ -57,36 +59,16 @@ class PipelineContext(object):
             return value
         return self.get(key, default, required=False)
 
-    def cwd(self, path: str) -> None:
-        """
-        Navigate within the context. Returns a new context.
-        """
-        new_path = os.path.abspath(os.path.join(self.path, path))
-
-        if not os.path.isdir(new_path):
-            raise RuntimeError(f'Target directory {new_path} does not exist')
-
-        if not self.includes(new_path):
-            raise RuntimeError(f'Target path is outside context directory')
-
-        return PipelineContext(
-            path=new_path,
-            root_path=self.root_path,
-            definition=self.definition,
-        )
-
     def get_task_image(self, task):
-        repo = self['repo']
-        return f'{repo}/{task}:latest'
+        repository = self.get('repo', required=False)
+        image = task.lower()
+        if repository is None:
+            repository = os.path.basename(self.root_path)
+        return f'{repository}/{image}'.lower()
 
     @staticmethod
-    def open(path: str = None):
-        # if no path is provided, open at the current directory
-        if not path:
-            path = os.getcwd()
-
-        # ensure path is absolute
-        path = os.path.abspath(path)
+    def open():
+        path = os.getcwd()
 
         # ensure the provided path is an actual directory
         if not os.path.isdir(path):
@@ -95,9 +77,11 @@ class PipelineContext(object):
         # find context root by looking for the context definition file
         context_file_path = find_file_in_parents(path, CONTEXT_FILE_NAME)
         if context_file_path is None:
-            raise RuntimeError(
-                f'Could not find {CONTEXT_FILE_NAME} '
-                f'in {path} or any of its parent directories.')
+            # use the current directory as the context
+            return PipelineContext(
+                root_path=path,
+                definition={},
+            )
 
         # load context yaml definition
         with open(context_file_path, 'r') as context_file:
@@ -111,7 +95,6 @@ class PipelineContext(object):
         root_path = os.path.dirname(context_file_path)
 
         return PipelineContext(
-            path=path,
             root_path=root_path,
             definition=context,
         )

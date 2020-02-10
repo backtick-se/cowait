@@ -28,7 +28,6 @@ def get_context_cluster(context, provider: str = None):
 def build(task: str) -> TaskImage:
     image = TaskImage.open(task)
     print('context path:', image.context.root_path)
-    print('task path:', image.context.relpath(image.context.path))
 
     # find task-specific requirements.txt
     # if it exists, it will be copied to the container, and installed

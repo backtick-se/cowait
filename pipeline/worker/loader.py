@@ -1,33 +1,32 @@
+import inspect
 import importlib
 from typing import TypeVar
-from pipeline.tasks import TaskNotFoundError
+from pipeline.tasks import Task, TaskNotFoundError
 
 
 def load_task_class(task_name: str) -> TypeVar:
+    def is_task(obj):
+        return inspect.isclass(obj) and \
+            issubclass(obj, Task) and \
+            obj.__module__ == task_name
+
     try:
         module_name = task_name
-        class_name = 'Task'
-
-        if '.' in task_name:
-            # make sure the task name does not end with a dot
-            dot = task_name.rfind('.')
-            if dot == 0 or dot == len(task_name)-1:
-                raise TaskNotFoundError(f'Illegal task name: {task_name}')
-
-            if task_name[dot+1].isupper():
-                # if the first character after the last dot is uppercase,
-                # consider it a class name.
-                module_name = task_name[:dot]
-                class_name = task_name[dot+1:]
-
         module = importlib.import_module(module_name)
-        task_class = getattr(module, class_name)
+        classes = inspect.getmembers(module, is_task)
 
-        return task_class
+        print(classes)
+        for name, obj in classes:
+            print(name, obj.__module__)
+
+        if len(classes) > 1:
+            raise TaskNotFoundError('Multiple tasks defined')
+
+        if len(classes) == 0:
+            raise TaskNotFoundError(
+                f'Module {module_name} does not contain any tasks')
+
+        return classes[0][1]
 
     except ModuleNotFoundError:
-        raise TaskNotFoundError(f'No such task module: {task_name}')
-
-    except AttributeError:
-        raise TaskNotFoundError(
-            f'No task class exported from module {task_name}')
+        raise TaskNotFoundError(f'Task module {task_name} not found')

@@ -19,7 +19,7 @@ def option_dict(opts):
 
 
 @click.command(help='run a task')
-@click.argument('task')
+@click.argument('task', type=str)
 @click.option('--provider',
               default='docker',
               type=str,

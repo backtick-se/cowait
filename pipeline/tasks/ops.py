@@ -2,6 +2,6 @@ import asyncio
 
 
 async def join(*tasks):
-    return await asyncio.gather(
-        *map(lambda t: asyncio.wrap_future(t.result), tasks)
-    )
+    return await asyncio.gather(*tasks)
+    done, pending = await asyncio.wait(tasks)
+    return list(done)

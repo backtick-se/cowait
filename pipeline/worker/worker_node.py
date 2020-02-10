@@ -16,10 +16,9 @@ class WorkerNode(Node):
         self.cluster = cluster
         self.api = WorkerAPI(self, taskdef)
         self.io = IOThread()
-
-    async def run(self, taskdef):
         self.io.start()
 
+    async def run(self, taskdef):
         try:
             await self.api.init()
 

@@ -1,8 +1,10 @@
 from __future__ import annotations
 import json
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Iterable
 from marshmallow import Schema, fields
+from concurrent.futures import Future
 from pipeline.tasks import TaskDefinition
 from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
 
@@ -12,6 +14,11 @@ class ClusterTask(TaskDefinition):
         kwargs = taskdef.serialize()
         super().__init__(**kwargs)
         self.cluster = cluster
+        self.future = Future()
+        self.awaitable = asyncio.wrap_future(self.future)
+
+    def __await__(self):
+        return self.awaitable.__await__()
 
     def destroy(self):
         self.cluster.destroy(self.id)
