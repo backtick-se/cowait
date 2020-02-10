@@ -37,8 +37,8 @@ class Server(EventEmitter):
         except ConnectionClosedOK:
             pass
 
-        except ConnectionClosedError:
-            pass
+        except ConnectionClosedError as e:
+            await self.emit(type='error', conn=conn, reason=e.reason)
 
         finally:
             self.conns.remove(conn)
@@ -48,13 +48,12 @@ class Server(EventEmitter):
         if self.ws is None:
             raise RuntimeError('call serve() first')
 
-        try:
-            js = json.dumps(msg)
-            for conn in self.conns:
+        js = json.dumps(msg)
+        for conn in self.conns:
+            try:
                 await conn.ws.send(js)
-
-        except websockets.exceptions.ConnectionClosedOK:
-            return
+            except websockets.exceptions.ConnectionClosedOK:
+                continue
 
     def close(self) -> None:
         if self.ws is None:

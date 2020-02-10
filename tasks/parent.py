@@ -1,4 +1,3 @@
-import time
 import random
 from pipeline.tasks import Flow, join
 from lazy import Lazy
@@ -26,19 +25,9 @@ class LazyParentTask(Flow):
                 crash_at=crash_at)
 
         if concurrent:
+            print('concurrent mode')
             tasks = [make_task() for _ in range(0, count)]
-            print('waiting for tasks')
-            print(tasks)
-
-            print('block for a bit')
-            time.sleep(3)
-            print('done blocking')
-
             return await join(*tasks)
-
         else:
             print('sequential mode')
-            results = []
-            for _ in range(0, count):
-                results.append(await make_task())
-            return results
+            return [await make_task() for _ in range(0, count)]

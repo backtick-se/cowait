@@ -1,5 +1,3 @@
-
-
 from contextlib import nullcontext
 from pipeline.network import Node
 from pipeline.tasks import TaskError, StopException
@@ -24,11 +22,6 @@ class WorkerNode(Node):
 
             # run task within a log capture context
             with self.capture_logs():
-                # todo: perhaps we want to use an external process for this?
-                # - easy to capture stdin/stdout
-                # - error isolation
-                # - language agnosticism!
-
                 # instantiate
                 TaskClass = load_task_class(taskdef.name)
                 task = TaskClass(taskdef, self.cluster, self)
