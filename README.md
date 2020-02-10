@@ -16,6 +16,8 @@
 
 ### First Task
 
+1. **Write a task class.**
+
 ```python
 # hello.py
 from pipeline.tasks import Task
@@ -25,7 +27,13 @@ class Hello(Task):
         print('Hello World')
 ```
 
-Run it. Make sure you're in a pipenv shell.
+2. **Build the task image**
+
+```bash
+$ pipeline build
+```
+
+3. **Run it locally in Docker.** Make sure you're in a pipenv shell.
 
 ```bash
 $ pipeline run hello

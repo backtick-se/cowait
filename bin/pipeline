@@ -18,7 +18,12 @@ def option_dict(opts):
     return options
 
 
-@click.command(help='run a task')
+@click.group()
+def cli():
+    pass
+
+
+@cli.command(help='run a task')
 @click.argument('task', type=str)
 @click.argument('image', type=str, required=False)
 @click.option('--provider',
@@ -65,17 +70,17 @@ def run(
     )
 
 
-@click.command(help='build a task')
+@cli.command(help='build a task')
 def build():
     pipeline.cli.build()
 
 
-@click.command(help='push a task to the registry')
+@cli.command(help='push a task to the registry')
 def push():
     pipeline.cli.push()
 
 
-@click.command(help='destroy tasks')
+@cli.command(help='destroy tasks')
 @click.option('--provider',
               default='docker',
               type=str,
@@ -84,7 +89,7 @@ def destroy(provider):
     pipeline.cli.destroy(provider)
 
 
-@click.command(help='list tasks')
+@cli.command(help='list tasks')
 @click.option('--provider',
               default='docker',
               type=str,
@@ -93,7 +98,7 @@ def ps(provider):
     pipeline.cli.list_tasks(provider)
 
 
-@click.command(help='deploy pipeline agent')
+@cli.command(help='deploy pipeline agent')
 @click.option('--provider',
               default='docker',
               type=str,
@@ -103,15 +108,4 @@ def agent(provider: str):
 
 
 if __name__ == '__main__':
-    @click.group()
-    def cli():
-        pass
-
-    cli.add_command(run)
-    cli.add_command(build)
-    cli.add_command(push)
-    cli.add_command(destroy)
-    cli.add_command(ps)
-    cli.add_command(agent)
-
     cli()

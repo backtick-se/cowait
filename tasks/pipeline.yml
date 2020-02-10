@@ -1,19 +1,7 @@
 version: 1
 pipeline:
-  repo: docker.backtick.se
+  image: docker.backtick.se/core
 
-  # cluster provider configuration
-  cluster: 
-    type: docker
-    network: tasks
-    namespace: default
-
-  # better cluster config format?
-  # pros: 
-  # - allows configuring multiple providers
-  # - no name conflicts
-  # - less abstraction required
-  # - easier deserialization
   provider:
     type: docker
     docker:
