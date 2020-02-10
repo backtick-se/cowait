@@ -1,7 +1,5 @@
-import asyncio
 from typing import Any
 from abc import abstractmethod
-from concurrent.futures import Future
 from pipeline.tasks import Task, TaskDefinition, TaskError
 from pipeline.network import get_local_connstr
 
@@ -60,12 +58,7 @@ class Flow(Task):
         if issubclass(name, Task):
             name = name.__module__
 
-        # await any inputs
-        """
-        for key, value in inputs.items():
-            if isinstance(value, TaskDefinition):
-                inputs[key] = await asyncio.wrap_future(value.result)
-        """
+        # todo: throw error if any input is a coroutine
 
         taskdef = TaskDefinition(
             name=name,
@@ -85,12 +78,12 @@ class Flow(Task):
         self.tasks[task.id] = task
         return task
 
-    async def on_child_return(self, conn, id: str, result: Any, **msg: dict) -> None:
+    async def on_child_return(self, conn, id: str, result: Any, **msg: dict):
         task = self.tasks[id]
         if not task.future.done():
             task.future.set_result(result)
 
-    async def on_child_fail(self, conn, id: str, error: str, **msg: dict) -> None:
+    async def on_child_fail(self, conn, id: str, error: str, **msg: dict):
         task = self.tasks[id]
         if not task.future.done():
             task.future.set_exception(TaskError(error))
