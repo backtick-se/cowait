@@ -1,5 +1,5 @@
 
 DEFAULT_PROVIDER = 'docker'
-DEFAULT_BASE_IMAGE = 'johanhenriksson/pipeline-task:latest'
+DEFAULT_BASE_IMAGE = 'docker.backtick.se/task'
 
 CONTEXT_FILE_NAME = 'pipeline.yml'

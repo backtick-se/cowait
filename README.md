@@ -10,7 +10,9 @@
 **Installation:**
 1. Clone repository
 1. `$ pipenv install`
+1. `$ pipenv install -e .`
 1. `$ pipenv shell`
+1. `$ docker network create tasks`
 
 ## Task Development
 
@@ -29,11 +31,15 @@ class Hello(Task):
 
 2. **Build the task image**
 
+In the same folder as `hello.py`, run:
+
 ```bash
 $ pipeline build
 ```
 
 3. **Run it locally in Docker.** Make sure you're in a pipenv shell.
+
+In the same folder as `hello.py`, run:
 
 ```bash
 $ pipeline run hello
@@ -85,4 +91,18 @@ Run the task with the kubernetes provider:
 
 ```bash
 $ pipeline run hello --provider kubernetes
+```
+
+## Pipeline Development
+
+Changes to the `pipeline/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
+
+```bash
+$ ./build_base_image.sh
+```
+
+If you have access to `docker.backtick.se` you can also push it automatically:
+
+```bash
+$ ./build_base_image.sh --push
 ```
