@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import json
 import click
-import pipeline.cli
+import pipeline.cli.commands
 
 
 def option_val(val):
@@ -21,6 +21,21 @@ def option_dict(opts):
 @click.group()
 def cli():
     pass
+
+
+@cli.command(help='create a new context')
+@click.argument('name', type=str)
+@click.option('--image', type=str, required=False)
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
+def new(name: str, image: str, provider: str):
+    pipeline.cli.new_context(
+        name,
+        image,
+        provider,
+    )
 
 
 @cli.command(help='run a task')

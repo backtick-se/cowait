@@ -106,3 +106,5 @@ If you have access to `docker.backtick.se` you can also push it automatically:
 ```bash
 $ ./build_base_image.sh --push
 ```
+
+**Note:** Tasks will have to rebuilt with `pipeline build` for the changes to take effect.
