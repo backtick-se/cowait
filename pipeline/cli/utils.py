@@ -1,6 +1,9 @@
 import os
 from signal import signal, SIGINT
-from .const import CONTEXT_FILE_NAME
+from .const import CONTEXT_FILE_NAME, DEFAULT_PROVIDER
+from pipeline.engine import get_cluster_provider
+
+HEADER_WIDTH = 80
 
 
 class ExitTrap():
@@ -57,3 +60,17 @@ def find_file_in_parents(start_path, file_name):
 
         # goto parent directory and keep looking
         check_path = os.path.dirname(check_path)
+
+
+def printheader(title: str = None) -> None:
+    if title is None:
+        print(f'--'.ljust(HEADER_WIDTH, '-'))
+    else:
+        print(f'-- {title} '.upper().ljust(HEADER_WIDTH, '-'))
+
+
+def get_context_cluster(context, provider: str = None):
+    return get_cluster_provider(
+        type=context.coalesce('cluster.type', provider, DEFAULT_PROVIDER),
+        args=context.get('cluster', {}),
+    )
