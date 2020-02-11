@@ -185,7 +185,7 @@ class KubernetesProvider(ClusterProvider):
         portlist = [
             # always expose default port
             client.V1ContainerPort(
-                protocl='TCP',
+                protocol='TCP',
                 container_port=PORT,
                 host_port=PORT,
             ),
@@ -205,4 +205,4 @@ class KubernetesProvider(ClusterProvider):
 
     def get_pull_secrets(self):
         secrets = self.args.get('pull_secrets', [])
-        return map(lambda s: client.V1LocalObjectReference(name=s), secrets)
+        return list(map(lambda s: client.V1LocalObjectReference(name=s), secrets))
