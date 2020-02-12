@@ -1,17 +1,13 @@
 # sets up permissions for the default service account in the default namespace
 # pods: create/list/delete
-# jobs: create/list/delete
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: task-node
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["create", "list", "delete", "deletecollection"]
-- apiGroups: ["batch"]
-  resources: ["jobs"]
-  verbs: ["create", "list", "delete", "deletecollection"]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "create", "list", "delete", "deletecollection"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
