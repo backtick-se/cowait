@@ -31,6 +31,7 @@ def build() -> TaskImage:
         for log in logs:
             if 'stream' in log:
                 print(log['stream'], flush=True, end='')
+        base_image = base.id
 
     print('building task image...')
     logs = image.build(
