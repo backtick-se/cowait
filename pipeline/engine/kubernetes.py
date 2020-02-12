@@ -13,6 +13,7 @@ LABEL_TASK_ID = 'pipeline/task'
 LABEL_PARENT_ID = 'pipeline/parent'
 
 
+
 class KubernetesTask(ClusterTask):
     def __init__(
         self,
@@ -39,8 +40,6 @@ class KubernetesProvider(ClusterProvider):
             config.load_kube_config()
 
         configuration = client.Configuration()
-        self.batch = client.BatchV1Api(
-            kubernetes.client.ApiClient(configuration))
         self.core = client.CoreV1Api(
             kubernetes.client.ApiClient(configuration))
 
@@ -52,7 +51,11 @@ class KubernetesProvider(ClusterProvider):
     def subdomain(self):
         return self.args.get('subdomain', DEFAULT_SUBDOMAIN)
 
-    def spawn(self, taskdef: TaskDefinition, timeout=30) -> KubernetesTask:
+    @property
+    def timeout(self):
+        return self.args.get('timeout', 180)
+
+    def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
         # container definition
         container = client.V1Container(
             name=taskdef.id,
@@ -85,6 +88,7 @@ class KubernetesProvider(ClusterProvider):
         )
 
         # wait for pod to become ready
+        timeout = self.timeout
         while True:
             pod = self.get_task_pod(taskdef.id)
             if pod and pod.status.phase != 'Pending':
@@ -127,7 +131,7 @@ class KubernetesProvider(ClusterProvider):
             w = watch.Watch()
             return w.stream(
                 self.core.read_namespaced_pod_log,
-                name=task.pod.metadata.name,
+                name=task.id,
                 namespace=self.namespace,
             )
         except Exception:
@@ -176,33 +180,37 @@ class KubernetesProvider(ClusterProvider):
 
     def create_env(self, taskdef: TaskDefinition):
         env = super().create_env(taskdef)
-        env_list = []
-        for name, value in env.items():
-            env_list.append(client.V1EnvVar(str(name), str(value)))
-        return env_list
+        return [
+            client.V1EnvVar(str(name), str(value))
+            for name, value in env.items()
+        ]
 
     def create_ports(self, taskdef: TaskDefinition) -> list:
         portlist = [
-            # always expose default port
-            client.V1ContainerPort(
-                protocol='TCP',
-                container_port=PORT,
-                host_port=PORT,
-            ),
+            client.V1ContainerPort(**convert_port(port, host_port))
+            for port, host_port in taskdef.ports.items()
         ]
-        for port, host_port in taskdef.ports:
-            protocol = 'TCP'
-            if '/' in port:
-                slash = port.find('/')
-                protocol = port[slash+1:]
-                port = port[:slash]
-            portlist.append(client.V1ContainerPort(
-                protocol=protocol.upper(),
-                container_port=port,
-                host_port=host_port,
-            ))
+        # default port
+        portlist.insert(0, client.V1ContainerPort(**convert_port(PORT)))
         return portlist
 
     def get_pull_secrets(self):
-        secrets = self.args.get('pull_secrets', [])
-        return list(map(lambda s: client.V1LocalObjectReference(name=s), secrets))
+        secrets = self.args.get('pull_secrets', ['docker'])
+        return [client.V1LocalObjectReference(name=s) for s in secrets]
+
+
+def convert_port(port, host_port: str = None):
+    protocol = 'TCP'
+    if isinstance(port, str) and '/' in port:
+        slash = port.find('/')
+        protocol = port[slash+1:]
+        port = port[:slash]
+
+    if host_port is None:
+        host_port = port
+
+    return {
+        'protocol': protocol.upper(),
+        'container_port': int(port),
+        'host_port': int(host_port),
+    }
