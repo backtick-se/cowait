@@ -12,7 +12,6 @@
 1. `$ pipenv install`
 1. `$ pipenv install -e .`
 1. `$ pipenv shell`
-1. `$ docker network create tasks`
 
 ## Task Development
 
