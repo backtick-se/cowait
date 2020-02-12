@@ -32,6 +32,8 @@ class DockerProvider(ClusterProvider):
         return self.args.get('network', DEFAULT_NETWORK)
 
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
+        self.ensure_network()
+
         container = self.docker.containers.run(
             detach=True,
             image=taskdef.image,
@@ -40,6 +42,8 @@ class DockerProvider(ClusterProvider):
             network=self.network,
             environment=self.create_env(taskdef),
             volumes={
+                # this is the secret sauce that allows us to create new
+                # tasks on the host from within containers:
                 '/var/run/docker.sock': {
                     'bind': '/var/run/docker.sock',
                     'mode': 'ro',
@@ -135,3 +139,16 @@ class DockerProvider(ClusterProvider):
     def wait(self, task: DockerTask):
         """ Wait for a task to finish """
         raise NotImplementedError()
+
+    def ensure_network(self):
+        try:
+            self.docker.networks.get(self.network)
+        except docker.errors.NotFound:
+            print('~~ creating docker network', self.network)
+            self.docker.networks.create(
+                name=self.network,
+                check_duplicate=False,
+                driver='bridge',
+                labels={
+                    'pipeline': 1,
+                })
