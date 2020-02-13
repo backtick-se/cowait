@@ -6,7 +6,10 @@ metadata:
   name: task-node
 rules:
 - apiGroups: [""]
-  resources: ["pods", "pods/log"]
+  resources: ["pods", "pods/log", "services"]
+  verbs: ["get", "create", "list", "delete", "deletecollection"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
   verbs: ["get", "create", "list", "delete", "deletecollection"]
 ---
 kind: ClusterRoleBinding

@@ -3,7 +3,6 @@ import time
 import kubernetes
 from kubernetes import client, config, watch
 from pipeline.tasks import TaskDefinition
-from pipeline.network import PORT
 from .const import ENV_TASK_CLUSTER
 from .cluster import ClusterProvider, ClusterTask
 
@@ -11,7 +10,6 @@ DEFAULT_NAMESPACE = 'default'
 DEFAULT_SUBDOMAIN = 'tasks'
 LABEL_TASK_ID = 'pipeline/task'
 LABEL_PARENT_ID = 'pipeline/parent'
-
 
 
 class KubernetesTask(ClusterTask):
@@ -27,6 +25,7 @@ class KubernetesTask(ClusterTask):
         )
         self.pod = pod
         self.ip = self.pod.status.pod_ip
+        self.hostname = f'{self.id}.{cluster.domain}'
 
 
 class KubernetesProvider(ClusterProvider):
@@ -42,20 +41,55 @@ class KubernetesProvider(ClusterProvider):
         configuration = client.Configuration()
         self.core = client.CoreV1Api(
             kubernetes.client.ApiClient(configuration))
+        self.ext = client.ExtensionsV1beta1Api(
+            kubernetes.client.ApiClient(configuration))
+        self.custom = client.CustomObjectsApi(
+            kubernetes.client.ApiClient(configuration))
 
     @property
     def namespace(self):
         return self.args.get('namespace', DEFAULT_NAMESPACE)
 
     @property
-    def subdomain(self):
-        return self.args.get('subdomain', DEFAULT_SUBDOMAIN)
+    def domain(self):
+        return self.args.get('domain', 'cluster.backtick.se')
 
     @property
     def timeout(self):
         return self.args.get('timeout', 180)
 
     def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
+        ports = []
+        rules = []
+
+        for path, port in taskdef.routes.items():
+            ports.append(client.V1ServicePort(
+                name='web',
+                port=port,
+                target_port=port,
+            ))
+
+            rules.append(client.ExtensionsV1beta1IngressRule(
+                host=f'{taskdef.id}.{self.domain}',
+                http=client.ExtensionsV1beta1HTTPIngressRuleValue(
+                    paths=[
+                        client.ExtensionsV1beta1HTTPIngressPath(
+                            path=path,
+                            backend=client.ExtensionsV1beta1IngressBackend(
+                                service_name=taskdef.id,
+                                service_port='web',
+                            ),
+                        ),
+                    ],
+                ),
+            ))
+
+            taskdef.routes[path] = {
+                'port': port,
+                'path': path,
+                'url': f'https://{taskdef.id}.{self.domain}{path}',
+            }
+
         # container definition
         container = client.V1Container(
             name=taskdef.id,
@@ -78,7 +112,6 @@ class KubernetesProvider(ClusterProvider):
                 ),
                 spec=client.V1PodSpec(
                     hostname=taskdef.id,
-                    subdomain=self.subdomain,
                     restart_policy='Never',
                     image_pull_secrets=self.get_pull_secrets(),
 
@@ -86,6 +119,47 @@ class KubernetesProvider(ClusterProvider):
                 ),
             ),
         )
+
+        if len(rules):
+            print('~~ creating task ingress', path, '-> port', port)
+
+            self.core.create_namespaced_service(
+                namespace=self.namespace,
+                body=client.V1Service(
+                    metadata=client.V1ObjectMeta(
+                        name=taskdef.id,
+                        namespace=self.namespace,
+                        labels={
+                            LABEL_TASK_ID: taskdef.id,
+                        },
+                    ),
+                    spec=client.V1ServiceSpec(
+                        selector={
+                            LABEL_TASK_ID: taskdef.id,
+                        },
+                        ports=ports,
+                    ),
+                ),
+            )
+
+            self.ext.create_namespaced_ingress(
+                namespace=self.namespace,
+                body=client.ExtensionsV1beta1Ingress(
+                    metadata=client.V1ObjectMeta(
+                        name=taskdef.id,
+                        labels={
+                            LABEL_TASK_ID: taskdef.id,
+                        },
+                        annotations={
+                            'kubernetes.io/ingress.class': 'traefik',
+                            'traefik.frontend.rule.type': 'PathPrefix',
+                        },
+                    ),
+                    spec=client.ExtensionsV1beta1IngressSpec(
+                        rules=rules,
+                    ),
+                ),
+            )
 
         # wait for pod to become ready
         timeout = self.timeout
@@ -99,7 +173,7 @@ class KubernetesProvider(ClusterProvider):
             time.sleep(1)
 
         # wrap & return task
-        print('~~ created kubenetes pod with name', pod.metadata.name)
+        print('~~ created kubenetes pod', pod.metadata.name)
         return KubernetesTask(self, taskdef, pod)
 
     def kill(self, task_id):
@@ -186,13 +260,10 @@ class KubernetesProvider(ClusterProvider):
         ]
 
     def create_ports(self, taskdef: TaskDefinition) -> list:
-        portlist = [
+        return [
             client.V1ContainerPort(**convert_port(port, host_port))
             for port, host_port in taskdef.ports.items()
         ]
-        # default port
-        portlist.insert(0, client.V1ContainerPort(**convert_port(PORT)))
-        return portlist
 
     def get_pull_secrets(self):
         secrets = self.args.get('pull_secrets', ['docker'])

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import datetime
 from marshmallow import Schema, fields, post_load
 from ..utils import uuid
 
@@ -39,6 +40,11 @@ class TaskDefinition(object):
         meta:      dict = {},
         env:       dict = {},
         ports:     dict = {},
+        routes:    dict = {},
+        cpu:       int = 0,
+        mem:       int = 0,
+        owner:     str = '',
+        created_at: datetime = None,
     ):
         """
         Arguments:
@@ -51,6 +57,11 @@ class TaskDefinition(object):
             meta (dict): Freeform metadata
             env (dict): Environment variables
             ports (dict): Port forwards
+            routes (dict)
+            cpu (int)
+            mem (int)
+            owner (str)
+            created_at (DateTime)
         """
         self.id = generate_task_id(name) if not id else id
         self.name = name
@@ -62,6 +73,11 @@ class TaskDefinition(object):
         self.meta = meta
         self.env = env
         self.ports = ports
+        self.routes = routes
+        self.cpu = cpu
+        self.mem = mem
+        self.owner = owner
+        self.created_at = datetime.now() if created_at is None else created_at
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
@@ -86,6 +102,11 @@ class TaskDefinitionSchema(Schema):
     meta = fields.Dict(missing={})
     env = fields.Dict(missing={})
     ports = fields.Dict(missing={})
+    routes = fields.Dict(missing={})
+    cpu = fields.Int(missing=0)
+    mem = fields.Int(missing=0)
+    owner = fields.String(missing='')
+    created_at = fields.DateTime('iso')
 
     @post_load
     def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:
