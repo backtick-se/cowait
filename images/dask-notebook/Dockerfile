@@ -10,3 +10,5 @@ COPY --chown=1000:100 cluster.py cluster.ipynb /home/$NB_USER/
 #ENV DASK_KUBERNETES__WORKER_TEMPLATE_PATH=/home/$NB_USER/worker-spec.yml
 
 USER $NB_USER
+
+CMD ["start.sh", "jupyter", "lab", "/home/jovyan/cluster.ipynb"]

@@ -112,6 +112,7 @@ class KubernetesProvider(ClusterProvider):
             namespace=self.namespace,
             label_selector=f'{LABEL_TASK_ID}={task_id}',
         )
+        self.emit_sync('kill', task_id=task_id)
         return task_id
 
     def get_task_pod(self, task_id):
