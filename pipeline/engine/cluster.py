@@ -1,11 +1,12 @@
 from __future__ import annotations
 import json
 import asyncio
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Iterable
 from marshmallow import Schema, fields
 from concurrent.futures import Future
 from pipeline.tasks import TaskDefinition
+from pipeline.utils import EventEmitter
 from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
 
 
@@ -24,8 +25,9 @@ class ClusterTask(TaskDefinition):
         self.cluster.destroy(self.id)
 
 
-class ClusterProvider(ABC):
+class ClusterProvider(EventEmitter):
     def __init__(self, type, args={}):
+        super().__init__()
         self.type = type
         self.args = args
 

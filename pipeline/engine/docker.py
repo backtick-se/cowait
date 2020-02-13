@@ -1,11 +1,10 @@
-import random
 import docker
 from pipeline.tasks import TaskDefinition
 from .cluster import ClusterProvider, ClusterTask
+from .const import LABEL_TASK_ID, LABEL_PARENT_ID
+from .routers import LocalPortRouter
 
 DEFAULT_NETWORK = 'tasks'
-LABEL_TASK_ID = 'pipeline/task'
-LABEL_PARENT_ID = 'pipeline/parent'
 
 
 class DockerTask(ClusterTask):
@@ -27,6 +26,7 @@ class DockerProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('docker', args)
         self.docker = docker.from_env()
+        self.router = LocalPortRouter(self)
 
     @property
     def network(self):
@@ -35,9 +35,7 @@ class DockerProvider(ClusterProvider):
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
         self.ensure_network()
 
-        # must happen before create_env because it modifies taskdef
-        # make it clean pls
-        ports = self.create_ports(taskdef)
+        self.emit_sync('prepare', taskdef=taskdef)
 
         container = self.docker.containers.run(
             detach=True,
@@ -45,7 +43,7 @@ class DockerProvider(ClusterProvider):
             name=taskdef.id,
             hostname=taskdef.id,
             network=self.network,
-            ports=ports,
+            ports=self.create_ports(taskdef),
             environment=self.create_env(taskdef),
             volumes={
                 # this is the secret sauce that allows us to create new
@@ -64,7 +62,9 @@ class DockerProvider(ClusterProvider):
         print('~~ created docker container with id',
               container.id[:12], 'for task', taskdef.id)
 
-        return DockerTask(self, taskdef, container)
+        task = DockerTask(self, taskdef, container)
+        self.emit_sync('spawn', task=task)
+        return task
 
     def list_all(self) -> list:
         """ Returns a list of all running tasks """
@@ -159,22 +159,4 @@ class DockerProvider(ClusterProvider):
                 })
 
     def create_ports(self, taskdef):
-        ports = {**taskdef.ports}
-        for path, port in taskdef.routes.items():
-            if path != '/':
-                raise RuntimeError('Subdirectory HTTP paths are not supported')
-
-            host_port = random.randint(60000, 65000)
-            url = f'http://localhost:{host_port}/'
-
-            # assign route url
-            taskdef.routes[path] = {
-                'port': port,
-                'path': path,
-                'url': url,
-            }
-
-            # open host port
-            ports[port] = host_port
-
-        return ports
+        return taskdef.ports

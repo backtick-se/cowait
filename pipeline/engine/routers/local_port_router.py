@@ -1,0 +1,28 @@
+import random
+from .router import Router
+
+
+class LocalPortRouter(Router):
+    def __init__(self, cluster):
+        super().__init__(cluster)
+        cluster.on('prepare', self.on_prepare)
+
+    def on_prepare(self, taskdef):
+        for path, port in taskdef.routes.items():
+            if path != '/':
+                raise RuntimeError('Subdirectory HTTP paths are not supported')
+
+            host_port = random.randint(60000, 65000)
+            url = f'http://localhost:{host_port}/'
+
+            # assign route url
+            taskdef.routes[path] = {
+                'port': port,
+                'path': path,
+                'url': url,
+            }
+
+            # open host port
+            taskdef.ports[port] = host_port
+
+        return taskdef
