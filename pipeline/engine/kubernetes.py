@@ -3,13 +3,11 @@ import time
 import kubernetes
 from kubernetes import client, config, watch
 from pipeline.tasks import TaskDefinition
-from .const import ENV_TASK_CLUSTER
+from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider, ClusterTask
+from .routers import TraefikRouter
 
 DEFAULT_NAMESPACE = 'default'
-DEFAULT_SUBDOMAIN = 'tasks'
-LABEL_TASK_ID = 'pipeline/task'
-LABEL_PARENT_ID = 'pipeline/parent'
 
 
 class KubernetesTask(ClusterTask):
@@ -25,7 +23,6 @@ class KubernetesTask(ClusterTask):
         )
         self.pod = pod
         self.ip = self.pod.status.pod_ip
-        self.hostname = f'{self.id}.{cluster.domain}'
 
 
 class KubernetesProvider(ClusterProvider):
@@ -46,6 +43,8 @@ class KubernetesProvider(ClusterProvider):
         self.custom = client.CustomObjectsApi(
             kubernetes.client.ApiClient(configuration))
 
+        self.router = TraefikRouter(self)
+
     @property
     def namespace(self):
         return self.args.get('namespace', DEFAULT_NAMESPACE)
@@ -59,36 +58,7 @@ class KubernetesProvider(ClusterProvider):
         return self.args.get('timeout', 180)
 
     def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
-        ports = []
-        rules = []
-
-        for path, port in taskdef.routes.items():
-            ports.append(client.V1ServicePort(
-                name='web',
-                port=port,
-                target_port=port,
-            ))
-
-            rules.append(client.ExtensionsV1beta1IngressRule(
-                host=f'{taskdef.id}.{self.domain}',
-                http=client.ExtensionsV1beta1HTTPIngressRuleValue(
-                    paths=[
-                        client.ExtensionsV1beta1HTTPIngressPath(
-                            path=path,
-                            backend=client.ExtensionsV1beta1IngressBackend(
-                                service_name=taskdef.id,
-                                service_port='web',
-                            ),
-                        ),
-                    ],
-                ),
-            ))
-
-            taskdef.routes[path] = {
-                'port': port,
-                'path': path,
-                'url': f'https://{taskdef.id}.{self.domain}{path}',
-            }
+        self.emit_sync('prepare', taskdef=taskdef)
 
         # container definition
         container = client.V1Container(
@@ -120,47 +90,6 @@ class KubernetesProvider(ClusterProvider):
             ),
         )
 
-        if len(rules):
-            print('~~ creating task ingress', path, '-> port', port)
-
-            self.core.create_namespaced_service(
-                namespace=self.namespace,
-                body=client.V1Service(
-                    metadata=client.V1ObjectMeta(
-                        name=taskdef.id,
-                        namespace=self.namespace,
-                        labels={
-                            LABEL_TASK_ID: taskdef.id,
-                        },
-                    ),
-                    spec=client.V1ServiceSpec(
-                        selector={
-                            LABEL_TASK_ID: taskdef.id,
-                        },
-                        ports=ports,
-                    ),
-                ),
-            )
-
-            self.ext.create_namespaced_ingress(
-                namespace=self.namespace,
-                body=client.ExtensionsV1beta1Ingress(
-                    metadata=client.V1ObjectMeta(
-                        name=taskdef.id,
-                        labels={
-                            LABEL_TASK_ID: taskdef.id,
-                        },
-                        annotations={
-                            'kubernetes.io/ingress.class': 'traefik',
-                            'traefik.frontend.rule.type': 'PathPrefix',
-                        },
-                    ),
-                    spec=client.ExtensionsV1beta1IngressSpec(
-                        rules=rules,
-                    ),
-                ),
-            )
-
         # wait for pod to become ready
         timeout = self.timeout
         while True:
@@ -174,7 +103,9 @@ class KubernetesProvider(ClusterProvider):
 
         # wrap & return task
         print('~~ created kubenetes pod', pod.metadata.name)
-        return KubernetesTask(self, taskdef, pod)
+        task = KubernetesTask(self, taskdef, pod)
+        self.emit_sync('spawn', task=task)
+        return task
 
     def kill(self, task_id):
         self.core.delete_collection_namespaced_pod(

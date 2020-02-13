@@ -30,3 +30,19 @@ class EventEmitter(object):
 
         except KeyError:
             pass
+
+    def emit_sync(self, type: str, **kwargs: dict) -> None:
+        if type == '*':
+            raise RuntimeError('Cannot emit wildcard events')
+
+        try:
+            # wildcard events
+            for callback in self.callbacks['*']:
+                callback(type=type, **kwargs)
+
+            # actual event
+            for callback in self.callbacks[type]:
+                callback(**kwargs)
+
+        except KeyError:
+            pass
