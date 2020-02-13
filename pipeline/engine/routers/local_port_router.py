@@ -25,4 +25,6 @@ class LocalPortRouter(Router):
             # open host port
             taskdef.ports[port] = host_port
 
+            print('~~ http route', path, '->', url)
+
         return taskdef

@@ -22,9 +22,6 @@ class TraefikRouter(Router):
         ports = []
         rules = []
 
-        if len(rules) == 0:
-            return
-
         for path, route in task.routes.items():
             port = route['port']
             ports.append(client.V1ServicePort(
@@ -34,7 +31,7 @@ class TraefikRouter(Router):
             ))
 
             rules.append(client.ExtensionsV1beta1IngressRule(
-                host=f'{task.id}.{self.domain}',
+                host=f'{task.id}.{self.cluster.domain}',
                 http=client.ExtensionsV1beta1HTTPIngressRuleValue(
                     paths=[
                         client.ExtensionsV1beta1HTTPIngressPath(
@@ -48,14 +45,17 @@ class TraefikRouter(Router):
                 ),
             ))
 
+        if len(rules) == 0:
+            return
+
         print('~~ creating task ingress', path, '-> port', port)
 
         self.cluster.core.create_namespaced_service(
-            namespace=self.namespace,
+            namespace=self.cluster.namespace,
             body=client.V1Service(
                 metadata=client.V1ObjectMeta(
                     name=task.id,
-                    namespace=self.namespace,
+                    namespace=self.cluster.namespace,
                     labels={
                         LABEL_TASK_ID: task.id,
                     },
@@ -70,7 +70,7 @@ class TraefikRouter(Router):
         )
 
         self.cluster.ext.create_namespaced_ingress(
-            namespace=self.namespace,
+            namespace=self.cluster.namespace,
             body=client.ExtensionsV1beta1Ingress(
                 metadata=client.V1ObjectMeta(
                     name=task.id,
