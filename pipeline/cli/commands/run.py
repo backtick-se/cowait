@@ -1,3 +1,4 @@
+import os
 import sys
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
@@ -12,9 +13,13 @@ def run(
     inputs: dict = {},
     config: dict = {},
     env: dict = {},
+    ports: dict = {},
+    routes: dict = {},
     build: bool = False,
     upstream: str = None,
     detach: bool = False,
+    cpu: int = 0,
+    mem: int = 0,
 ):
     if build:
         push(task)
@@ -37,8 +42,13 @@ def run(
             **context.get('environment', {}),
             **env,
         },
+        ports=ports,
+        routes=routes,
         upstream=context.coalesce('upstream', upstream, None),
         parent=None,  # root task
+        owner=os.getlogin(),
+        cpu=cpu,
+        mem=mem,
     )
 
     # print execution info

@@ -41,6 +41,7 @@ class TaskImage(object):
         os.unlink(df_path)
 
         # always tag image so that it works locally
+        # todo: probably does not work until after logs
         self.image.tag(
             repository=self.name,
             tag='latest'

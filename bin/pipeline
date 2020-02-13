@@ -57,6 +57,7 @@ def new(name: str, image: str, provider: str):
               type=(str, str),
               multiple=True,
               help='define enviornment variable')
+@click.option('--port', type=int, multiple=True, help='open a port')
 @click.option('--upstream',
               type=str,
               help='root task upstream uri')
@@ -70,7 +71,7 @@ def new(name: str, image: str, provider: str):
               default=False)
 def run(
     image: str, task: str, provider: str,
-    input, config, env,
+    input, config, env, port,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
@@ -79,6 +80,7 @@ def run(
         inputs=option_dict(input),
         config=option_dict(config),
         env=option_dict(env),
+        ports={ p: p for p in port },
         upstream=upstream,
         build=build,
         detach=detach,
