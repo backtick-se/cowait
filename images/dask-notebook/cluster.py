@@ -1,4 +1,5 @@
 import os
+import math
 import json
 from dask_kubernetes import KubeCluster
 from kubernetes_asyncio import client
@@ -7,9 +8,21 @@ from kubernetes_asyncio import client
 task = json.loads(os.environ['TASK_DEFINITION'])
 
 
+def cpu_to_threads(cpu):
+    mult = 1
+    cpu = str(cpu)
+    unit = cpu[-1]
+    if unit.isalpha():
+        cpu = cpu[:-1]
+        if unit == 'm':
+            mult = 0.001
+    cpu = float(cpu) * mult
+    return math.ceil(cpu)
+
+
 def create_cluster(**kwargs):
     workers = task['inputs'].get('workers', 0)
-    cores = task['inputs'].get('worker_cores', 2)
+    cpu = task['inputs'].get('worker_cores', 2)
     memory = task['inputs'].get('worker_memory', 2)
     image = task['inputs'].get('worker_image', 'daskdev/dask:latest')
 
@@ -18,19 +31,19 @@ def create_cluster(**kwargs):
         image=image,
         args=[
             'dask-worker',
-            '--nthreads', str(cores),
+            '--nthreads', str(cpu_to_threads(cpu)),
             '--no-bokeh',
-            '--memory-limit', f'{memory}GB'
+            '--memory-limit', f'{memory}B',
             '--death-timeout', '60',
         ],
         resources=client.V1ResourceRequirements(
             limits={
-                'cpu': str(cores),
-                'memory': f'{memory}G',
+                'cpu': str(cpu),
+                'memory': str(memory),
             },
             requests={
-                'cpu': str(cores),
-                'memory': f'{memory}G',
+                'cpu': str(cpu),
+                'memory': str(memory),
             },
         ),
     )
@@ -38,8 +51,8 @@ def create_cluster(**kwargs):
     pod = client.V1Pod(
         metadata=client.V1ObjectMeta(
             labels={
-                'pipeline/task': task.get('id'),
-                'pipeline/parent': task.get('parent', ''),
+                'pipeline/task': 'worker-' + task.get('id'),
+                'pipeline/parent': task.get('id'),
             },
         ),
         spec=client.V1PodSpec(
