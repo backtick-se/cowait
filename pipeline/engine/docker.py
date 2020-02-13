@@ -1,3 +1,4 @@
+import random
 import docker
 from pipeline.tasks import TaskDefinition
 from .cluster import ClusterProvider, ClusterTask
@@ -34,12 +35,17 @@ class DockerProvider(ClusterProvider):
     def spawn(self, taskdef: TaskDefinition) -> DockerTask:
         self.ensure_network()
 
+        # must happen before create_env because it modifies taskdef
+        # make it clean pls
+        ports = self.create_ports(taskdef)
+
         container = self.docker.containers.run(
             detach=True,
             image=taskdef.image,
             name=taskdef.id,
             hostname=taskdef.id,
             network=self.network,
+            ports=ports,
             environment=self.create_env(taskdef),
             volumes={
                 # this is the secret sauce that allows us to create new
@@ -53,7 +59,6 @@ class DockerProvider(ClusterProvider):
                 LABEL_TASK_ID: taskdef.id,
                 LABEL_PARENT_ID: taskdef.parent,
             },
-            ports=taskdef.ports,
         )
 
         print('~~ created docker container with id',
@@ -152,3 +157,24 @@ class DockerProvider(ClusterProvider):
                 labels={
                     'pipeline': 1,
                 })
+
+    def create_ports(self, taskdef):
+        ports = {**taskdef.ports}
+        for path, port in taskdef.routes.items():
+            if path != '/':
+                raise RuntimeError('Subdirectory HTTP paths are not supported')
+
+            host_port = random.randint(60000, 65000)
+            url = f'http://localhost:{host_port}/'
+
+            # assign route url
+            taskdef.routes[path] = {
+                'port': port,
+                'path': path,
+                'url': url,
+            }
+
+            # open host port
+            ports[port] = host_port
+
+        return ports
