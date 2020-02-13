@@ -18,8 +18,8 @@ def run(
     build: bool = False,
     upstream: str = None,
     detach: bool = False,
-    cpu: int = 0,
-    mem: int = 0,
+    cpu: str = '0',
+    memory: str = '0',
 ):
     if build:
         push(task)
@@ -48,7 +48,7 @@ def run(
         parent=None,  # root task
         owner=os.getlogin(),
         cpu=cpu,
-        mem=mem,
+        memory=memory,
     )
 
     # print execution info

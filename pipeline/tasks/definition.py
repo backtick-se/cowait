@@ -41,8 +41,8 @@ class TaskDefinition(object):
         env:       dict = {},
         ports:     dict = {},
         routes:    dict = {},
-        cpu:       int = 0,
-        mem:       int = 0,
+        cpu:       str = '0',
+        memory:    str = '0',
         owner:     str = '',
         created_at: datetime = None,
     ):
@@ -58,8 +58,8 @@ class TaskDefinition(object):
             env (dict): Environment variables
             ports (dict): Port forwards
             routes (dict)
-            cpu (int)
-            mem (int)
+            cpu (str)
+            memory (str)
             owner (str)
             created_at (DateTime)
         """
@@ -75,7 +75,7 @@ class TaskDefinition(object):
         self.ports = ports
         self.routes = routes
         self.cpu = cpu
-        self.mem = mem
+        self.memory = memory
         self.owner = owner
         self.created_at = datetime.now() if created_at is None else created_at
 
@@ -103,8 +103,8 @@ class TaskDefinitionSchema(Schema):
     env = fields.Dict(missing={})
     ports = fields.Dict(missing={})
     routes = fields.Dict(missing={})
-    cpu = fields.Int(missing=0)
-    mem = fields.Int(missing=0)
+    cpu = fields.Str(missing='0')
+    memory = fields.Str(missing='0')
     owner = fields.String(missing='')
     created_at = fields.DateTime('iso')
 

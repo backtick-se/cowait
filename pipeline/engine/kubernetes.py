@@ -51,7 +51,7 @@ class KubernetesProvider(ClusterProvider):
 
     @property
     def domain(self):
-        return self.args.get('domain', 'cluster.backtick.se')
+        return self.args.get('domain', 'gcp.c.backtick.se')
 
     @property
     def timeout(self):
@@ -67,6 +67,16 @@ class KubernetesProvider(ClusterProvider):
             env=self.create_env(taskdef),
             ports=self.create_ports(taskdef),
             image_pull_policy='Always',  # taskdef field??
+            resources=client.V1ResourceRequirements(
+                limits={
+                    'cpu': str(taskdef.cpu),
+                    'memory': str(taskdef.memory),
+                },
+                requests={
+                    'cpu': str(taskdef.cpu),
+                    'memory': str(taskdef.memory),
+                },
+            ),
         )
 
         pod = self.core.create_namespaced_pod(

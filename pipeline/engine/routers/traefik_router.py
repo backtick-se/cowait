@@ -15,7 +15,7 @@ class TraefikRouter(Router):
             taskdef.routes[path] = {
                 'port': port,
                 'path': path,
-                'url': f'https://{taskdef.id}.{self.cluster.domain}{path}',
+                'url': f'http://{taskdef.id}.{self.cluster.domain}{path}',
             }
         return taskdef
 
@@ -23,10 +23,14 @@ class TraefikRouter(Router):
         ports = []
         rules = []
 
+        idx = 0
         for path, route in task.routes.items():
             port = route['port']
+            idx += 1
+            port_name = f'route{idx}'
+
             ports.append(client.V1ServicePort(
-                name='web',
+                name=port_name,
                 port=port,
                 target_port=port,
             ))
@@ -39,7 +43,7 @@ class TraefikRouter(Router):
                             path=path,
                             backend=client.ExtensionsV1beta1IngressBackend(
                                 service_name=task.id,
-                                service_port='web',
+                                service_port=port_name,
                             ),
                         ),
                     ],
