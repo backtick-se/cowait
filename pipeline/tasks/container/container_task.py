@@ -2,13 +2,14 @@ from pipeline.tasks import Task, TaskDefinition
 
 
 class ContainerTask(Task):
-    async def run(self, name, image, routes: dict = {}):
+    async def run(self, name, image, routes: dict = {}, **inputs):
         taskdef = TaskDefinition(
             name=name,
             image=image,
             env=self.env,
             ports=self.ports,
             parent=self.id,
+            inputs=inputs,
 
             routes=routes,
         )

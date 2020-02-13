@@ -8,6 +8,7 @@ class TraefikRouter(Router):
         super().__init__(cluster)
         cluster.on('prepare', self.on_prepare)
         cluster.on('spawn', self.on_spawn)
+        cluster.on('kill', self.on_kill)
 
     def on_prepare(self, taskdef):
         for path, port in taskdef.routes.items():
@@ -87,3 +88,20 @@ class TraefikRouter(Router):
                 ),
             ),
         )
+
+    def on_kill(self, task_id):
+        try:
+            self.cluster.core.delete_namespaced_service(
+                namespace=self.cluster.namespace,
+                name=task_id,
+            )
+        except client.rest.ApiException:
+            pass
+
+        try:
+            self.cluster.ext.delete_namespaced_ingress(
+                namespace=self.cluster.namespace,
+                name=task_id
+            )
+        except client.rest.ApiException:
+            pass

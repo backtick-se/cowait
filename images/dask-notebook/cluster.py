@@ -8,27 +8,28 @@ task = json.loads(os.environ['TASK_DEFINITION'])
 
 
 def create_cluster(**kwargs):
-    workers = str(task['inputs'].get('workers', 0))
-    cores = str(task['inputs'].get('worker_cores', 2))
-    memory = str(task['inputs'].get('worker_memory', 2))
+    workers = task['inputs'].get('workers', 0)
+    cores = task['inputs'].get('worker_cores', 2)
+    memory = task['inputs'].get('worker_memory', 2)
+    image = task['inputs'].get('worker_image', 'daskdev/dask:latest')
 
     container = client.V1Container(
         name='dask',
-        image='daskdev/dask:latest',
+        image=image,
         args=[
             'dask-worker',
-            '--nthreads', cores,
+            '--nthreads', str(cores),
             '--no-bokeh',
             '--memory-limit', f'{memory}GB'
             '--death-timeout', '60',
         ],
         resources=client.V1ResourceRequirements(
             limits={
-                'cpu': cores,
+                'cpu': str(cores),
                 'memory': f'{memory}G',
             },
             requests={
-                'cpu': cores,
+                'cpu': str(cores),
                 'memory': f'{memory}G',
             },
         ),
