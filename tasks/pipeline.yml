@@ -3,7 +3,7 @@ pipeline:
   image: docker.backtick.se/core
 
   provider:
-    type: docker
+    default: docker
     docker:
       network: tasks
     kubernetes:
