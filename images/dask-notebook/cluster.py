@@ -26,6 +26,11 @@ def create_cluster(**kwargs):
     memory = task['inputs'].get('worker_memory', 2)
     image = task['inputs'].get('worker_image', 'daskdev/dask:latest')
 
+    resources = {
+        'cpu': str(cpu),
+        'memory': str(memory),
+    }
+
     container = client.V1Container(
         name='dask',
         image=image,
@@ -37,14 +42,8 @@ def create_cluster(**kwargs):
             '--death-timeout', '60',
         ],
         resources=client.V1ResourceRequirements(
-            limits={
-                'cpu': str(cpu),
-                'memory': str(memory),
-            },
-            requests={
-                'cpu': str(cpu),
-                'memory': str(memory),
-            },
+            limits=resources,
+            requests=resources,
         ),
     )
 
