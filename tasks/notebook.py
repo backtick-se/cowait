@@ -19,7 +19,6 @@ class JupyterTask(ContainerTask):
             image='docker.backtick.se/dask-notebook:latest',
             routes={
                 '/': 8888,
-                '/dashboard': 8787,
             },
             cpu=worker_cores,
             memory=worker_memory,
