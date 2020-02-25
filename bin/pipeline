@@ -74,7 +74,7 @@ def run(
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
-        task, 
+        task,
         provider=provider,
         inputs=option_dict(input),
         config=option_dict(config),

@@ -36,12 +36,10 @@ class KubernetesProvider(ClusterProvider):
             config.load_kube_config()
 
         configuration = client.Configuration()
-        self.core = client.CoreV1Api(
-            kubernetes.client.ApiClient(configuration))
-        self.ext = client.ExtensionsV1beta1Api(
-            kubernetes.client.ApiClient(configuration))
-        self.custom = client.CustomObjectsApi(
-            kubernetes.client.ApiClient(configuration))
+        self.client = kubernetes.client.ApiClient(configuration)
+        self.core = client.CoreV1Api(self.client)
+        self.ext = client.ExtensionsV1beta1Api(self.client)
+        self.custom = client.CustomObjectsApi(self.client)
 
         self.router = TraefikRouter(self)
 
@@ -51,7 +49,7 @@ class KubernetesProvider(ClusterProvider):
 
     @property
     def domain(self):
-        return self.args.get('domain', 'gcp.c.backtick.se')
+        return self.args.get('domain', 'dev.c.backtick.se')
 
     @property
     def timeout(self):
@@ -210,6 +208,12 @@ class KubernetesProvider(ClusterProvider):
     def get_pull_secrets(self):
         secrets = self.args.get('pull_secrets', ['docker'])
         return [client.V1LocalObjectReference(name=s) for s in secrets]
+
+    def find_agent(self):
+        pod = self.get_task_pod('agent')
+        if pod is None:
+            return None
+        return f'ws://{pod.status.pod_ip}:1337'
 
 
 def convert_port(port, host_port: str = None):

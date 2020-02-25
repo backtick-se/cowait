@@ -30,6 +30,10 @@ class WorkerNode(Node):
                 await self.api.run()
 
                 inputs = await task.before(taskdef.inputs)
+                if inputs is None:
+                    raise RuntimeError(
+                        'Task.before() returned None, '
+                        'did you forget to return inputs?')
                 result = await task.run(**inputs)
                 await task.after(inputs)
 

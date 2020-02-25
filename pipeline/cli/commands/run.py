@@ -34,7 +34,7 @@ def run(
             image = f'docker.backtick.se/{image}'
     else:
         if build:
-            push(task)
+            push()
         image = context.get_image_name()
 
     # default to agent as upstream

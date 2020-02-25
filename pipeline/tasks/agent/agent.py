@@ -12,6 +12,7 @@ class Agent(Task):
         self.subs = Subscriptions()
 
         async def send_state(conn: Conn) -> None:
+            """" sends the state of all known tasks """
             for task in self.tasks.values():
                 await conn.send({
                     'type': 'init',
