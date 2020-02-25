@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import socket from '../store/socket'
+import socket from '../../store/socket'
 
 const LoadingContainer = styled.div`
     width: 100%;

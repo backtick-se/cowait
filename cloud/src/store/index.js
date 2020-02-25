@@ -7,6 +7,7 @@ import { createLogger } from 'redux-logger'
 import tasks from './tasks'
 import socket from './socket'
 
+
 export function createStore({ logging }) {
     let middleware = [ ]
     if (logging) {

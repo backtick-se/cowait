@@ -1,8 +1,9 @@
 import React from 'react'
-import TaskList from '../components/TaskList'
-import { View } from '../components/ui'
+import TaskList from './TaskList'
+import { View } from '../ui'
 
-function TaskListView() {
+
+export function TaskListView() {
     return <View title="tasks">
         <TaskList />
     </View>

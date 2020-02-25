@@ -1,5 +1,3 @@
-
-
 export const SOCKET_CONNECTING = 'socket_connecting'
 export const SOCKET_CONNECTED = 'socket_connected'
 export const SOCKET_ERROR = 'socket_error'

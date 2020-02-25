@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { ErrorBubble } from './components/ui'
+import { ErrorBubble } from '.'
 
 const ErrorContainer = styled.div`
     padding: 2em;

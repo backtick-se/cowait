@@ -1,35 +1,25 @@
 
 import React, { useEffect, useRef } from 'react'
-import styled from 'styled-components'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { Bubble } from '../ui'
+import { LogOutput, LogContainer } from './styled/Log'
 
-const LogOutput = styled.pre`
-    font-family: ${p => p.theme.fonts.monospace};
-    color: white;
-    line-height: 1.25em;
-`
 
-const LogContainer = styled.div`
-    padding: 0.5rem;
-    background-color: #222;
-    border-radius: 0.3rem;
-    overflow: auto;
-    min-height: ${p => p.minHeight || 6}rem;
-    max-height: ${p => p.maxHeight || 12}rem;
-`
+export function TaskLog({ id, maxHeight }) {
+    const logRef = useRef(null)
+    const log = useSelector(state => state.tasks.logs[id])
 
-function TaskLog({ log, maxHeight }) {
-    let logRef = useRef(null)
-
+    // scroll to bottom of the log whenever it changes
     const scrollToBottom = () => {
         if (!logRef.current) {
             return
         }
         logRef.current.scrollTop = logRef.current.scrollHeight
     }
-    useEffect(scrollToBottom, [ log ])
 
+    useEffect(scrollToBottom, [log])
+
+    // no output if log is empty
     if (!log) {
         return null
     }
@@ -42,7 +32,4 @@ function TaskLog({ log, maxHeight }) {
     </Bubble>
 }
 
-const mapStateToProps = (state, props) => ({
-    log: state.tasks.logs[props.id],
-})
-export default connect(mapStateToProps)(TaskLog)
+export default TaskLog

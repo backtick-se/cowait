@@ -1,7 +1,8 @@
 import React from 'react'
 import { Bubble, Code } from '../ui'
 
-function TaskInputs({ inputs }) {
+
+export function TaskInputs({ inputs }) {
     if (!inputs) {
         return null
     }

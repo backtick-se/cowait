@@ -1,7 +1,8 @@
 import React from 'react'
 import { Bubble, Code } from '../ui'
 
-function TaskResult({ result }) {
+
+export function TaskResult({ result }) {
     if (!result) {
         return null
     }

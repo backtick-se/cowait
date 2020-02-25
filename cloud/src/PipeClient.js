@@ -2,6 +2,7 @@ import EventEmitter from 'events'
 
 const DefaultConnectInterval = 1000
 
+
 export class PipeClient extends EventEmitter {
     constructor(uri) {
         super()
