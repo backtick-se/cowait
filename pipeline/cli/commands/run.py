@@ -8,7 +8,6 @@ from .push import push
 
 def run(
     task: str,
-    image: str,
     provider: str,
     inputs: dict = {},
     config: dict = {},
@@ -21,12 +20,21 @@ def run(
     cpu: str = '0',
     memory: str = '0',
 ):
-    if build:
-        push(task)
-
     context = PipelineContext.open()
     cluster = get_context_cluster(context, provider)
-    if image is None:
+
+    # figure out image name
+    image = None
+    if '/' in task:
+        s = task.rfind('/')
+        image = task[:s]
+        task = task[s+1:]
+        if '/' not in image:
+            # prepend default repo
+            image = f'docker.backtick.se/{image}'
+    else:
+        if build:
+            push(task)
         image = context.get_image_name()
 
     # create task definition

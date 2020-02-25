@@ -40,7 +40,6 @@ def new(name: str, image: str, provider: str):
 
 @cli.command(help='run a task')
 @click.argument('task', type=str)
-@click.argument('image', type=str, required=False)
 @click.option('--provider',
               default='docker',
               type=str,
@@ -70,17 +69,17 @@ def new(name: str, image: str, provider: str):
               help='run in detached mode',
               default=False)
 def run(
-    image: str, task: str, provider: str,
+    task: str, provider: str,
     input, config, env, port,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
-        task, image,
+        task, 
         provider=provider,
         inputs=option_dict(input),
         config=option_dict(config),
         env=option_dict(env),
-        ports={ p: p for p in port },
+        ports={p: p for p in port},
         upstream=upstream,
         build=build,
         detach=detach,
