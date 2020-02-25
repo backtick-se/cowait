@@ -41,7 +41,9 @@ def agent(provider: str) -> None:
         image=DEFAULT_BASE_IMAGE,
         ports={
             '1337': '1337',
-            '1338': '1338',
+        },
+        routes={
+            '/': 1338,
         },
     )
 

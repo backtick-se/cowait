@@ -50,6 +50,9 @@ class Agent(Task):
         return inputs
 
     async def run(self, **inputs):
+        print('agent ready. available at:')
+        print(self.routes['/']['url'])
+
         # wait forever
         while True:
             await sleep(1.0)
