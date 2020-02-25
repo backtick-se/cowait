@@ -1,9 +1,7 @@
-import sys
-from ..const import DEFAULT_BASE_IMAGE, DEFAULT_PROVIDER
+from ..const import DEFAULT_PROVIDER
 from ..context import PipelineContext
-from ..utils import ExitTrap, get_context_cluster, printheader
+from ..utils import get_context_cluster
 from pipeline.engine import get_cluster_provider
-from pipeline.tasks import TaskDefinition
 
 
 def destroy(provider: str) -> None:
@@ -26,38 +24,3 @@ def list_tasks(provider: str) -> None:
     tasks = cluster.list_all()
     for task in tasks:
         print(task)
-
-
-def agent(provider: str) -> None:
-    context = PipelineContext.open()
-    cluster = get_context_cluster(context, provider)
-
-    cluster.destroy('agent')
-
-    # create task definition
-    taskdef = TaskDefinition(
-        id='agent',
-        name='pipeline.tasks.agent',
-        image=DEFAULT_BASE_IMAGE,
-        ports={
-            '1337': '1337',
-        },
-        routes={
-            '/': 1338,
-        },
-    )
-
-    task = cluster.spawn(taskdef)
-
-    def destroy(*args):
-        print()
-        printheader('interrupt')
-        cluster.destroy(task.id)
-        sys.exit(0)
-
-    with ExitTrap(destroy):
-        # capture & print logs
-        logs = cluster.logs(task)
-        printheader('task output')
-        for log in logs:
-            print(log, flush=True)

@@ -160,3 +160,10 @@ class DockerProvider(ClusterProvider):
 
     def create_ports(self, taskdef):
         return taskdef.ports
+
+    def find_agent(self):
+        try:
+            self.docker.containers.get('agent')
+            return 'ws://agent:1337'
+        except docker.errors.NotFound:
+            return None

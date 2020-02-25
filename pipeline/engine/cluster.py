@@ -84,6 +84,9 @@ class ClusterProvider(EventEmitter):
             ENV_TASK_DEFINITION: json.dumps(taskdef.serialize()),
         }
 
+    def find_agent(self):
+        return None
+
 
 class ClusterProviderSchema(Schema):
     type = fields.Str(required=True)

@@ -37,6 +37,9 @@ def run(
             push(task)
         image = context.get_image_name()
 
+    # default to agent as upstream
+    agent = cluster.find_agent()
+
     # create task definition
     taskdef = TaskDefinition(
         name=task,
@@ -52,7 +55,7 @@ def run(
         },
         ports=ports,
         routes=routes,
-        upstream=context.coalesce('upstream', upstream, None),
+        upstream=context.coalesce('upstream', upstream, agent),
         parent=None,  # root task
         owner=os.getlogin(),
         cpu=cpu,
@@ -63,8 +66,8 @@ def run(
     printheader('task')
     print('   task:      ', taskdef.id)
     print('   provider:  ', provider)
-    if upstream:
-        print('   upstream:  ', upstream)
+    if taskdef.upstream:
+        print('   upstream:  ', taskdef.upstream)
     print('   image:     ', image)
     print('   inputs:    ', inputs)
     print('   env:       ', env)
