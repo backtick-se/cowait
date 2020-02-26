@@ -5,6 +5,12 @@ from pipeline.engine import get_cluster_provider
 
 HEADER_WIDTH = 80
 
+try:
+    rows, columns = os.popen('stty size', 'r').read().split()
+    HEADER_WIDTH = int(columns)
+except Exception:
+    pass
+
 
 class ExitTrap():
     def __init__(self, callback: callable, single=True):

@@ -57,6 +57,10 @@ def new(name: str, image: str, provider: str):
               multiple=True,
               help='define enviornment variable')
 @click.option('--port', type=int, multiple=True, help='open a port')
+@click.option('--route',
+              type=(str, str),
+              multiple=True,
+              help='add an ingress route')
 @click.option('--upstream',
               type=str,
               help='root task upstream uri')
@@ -70,7 +74,7 @@ def new(name: str, image: str, provider: str):
               default=False)
 def run(
     task: str, provider: str,
-    input, config, env, port,
+    input, config, env, port, route,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
@@ -80,6 +84,7 @@ def run(
         config=option_dict(config),
         env=option_dict(env),
         ports={p: p for p in port},
+        routes=option_dict(route),
         upstream=upstream,
         build=build,
         detach=detach,
