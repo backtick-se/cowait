@@ -1,5 +1,5 @@
+import os
 from typing import Any
-from .errors import StopException
 from .definition import TaskDefinition
 
 
@@ -28,14 +28,15 @@ class Task(TaskDefinition):
     async def after(self, inputs: dict) -> Any:
         pass
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """
         Abort task execution.
 
         Raises:
             StopException: Used to stop execution.
         """
-        raise StopException()
+        await self.node.api.stop()
+        os._exit(1)
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
