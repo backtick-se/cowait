@@ -14,7 +14,7 @@ class HttpComponent():
         self.add_get = self.app.router.add_get
 
     def start(self):
-        self.__register_rpc_routes()
+        self.__add_rpc_routes()
 
         # has to be called AFTER all routes are registered
         self.task.node.io.create_task(self.__serve())
@@ -28,6 +28,7 @@ class HttpComponent():
     def __add_rpc_routes(self):
         if hasattr(self.task, 'rpc') and isinstance(self.task, RpcComponent):
             for name, func in self.task.rpc.methods.items():
+                print('add rpc route', name)
                 self.add_post(f'/rpc/{name}', wrap_http_rpc(func))
 
         # fixme: need a catch-all handler that returns an error

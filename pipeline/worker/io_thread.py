@@ -26,4 +26,5 @@ class IOThread(Thread):
             self._queue.append(coro)
             return
 
-        asyncio.run_coroutine_threadsafe(coro, loop=self.loop)
+        future = asyncio.run_coroutine_threadsafe(coro, loop=self.loop)
+        return asyncio.wrap_future(future)

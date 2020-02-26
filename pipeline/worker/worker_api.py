@@ -43,6 +43,7 @@ class WorkerAPI:
 
     async def stop(self, id: str = None) -> None:
         """ Send status update: Stopped """
+        id = self.id if id is None else id
         await self.msg('status', status=STOP, id=id)
         await self.msg('return', result={}, id=id)
 

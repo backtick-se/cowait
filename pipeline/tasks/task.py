@@ -43,6 +43,7 @@ class Task(TaskDefinition):
         Raises:
             StopException: Used to stop execution.
         """
+        print('\n~~ STOPPED ~~')
         await self.node.api.stop()
         os._exit(1)
 
@@ -52,6 +53,7 @@ class Task(TaskDefinition):
         name: str,
         image: str = None,
         ports: dict = {},
+        routes: dict = {},
         env: dict = {},
         **inputs: dict,
     ) -> 'Task':
@@ -77,6 +79,7 @@ class Task(TaskDefinition):
             upstream=get_local_connstr(),
             config=self.config,
             ports=ports,
+            routes=routes,
             env={
                 **self.env,
                 **env,

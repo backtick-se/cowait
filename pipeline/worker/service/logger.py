@@ -1,6 +1,8 @@
 import json
 from pipeline.utils import EventEmitter
 
+logged_types = ['init', 'status', 'fail', 'return', 'log']
+
 
 class FlowLogger(EventEmitter):
     def __init__(self):
@@ -19,7 +21,8 @@ class FlowLogger(EventEmitter):
         pass
 
     async def send(self, msg: dict) -> None:
-        await self.emit(**msg)
+        if msg['type'] in logged_types:
+            await self.emit(**msg)
 
     async def on_init(self, task: dict, **msg):
         print('~~ create', task['id'], 'from', task['image'], task['inputs'])

@@ -4,8 +4,10 @@ import traceback
 
 class RpcComponent():
     def __init__(self, task):
+        self.task = task
         self.methods = get_rpc_methods(task)
         task.node.children.on('rpc', self.on_rpc)
+        task.node.parent.on('rpc', self.on_rpc)
 
     async def on_rpc(self, conn, method, args, nonce):
         try:
