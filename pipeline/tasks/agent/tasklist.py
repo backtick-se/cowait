@@ -3,6 +3,8 @@ from pipeline.network import Conn
 
 
 class TaskList(object):
+    """ In-memory database containing all seen tasks and logs """
+
     def __init__(self, task):
         self.tasks = {}
 

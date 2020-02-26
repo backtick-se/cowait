@@ -2,3 +2,4 @@
 
 from .http import HttpComponent
 from .rpc import RpcComponent, rpc
+from .task_manager import TaskManager

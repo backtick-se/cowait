@@ -16,6 +16,8 @@ class WorkerNode(Node):
         self.io = IOThread()
         self.io.start()
 
+        self.io.create_task(self.children.serve())
+
     async def run(self, taskdef):
         try:
             await self.api.init()

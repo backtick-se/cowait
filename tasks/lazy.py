@@ -9,11 +9,11 @@ Outputs:
 """
 import time
 import asyncio
-from pipeline.tasks import Flow
+from pipeline.tasks import Task
 from duration_decider import DurationDecider
 
 
-class Lazy(Flow):
+class Lazy(Task):
     async def run(self, duration: int = 0, block=False, crash_at=-1, **inputs):
         if duration == 0:
             duration = await self.task(DurationDecider)

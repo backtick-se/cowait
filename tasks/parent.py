@@ -1,9 +1,9 @@
 import random
-from pipeline.tasks import Flow, join
+from pipeline.tasks import Task, join
 from lazy import Lazy
 
 
-class LazyParentTask(Flow):
+class LazyParentTask(Task):
     async def run(
         self,
         duration,
