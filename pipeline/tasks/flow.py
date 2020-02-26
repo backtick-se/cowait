@@ -33,14 +33,16 @@ class Flow(Task):
         """ Virtual method for scheduling subtasks """
         return None
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         # ask the cluster to destroy any children
         # children = self.cluster.destroy_children(self.id)
 
         # send a stop message upstream for each killed task
         # for child_id in children:
         #    self.node.send_stop(id=child_id)
-        pass
+
+        # finally, stop self
+        await super().stop()
 
     def task(
         self,
