@@ -20,10 +20,12 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             node.parent = NopLogger()
         else:
             print('~~ connecting upstream')
-            await node.connect(taskdef.upstream)
 
             # handle downstream messages
-            node.io.create_task(node.parent.serve())
+            node.io.create_task(node.parent.serve(taskdef.upstream))
+
+            while node.parent.ws is None:
+                await asyncio.sleep(0.1)
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up from the top level task by docker/kubernetes.

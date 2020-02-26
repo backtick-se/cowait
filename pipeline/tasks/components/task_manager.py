@@ -43,6 +43,10 @@ class TaskManager(object):
         if conn not in self.conns:
             self.conns[conn] = id
 
+        if id in self.tasks:
+            task = self.tasks[id]
+            task.conn = conn
+
     async def on_child_return(self, conn, id: str, result: Any, **msg: dict):
         task = self.tasks[id]
         if not task.future.done():
