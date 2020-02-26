@@ -22,7 +22,8 @@ def is_rpc_method(object):
 
 
 def get_rpc_methods(object):
-    return inspect.getmembers(object, is_rpc_method)
+    methods = inspect.getmembers(object, is_rpc_method)
+    return {name: func for name, func in methods}
 
 
 def wrap_http_rpc(func):
@@ -40,50 +41,37 @@ def wrap_http_rpc(func):
     return handler
 
 
-class RpcTask(Flow):
-    async def before(self, inputs: dict) -> None:
-        inputs = await super().before(inputs)
-        self.node.children.on('rpc', self.__on_rpc)
+class HttpServer():
+    def __init__(self, port):
+        self.port = port
+        self.app = web.Application()
+        self.add_routes = self.app.router.add_routes
+        self.add_route = self.app.router.add_route
+        self.add_post = self.app.router.add_post
+        self.add_get = self.app.router.add_get
 
-        app = web.Application()
+    async def serve(self):
+        runner = web.AppRunner(self.app, handle_signals=False)
+        await runner.setup()
+        site = web.TCPSite(runner, host='*', port=self.port)
+        await site.start()
 
-        # register rpc methods
-        self.rpc = {}
-        for name, func in get_rpc_methods(self):
-            self.rpc[name] = func
-            handler = wrap_http_rpc(func)
-            app.router.add_post(f'/rpc/{name}', handler)
 
-        # run web server coroutine on io thread
-        self.node.io.create_task(web._run_app(
-            app=app,
-            port=1338,
-            print=False,
-            handle_signals=False,
-        ))
+class RpcComponent():
+    def __init__(self, task):
+        self.methods = get_rpc_methods(task)
+        task.node.children.on('rpc', self.on_rpc)
 
-        return inputs
+    def add_http_routes(self, http):
+        for name, func in self.methods.items():
+            http.add_post(f'/rpc/{name}', wrap_http_rpc(func))
 
-    async def run(self, **inputs):
-        while True:
-            await sleep(1)
-
-    @rpc
-    async def rpc_test(self, param):
-        print('rpc!', param)
-        return param
-
-    @rpc
-    async def kill(self):
-        print('aborted by rpc')
-        await self.stop()
-
-    async def __on_rpc(self, conn, method, args, nonce):
+    async def on_rpc(self, conn, method, args, nonce):
         try:
-            if method not in self.rpc:
+            if method not in self.methods:
                 raise RpcError(f'No such method {method}')
 
-            rpc_func = self.rpc[method]
+            rpc_func = self.methods[method]
             result = await rpc_func(**args)
             if result is None:
                 result = {}
@@ -105,3 +93,32 @@ class RpcTask(Flow):
                 'args': args,
                 'error': str(e),
             })
+
+
+class RpcTask(Flow):
+    async def before(self, inputs: dict) -> None:
+        inputs = await super().before(inputs)
+
+        # run web server coroutine on io thread
+        http = HttpServer(port=1338)
+        self.node.io.create_task(http.serve())
+
+        # create rpc handler
+        self.rpc = RpcComponent(self)
+        self.rpc.add_http_routes(http)
+
+        return inputs
+
+    async def run(self, **inputs):
+        while True:
+            await sleep(1)
+
+    @rpc
+    async def rpc_test(self, param):
+        print('rpc!', param)
+        return param
+
+    @rpc
+    async def kill(self):
+        print('aborted by rpc')
+        await self.stop()
