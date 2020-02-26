@@ -3,8 +3,9 @@ import asyncio
 from concurrent.futures import Future
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
-from pipeline.tasks import Task, Flow, sleep
 from pipeline.network import get_local_ip
+from pipeline.tasks import Task, sleep, rpc
+from pipeline.tasks.components import HttpComponent
 
 MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
@@ -48,7 +49,7 @@ def conf_from_cluster(app_name, master, config):
     return sc
 
 
-class SparkFlow(Flow):
+class SparkCluster(Task):
     def __init__(self, taskdef, cluster, node):
         super().__init__(taskdef, cluster, node)
         self.master = None
@@ -65,6 +66,8 @@ class SparkFlow(Flow):
             if id == worker.id and MSG_REGISTER in data:
                 print(f'~~ spark worker {worker.id} ready')
                 worker.ready.set_result(worker)
+
+        return True
 
     async def before(self, inputs: dict) -> dict:
         inputs = await super().before(inputs)
@@ -90,14 +93,19 @@ class SparkFlow(Flow):
             print('~~ spark session ready')
             inputs['spark'] = self.spark
 
-        await asyncio.sleep(0)
+        self.http = HttpComponent(self, 80)
+        self.http.start()
+
+        print('spark dashboard available at:')
+        print(self.master.routes['/']['url'])
+
         return inputs
 
     async def after(self, inputs: dict):
         print('~~ destroying spark cluster')
-        self.master.destroy()
+        await self.master.stop()
         for worker in self.workers:
-            worker.destroy()
+            await worker.stop()
 
         await super().after(inputs)
 
@@ -123,37 +131,15 @@ class SparkFlow(Flow):
         # create spark master
         self.master = self.task(
             name='pipeline.tasks.spark.master',
-            ports={
-                '8080/tcp': '8080',
+            image='docker.backtick.se/spark',
+            routes={
+                '/': 8080,
             },
         )
         self.master.ready = Future()
         master_uri = f'spark://{self.master.ip}:7077'
 
         await sleep(1)
-
-        # create spark workers
-        self.workers = []
-        for i in range(0, num_workers):
-            w = self.task(
-                name='pipeline.tasks.spark.worker',
-                env={
-                    'SPARK_WORKER_CORES': '2',
-                },
-                master=master_uri,
-            )
-            w.ready = Future()
-            self.workers.append(w)
-
-        print('~~ waiting for cluster nodes')
-        await asyncio.gather(
-            asyncio.wrap_future(self.master.ready),
-            *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
-        )
-
-        print('~~ spark cluster ready')
-        await asyncio.sleep(0)
-
         self.spark_cluster = {
             'app_name': self.id,
             'master': master_uri,
@@ -162,3 +148,72 @@ class SparkFlow(Flow):
                 **config,
             },
         }
+
+        # create spark workers
+        self.workers = []
+        await self.add_workers(num_workers)
+
+        print('~~ waiting for cluster nodes')
+        await self.wait_for_nodes()
+
+        print('~~ spark cluster ready')
+
+    async def run(self, **inputs):
+        while True:
+            await asyncio.sleep(1)
+
+    @rpc
+    async def get_workers(self):
+        ready = filter(lambda w: w.ready.done(), self.workers)
+        ids = list(map(lambda w: w.id, ready))
+        return {
+            'workers': ids,
+            'ready': len(ids),
+            'total': len(self.workers),
+        }
+
+    @rpc
+    async def scale(self, workers: int):
+        diff = workers - len(self.workers)
+        if diff > 0:
+            # scale up
+            print(f'~~ scale({workers}): adding {diff} workers')
+            await self.add_workers(diff)
+
+        elif diff < 0:
+            # scale down
+            print(f'~~ scale({workers}): removing {abs(diff)} workers')
+            await self.remove_workers(diff)
+
+    @rpc
+    async def stop(self):
+        for worker in self.workers:
+            await worker.stop()
+        await super().stop()
+
+    async def add_workers(self, count):
+        for i in range(0, count):
+            w = self.task(
+                name='pipeline.tasks.spark.worker',
+                image='docker.backtick.se/spark',
+                routes={},
+                ports={},
+                env={
+                    'SPARK_WORKER_CORES': '2',
+                },
+                master=self.spark_cluster['master'],
+            )
+            w.ready = Future()
+            self.workers.append(w)
+
+    async def remove_workers(self, count):
+        count = abs(count)
+        for worker in self.workers[-count:]:
+            await worker.stop()
+        self.workers = self.workers[:-count]
+
+    async def wait_for_nodes(self):
+        await asyncio.gather(
+            asyncio.wrap_future(self.master.ready),
+            *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
+        )
