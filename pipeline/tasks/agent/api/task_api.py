@@ -19,8 +19,10 @@ class TaskAPI(object):
 
     async def get_task(self, req):
         id = req.match_info['id']
-        task = self.tasks.get(id)
-        return web.json_response(task)
+        if id not in self.tasks:
+            return web.HTTPNotFound()
+
+        return web.json_response(self.tasks[id])
 
     async def create_task(self, req):
         taskdef = await req.json()

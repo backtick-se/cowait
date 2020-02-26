@@ -6,12 +6,13 @@ class RpcTask(Flow):
     async def before(self, inputs: dict) -> None:
         inputs = await super().before(inputs)
 
-        # run web server coroutine on io thread
-        self.http = HttpComponent(self, port=1338)
+        # create web server
+        self.http = HttpComponent(self)
 
         # create rpc handler
         self.rpc = RpcComponent(self)
 
+        self.http.start()
         return inputs
 
     async def run(self, **inputs):

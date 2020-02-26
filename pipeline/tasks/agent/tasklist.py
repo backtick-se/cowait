@@ -3,8 +3,14 @@ from pipeline.network import Conn
 
 
 class TaskList(object):
-    def __init__(self):
+    def __init__(self, task):
         self.tasks = {}
+
+        task.node.children.on('init', self.on_init)
+        task.node.children.on('status', self.on_status)
+        task.node.children.on('return', self.on_return)
+        task.node.children.on('fail', self.on_fail)
+        task.node.children.on('log', self.on_log)
 
     def get(self, id):
         return self.tasks[id]
