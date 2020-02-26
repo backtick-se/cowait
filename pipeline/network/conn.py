@@ -2,6 +2,7 @@ import json
 import asyncio
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from concurrent.futures import Future
+from pipeline.tasks.components.rpc import RPC_CALL, RPC_ERROR, RPC_RESULT
 
 
 class Conn:
@@ -23,18 +24,20 @@ class Conn:
             if 'type' not in msg:
                 raise RuntimeError(f'Invalid message: {js}')
 
-            if msg['type'] == 'rpc_result':
+            # intercept RPC results
+            if msg['type'] == RPC_RESULT:
                 self._rpc_result(**msg)
                 return await self.recv()
 
-            if msg['type'] == 'rpc_error':
+            # intercept RPC errors
+            if msg['type'] == RPC_ERROR:
                 self._rpc_error(**msg)
                 return await self.recv()
 
             return msg
 
         except Exception as e:
-            self.close()
+            await self.close()
             raise e
 
     async def send(self, msg: dict) -> None:
@@ -43,15 +46,20 @@ class Conn:
             await self.ws.send(js)
 
         except Exception as e:
-            self.close()
+            await self.close()
             raise e
 
         except ConnectionClosedOK:
             pass
 
-    def close(self):
+    async def close(self):
         for nonce, future in self.calls.items():
             future.set_exception(ConnectionClosed(1000, ''))
+
+        try:
+            return await self.ws.close()
+        except Exception:
+            pass
 
     @property
     def remote_ip(self):
@@ -67,7 +75,7 @@ class Conn:
 
         self.calls[nonce] = Future()
         await self.send({
-            'type': 'rpc',
+            'type': RPC_CALL,
             'method': method,
             'args': args,
             'nonce': nonce,

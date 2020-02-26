@@ -1,6 +1,5 @@
 import traceback
 from aiohttp import web
-from .rpc import RpcComponent
 
 
 class HttpComponent():
@@ -12,11 +11,10 @@ class HttpComponent():
         self.add_route = self.app.router.add_route
         self.add_post = self.app.router.add_post
         self.add_get = self.app.router.add_get
+        self.__add_rpc_route(self.task)
 
     def start(self):
-        self.__add_rpc_routes()
-
-        # has to be called AFTER all routes are registered
+        """ Start the server. Must be called AFTER routes are registered. """
         self.task.node.io.create_task(self.__serve())
 
     async def __serve(self):
@@ -25,27 +23,16 @@ class HttpComponent():
         site = web.TCPSite(runner, host='*', port=self.port)
         await site.start()
 
-    def __add_rpc_routes(self):
-        if hasattr(self.task, 'rpc') and isinstance(self.task, RpcComponent):
-            for name, func in self.task.rpc.methods.items():
-                print('add rpc route', name)
-                self.add_post(f'/rpc/{name}', wrap_http_rpc(func))
+    def __add_rpc_route(self, task):
+        async def rpc_handler(req):
+            try:
+                args = await req.json()
+                method = req.match_info['method']
+                result = await task.rpc.call(method, args)
+                return web.json_response(result)
+            except Exception as e:
+                print('HTTP RPC Error:')
+                traceback.print_exc()
+                return web.json_response({'error': str(e)}, status=400)
 
-        # fixme: need a catch-all handler that returns an error
-        # currently undefined methods return 404
-
-
-def wrap_http_rpc(func):
-    """ Wraps a function in an HTTP RPC handler """
-    async def handler(req):
-        try:
-            args = await req.json()
-            result = await func(**args)
-            if result is None:
-                result = {}
-            return web.json_response(result)
-        except Exception as e:
-            traceback.print_exc()
-            return web.json_response({'error': str(e)}, status=400)
-
-    return handler
+        self.add_post('/rpc/{method}', rpc_handler)
