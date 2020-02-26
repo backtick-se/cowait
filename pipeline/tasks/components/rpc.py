@@ -1,26 +1,31 @@
 import inspect
 import traceback
 
+RPC_CALL = 'rpc/call'
+RPC_ERROR = 'rpc/error'
+RPC_RESULT = 'rpc/result'
+
 
 class RpcComponent():
     def __init__(self, task):
         self.task = task
         self.methods = get_rpc_methods(task)
-        task.node.children.on('rpc', self.on_rpc)
-        task.node.parent.on('rpc', self.on_rpc)
+        task.node.parent.on(RPC_CALL, self.on_rpc)
+        task.node.children.on(RPC_CALL, self.on_rpc)
+
+    async def call(self, method, args):
+        if method not in self.methods:
+            raise RpcError(f'No such method {method}')
+
+        rpc_func = self.methods[method]
+        result = await rpc_func(**args)
+        return {} if result is None else result
 
     async def on_rpc(self, conn, method, args, nonce):
         try:
-            if method not in self.methods:
-                raise RpcError(f'No such method {method}')
-
-            rpc_func = self.methods[method]
-            result = await rpc_func(**args)
-            if result is None:
-                result = {}
-
+            result = await self.call(method, args)
             await conn.send({
-                'type': 'rpc_result',
+                'type': RPC_RESULT,
                 'nonce': nonce,
                 'method': method,
                 'args': args,
@@ -30,7 +35,7 @@ class RpcComponent():
         except Exception as e:
             traceback.print_exc()
             await conn.send({
-                'type': 'rpc_error',
+                'type': RPC_ERROR,
                 'nonce': nonce,
                 'method': method,
                 'args': args,

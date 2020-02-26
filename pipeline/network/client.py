@@ -6,6 +6,7 @@ from concurrent.futures import Future
 from websockets.exceptions import ConnectionClosed, \
     ConnectionClosedOK, ConnectionClosedError
 from pipeline.utils import EventEmitter
+from pipeline.tasks.components.rpc import RPC_CALL, RPC_ERROR, RPC_RESULT
 
 
 class Client(EventEmitter):
@@ -44,6 +45,11 @@ class Client(EventEmitter):
             raise RuntimeError('Not connected')
         try:
             await self.ws.send(json.dumps(msg))
+
+        except Exception as e:
+            await self.close()
+            raise e
+
         except ConnectionClosed:
             pass
 
@@ -53,6 +59,10 @@ class Client(EventEmitter):
         try:
             msg = await self.ws.recv()
             return json.loads(msg)
+
+        except Exception as e:
+            await self.close()
+            raise e
 
         except ConnectionClosedOK:
             return None
@@ -68,27 +78,37 @@ class Client(EventEmitter):
                 if 'type' not in event:
                     raise RuntimeError('Invalid message', event)
 
-                if event['type'] == 'rpc_result':
+                # intercept RPC results
+                if event['type'] == RPC_RESULT:
                     self._rpc_result(**event)
                     continue
 
-                if event['type'] == 'rpc_error':
+                # intercept RPC errors
+                if event['type'] == RPC_ERROR:
                     self._rpc_error(**event)
                     continue
 
                 await self.emit(**event, conn=self)
 
         except (ConnectionClosed, ConnectionClosedError):
-            pass
+            await self.close()
+
         except Exception as e:
+            await self.close()
             traceback.print_exc()
             raise e
 
     async def close(self):
+        for nonce, future in self.calls.items():
+            future.set_exception(ConnectionClosed(1000, ''))
+
         if self.ws is None:
             return
 
-        return await self.ws.close()
+        try:
+            return await self.ws.close()
+        except Exception:
+            pass
 
     async def rpc(self, method, args):
         nonce = self.nonce
@@ -96,7 +116,7 @@ class Client(EventEmitter):
 
         self.calls[nonce] = Future()
         await self.send({
-            'type': 'rpc',
+            'type': RPC_CALL,
             'method': method,
             'args': args,
             'nonce': nonce,
