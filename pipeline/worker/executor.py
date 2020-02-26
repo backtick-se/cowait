@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from pipeline.engine import ClusterProvider
 from pipeline.network import ConnectionClosedOK, ConnectionClosedError
@@ -46,4 +47,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         raise e
 
     finally:
+        # ensure event loop has a chance to run
+        await asyncio.sleep(0)
+
         await node.close()
