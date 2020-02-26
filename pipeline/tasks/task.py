@@ -44,7 +44,11 @@ class Task(TaskDefinition):
             StopException: Used to stop execution.
         """
         print('\n~~ STOPPED ~~')
+
         await self.node.api.stop()
+        for task in self.subtasks.values():
+            await task.stop()
+
         os._exit(1)
 
     @rpc

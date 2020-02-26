@@ -93,7 +93,7 @@ class SparkCluster(Task):
             print('~~ spark session ready')
             inputs['spark'] = self.spark
 
-        self.http = HttpComponent(self, 80)
+        self.http = HttpComponent(self)
         self.http.start()
 
         print('spark dashboard available at:')
@@ -187,6 +187,7 @@ class SparkCluster(Task):
 
     @rpc
     async def stop(self):
+        await self.master.stop()
         for worker in self.workers:
             await worker.stop()
         await super().stop()
@@ -208,6 +209,9 @@ class SparkCluster(Task):
 
     async def remove_workers(self, count):
         count = abs(count)
+        if count > len(self.workers):
+            count = len(self.workers)
+
         for worker in self.workers[-count:]:
             await worker.stop()
         self.workers = self.workers[:-count]

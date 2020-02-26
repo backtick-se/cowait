@@ -9,6 +9,11 @@ class Subscriptions(EventEmitter):
     def __init__(self, task):
         super().__init__()
         self.subscribers = []
+        self.__len__ = self.subscribers.__len__
+        self.__str__ = self.subscribers.__str__
+        self.__iter__ = self.subscribers.__iter__
+        self.__getitem__ = self.subscribers.__getitem__
+        self.__contains__ = self.subscribers.__contains__
 
         task.node.children.on('subscribe', self.subscribe)
         task.node.children.on('unsubscribe', self.unsubscribe)

@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pipeline.tasks import Task
 from pipeline.network import get_local_ip
-from .spark_flow import conf_from_cluster
+from .spark_cluster import conf_from_cluster
 
 
 class SparkTask(Task):

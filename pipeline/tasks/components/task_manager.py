@@ -3,12 +3,11 @@ from typing import Any
 from ..errors import TaskError
 
 
-class TaskManager(object):
+class TaskManager(dict):
     """ Keeps track of the state of subtasks """
 
     def __init__(self, task):
         self.task = task
-        self.tasks = {}
         self.conns = {}
 
         # subscribe to child task status updates
@@ -22,13 +21,10 @@ class TaskManager(object):
             await task.node.parent.send(msg)
         task.node.children.on('*', forward)
 
-    def __getitem__(self, task_id):
-        return self.tasks[task_id]
-
     def watch(self, task):
         # set up init timeout check
         self.set_init_timeout(task, 30)
-        self.tasks[task.id] = task
+        self[task.id] = task
 
     def set_init_timeout(self, task, timeout):
         async def timeout_check(task, timeout):
@@ -43,24 +39,24 @@ class TaskManager(object):
         if conn not in self.conns:
             self.conns[conn] = id
 
-        if id in self.tasks:
-            task = self.tasks[id]
+        if id in self:
+            task = self[id]
             task.conn = conn
 
     async def on_child_return(self, conn, id: str, result: Any, **msg: dict):
-        task = self.tasks[id]
+        task = self[id]
         if not task.future.done():
             task.future.set_result(result)
 
     async def on_child_fail(self, conn, id: str, error: str, **msg: dict):
-        task = self.tasks[id]
+        task = self[id]
         if not task.future.done():
             task.future.set_exception(TaskError(error))
 
     async def on_child_error(self, conn, reason: str):
         if conn in self.conns:
             task_id = self.conns[conn]
-            task = self.tasks[task_id]
+            task = self[task_id]
             if not task.future.done():
                 task.future.set_exception(TaskError(
                     f'Lost connection to {task_id}'))

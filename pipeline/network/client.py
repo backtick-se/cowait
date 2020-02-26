@@ -6,7 +6,8 @@ from concurrent.futures import Future
 from websockets.exceptions import ConnectionClosed, \
     ConnectionClosedOK, ConnectionClosedError
 from pipeline.utils import EventEmitter
-from pipeline.tasks.components.rpc import RPC_CALL, RPC_ERROR, RPC_RESULT
+from pipeline.tasks.components.rpc import RpcError, \
+    RPC_CALL, RPC_ERROR, RPC_RESULT
 
 
 class Client(EventEmitter):
@@ -100,7 +101,8 @@ class Client(EventEmitter):
 
     async def close(self):
         for nonce, future in self.calls.items():
-            future.set_exception(ConnectionClosed(1000, ''))
+            if not future.done():
+                future.set_exception(ConnectionClosed(1000, ''))
 
         if self.ws is None:
             return
@@ -129,5 +131,5 @@ class Client(EventEmitter):
         del self.calls[nonce]
 
     def _rpc_error(self, nonce, error, **msg):
-        self.calls[nonce].set_exception(ConnectionClosed(1000, ''))
+        self.calls[nonce].set_exception(RpcError(error))
         del self.calls[nonce]
