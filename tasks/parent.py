@@ -1,9 +1,16 @@
 import random
 from pipeline.tasks import Task, join
+from pipeline.tasks.components import HttpComponent
 from lazy import Lazy
 
 
 class LazyParentTask(Task):
+    async def before(self, inputs):
+        await super().before(inputs)
+        self.http = HttpComponent(self)
+        self.http.start()
+        return inputs
+
     async def run(
         self,
         duration,

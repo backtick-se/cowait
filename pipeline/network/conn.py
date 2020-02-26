@@ -2,7 +2,8 @@ import json
 import asyncio
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from concurrent.futures import Future
-from pipeline.tasks.components.rpc import RPC_CALL, RPC_ERROR, RPC_RESULT
+from pipeline.tasks.components.rpc import RpcError, \
+    RPC_CALL, RPC_ERROR, RPC_RESULT
 
 
 class Conn:
@@ -54,7 +55,8 @@ class Conn:
 
     async def close(self):
         for nonce, future in self.calls.items():
-            future.set_exception(ConnectionClosed(1000, ''))
+            if not future.done():
+                future.set_exception(ConnectionClosed(1000, ''))
 
         try:
             return await self.ws.close()
@@ -88,5 +90,5 @@ class Conn:
         del self.calls[nonce]
 
     def _rpc_error(self, nonce, error, **msg):
-        self.calls[nonce].set_exception(error)
+        self.calls[nonce].set_exception(RpcError(error))
         del self.calls[nonce]
