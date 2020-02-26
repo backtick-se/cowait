@@ -1,0 +1,16 @@
+version: 1
+pipeline:
+  image: docker.backtick.se/scrape
+
+  provider:
+    default: docker
+    docker:
+      network: tasks
+    kubernetes:
+      namespace: default
+    backtick:
+      key: BACKTICK_CLOUD_KEY
+
+  environment:
+    AWS_ACCESS_KEY_ID: AKIASMZJSEC3JBSJKUMZ
+    AWS_SECRET_ACCESS_KEY: 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
