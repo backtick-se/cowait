@@ -22,9 +22,6 @@ class Agent(Task):
                 })
         self.subs.on('subscribe', send_state)
 
-        # run task websocket coroutine on io thread
-        self.node.io.create_task(self.node.children.serve())
-
         # create http server
         self.http = HttpComponent(self)
         self.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))

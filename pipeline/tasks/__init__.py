@@ -10,3 +10,5 @@ from .definition import TaskDefinition
 
 from .flow import Flow
 from .ops import join
+
+from .components.rpc import rpc
