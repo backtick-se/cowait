@@ -4,9 +4,13 @@ from websockets.exceptions import ConnectionClosedError
 
 
 class Subscriptions(EventEmitter):
-    def __init__(self):
+    def __init__(self, task):
         super().__init__()
         self.subscribers = []
+
+        task.node.children.on('subscribe', self.subscribe)
+        task.node.children.on('__close', self.unsubscribe)
+        task.node.children.on('*', self.forward)
 
     async def forward(self, conn: Conn, **msg):
         if conn in self.subscribers:
