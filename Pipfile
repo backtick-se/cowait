@@ -21,6 +21,7 @@ pytest = "*"
 pytest-sugar = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
+nest-asyncio = "*"
 
 [requires]
 python_version = "3.7"

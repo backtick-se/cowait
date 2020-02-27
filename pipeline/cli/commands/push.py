@@ -32,9 +32,9 @@ def push() -> TaskImage:
 
         if total > 0:
             pct = 100 * min(current / total, 1.0)
-            sys.stdout.write(f'\rpushing... {pct:0.2f}%')
+            sys.stdout.write(f'\rpushing... {pct:0.2f}%  ')
             sys.stdout.flush()
 
-    sys.stdout.write(f'\rpushing... done     \n')
+    sys.stdout.write(f'\rpushing... done       \n')
     sys.stdout.flush()
     return image
