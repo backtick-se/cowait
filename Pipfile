@@ -4,12 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pytest = "*"
-pytest-sugar = "*"
-pytest-cov = "*"
 flake8 = "*"
 autopep8 = "*"
-pytest-asyncio = "*"
 
 [packages]
 click = "*"
@@ -21,6 +17,10 @@ distributed = "*"
 marshmallow = "*"
 websockets = "*"
 aiohttp = "*"
+pytest = "*"
+pytest-sugar = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.7"

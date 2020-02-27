@@ -91,6 +91,19 @@ def run(
     )
 
 
+@cli.command(help='run task tests')
+@click.option('--provider',
+              default='docker',
+              type=str,
+              help='cluster provider type')
+@click.option('--push',
+              type=bool, is_flag=True,
+              help='build and push first',
+              default=False)
+def test(provider: str, push: bool):
+    pipeline.cli.test(provider, push)
+
+
 @cli.command(help='build a task')
 def build():
     pipeline.cli.build()

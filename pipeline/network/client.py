@@ -44,6 +44,7 @@ class Client(EventEmitter):
     async def send(self, msg: dict) -> None:
         if self.ws is None:
             raise RuntimeError('Not connected')
+
         try:
             await self.ws.send(json.dumps(msg))
 
@@ -57,6 +58,7 @@ class Client(EventEmitter):
     async def recv(self):
         if self.ws is None:
             raise RuntimeError('Not connected')
+
         try:
             msg = await self.ws.recv()
             return json.loads(msg)
