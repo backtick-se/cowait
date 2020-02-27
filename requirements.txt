@@ -20,6 +20,7 @@ marshmallow==3.5.0
 more-itertools==8.2.0
 msgpack==1.0.0
 multidict==4.7.5
+nest-asyncio==1.2.3
 oauthlib==3.1.0
 packaging==20.1
 pluggy==0.13.1

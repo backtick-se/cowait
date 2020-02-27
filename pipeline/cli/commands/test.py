@@ -14,22 +14,15 @@ def test(
     cluster = get_context_cluster(context, provider)
 
     if push:
-        print('building & pushing image...')
         run_push()
     else:
-        print('building image...')
         run_build()
 
-    # create task definition
-    taskdef = TaskDefinition(
-        name='pipeline.tasks.shell',
+    # execute the test task within the current image
+    task = cluster.spawn(TaskDefinition(
+        name='pipeline.test',
         image=context.get_image_name(),
-        inputs={
-            'command': 'python -m pytest context/',
-        },
-    )
-
-    task = cluster.spawn(taskdef)
+    ))
 
     def destroy(*args):
         print()

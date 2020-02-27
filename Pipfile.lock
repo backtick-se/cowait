@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a662502adb140a3bb08581868543acd062fe445daa362d4a7873c5b02e8faa59"
+            "sha256": "23d7fbf2b1f24a21e6d4564f05842c0384d107cf971ef0c4af3d4fb5f4a88727"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -240,6 +240,14 @@
                 "sha256:fc3b4adc2ee8474cb3cd2a155305d5f8eda0a9c91320f83e55748e1fcb68f8e3"
             ],
             "version": "==4.7.5"
+        },
+        "nest-asyncio": {
+            "hashes": [
+                "sha256:43078bf213344616a1782eb6baa36ccf88029b829cf7e6eeaececc2cc6cbf63b",
+                "sha256:e2c7c04b0ffd994fb1561b60d9c14cd6138eabd0a918c7626de887b159255d20"
+            ],
+            "index": "pypi",
+            "version": "==1.2.3"
         },
         "oauthlib": {
             "hashes": [
