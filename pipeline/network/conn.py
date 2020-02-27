@@ -1,12 +1,9 @@
 import json
-import asyncio
-from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
-from concurrent.futures import Future
-from pipeline.tasks.components.rpc import RpcError, \
-    RPC_CALL, RPC_ERROR, RPC_RESULT
+from websockets.exceptions import ConnectionClosedOK
+from .rpc_client import RpcClient
 
 
-class Conn:
+class Conn(object):
     """
     Represents a client->server connection.
     """
@@ -14,8 +11,7 @@ class Conn:
     def __init__(self, ws):
         self.ws = ws
         self.id = None
-        self.nonce = 0
-        self.calls = {}
+        self.rpc = RpcClient(ws)
 
     async def recv(self):
         try:
@@ -25,14 +21,8 @@ class Conn:
             if 'type' not in msg:
                 raise RuntimeError(f'Invalid message: {js}')
 
-            # intercept RPC results
-            if msg['type'] == RPC_RESULT:
-                self._rpc_result(**msg)
-                return await self.recv()
-
-            # intercept RPC errors
-            if msg['type'] == RPC_ERROR:
-                self._rpc_error(**msg)
+            # intercept RPC communication
+            if self.rpc.intercept_msg(msg):
                 return await self.recv()
 
             return msg
@@ -54,9 +44,7 @@ class Conn:
             pass
 
     async def close(self):
-        for nonce, future in self.calls.items():
-            if not future.done():
-                future.set_exception(ConnectionClosed(1000, ''))
+        self.rpc.cancel_all()
 
         try:
             return await self.ws.close()
@@ -70,25 +58,3 @@ class Conn:
     @property
     def remote_port(self):
         return self.ws.remote_address[1]
-
-    async def rpc(self, method, args):
-        nonce = self.nonce
-        self.nonce += 1
-
-        self.calls[nonce] = Future()
-        await self.send({
-            'type': RPC_CALL,
-            'method': method,
-            'args': args,
-            'nonce': nonce,
-        })
-
-        return await asyncio.wrap_future(self.calls[nonce])
-
-    def _rpc_result(self, nonce, result, **msg):
-        self.calls[nonce].set_result(result)
-        del self.calls[nonce]
-
-    def _rpc_error(self, nonce, error, **msg):
-        self.calls[nonce].set_exception(RpcError(error))
-        del self.calls[nonce]

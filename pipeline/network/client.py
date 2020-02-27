@@ -1,22 +1,17 @@
+import os
 import json
 import asyncio
 import websockets
 import traceback
-from concurrent.futures import Future
-from websockets.exceptions import ConnectionClosed, \
-    ConnectionClosedOK, ConnectionClosedError
+from websockets.exceptions import ConnectionClosed
 from pipeline.utils import EventEmitter
-from pipeline.tasks.components.rpc import RpcError, \
-    RPC_CALL, RPC_ERROR, RPC_RESULT
+from .rpc_client import RpcClient
 
 
 class Client(EventEmitter):
     def __init__(self):
         super().__init__()
         self.ws = None
-        self.callbacks
-        self.nonce = 0
-        self.calls = {}
 
     async def connect(self, uri, retries: int = 10, delay: float = 1.0):
         # retry loop
@@ -25,6 +20,7 @@ class Client(EventEmitter):
             try:
                 # attempt to connect
                 self.ws = await websockets.connect(uri)
+                self.rpc = RpcClient(self.ws)
 
                 # connection ok, break the loop.
                 return
@@ -47,13 +43,9 @@ class Client(EventEmitter):
 
         try:
             await self.ws.send(json.dumps(msg))
-
-        except Exception as e:
-            await self.close()
-            raise e
-
         except ConnectionClosed:
-            pass
+            print('~~ lost upstream connection!')
+            os._exit(1)
 
     async def recv(self):
         if self.ws is None:
@@ -63,12 +55,13 @@ class Client(EventEmitter):
             msg = await self.ws.recv()
             return json.loads(msg)
 
+        except ConnectionClosed:
+            print('~~ lost upstream connection!')
+            os._exit(1)
+
         except Exception as e:
             await self.close()
             raise e
-
-        except ConnectionClosedOK:
-            return None
 
     async def serve(self, upstream):
         try:
@@ -81,57 +74,28 @@ class Client(EventEmitter):
                 if 'type' not in event:
                     raise RuntimeError('Invalid message', event)
 
-                # intercept RPC results
-                if event['type'] == RPC_RESULT:
-                    self._rpc_result(**event)
-                    continue
-
-                # intercept RPC errors
-                if event['type'] == RPC_ERROR:
-                    self._rpc_error(**event)
+                # intercept RPC communication
+                if self.rpc.intercept_msg(event):
                     continue
 
                 await self.emit(**event, conn=self)
 
-        except (ConnectionClosed, ConnectionClosedError):
-            await self.close()
+        except ConnectionClosed:
+            print('~~ lost upstream connection!')
+            os._exit(1)
 
-        except Exception as e:
-            await self.close()
+        except Exception:
+            print('~~ upstream client exception:')
             traceback.print_exc()
-            raise e
+            os._exit(1)
 
     async def close(self):
-        for nonce, future in self.calls.items():
-            if not future.done():
-                future.set_exception(ConnectionClosed(1000, ''))
-
         if self.ws is None:
             return
+
+        self.rpc.cancel_all()
 
         try:
             return await self.ws.close()
         except Exception:
             pass
-
-    async def rpc(self, method, args):
-        nonce = self.nonce
-        self.nonce += 1
-
-        self.calls[nonce] = Future()
-        await self.send({
-            'type': RPC_CALL,
-            'method': method,
-            'args': args,
-            'nonce': nonce,
-        })
-
-        return await asyncio.wrap_future(self.calls[nonce])
-
-    def _rpc_result(self, nonce, result, **msg):
-        self.calls[nonce].set_result(result)
-        del self.calls[nonce]
-
-    def _rpc_error(self, nonce, error, **msg):
-        self.calls[nonce].set_exception(RpcError(error))
-        del self.calls[nonce]

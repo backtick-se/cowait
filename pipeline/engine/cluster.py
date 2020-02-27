@@ -34,25 +34,21 @@ class ClusterTask(TaskDefinition):
             await asyncio.sleep(interval)
             slept += interval
 
-    async def rpc(self, method, args={}):
+    async def call(self, method, args={}):
         if self.conn is None:
             raise RuntimeError('Task connection not yet available')
-        return await self.conn.rpc(method, args)
+        return await self.conn.rpc.call(method, args)
 
     async def stop(self):
         # special case RPC - it always causes a send exception
         try:
-            await self.rpc('stop')
+            await self.call('stop')
         except ConnectionClosed:
             pass
 
-        # ensure the future is awaited at some point.
-        # it should already be completed by now
-        await self.awaitable
-
     def __getattr__(self, method):
         async def magic_rpc(**kwargs):
-            return await self.rpc(method, kwargs)
+            return await self.call(method, kwargs)
         return magic_rpc
 
 
