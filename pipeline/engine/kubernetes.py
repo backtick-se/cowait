@@ -2,16 +2,16 @@ import os
 import time
 import kubernetes
 from kubernetes import client, config, watch
-from pipeline.tasks import TaskDefinition
+from pipeline.tasks import TaskDefinition, RemoteTask
 from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
-from .cluster import ClusterProvider, ClusterTask
+from .cluster import ClusterProvider
 from .routers import TraefikRouter
 from .errors import TaskCreationError
 
 DEFAULT_NAMESPACE = 'default'
 
 
-class KubernetesTask(ClusterTask):
+class KubernetesTask(RemoteTask):
     def __init__(
         self,
         cluster: ClusterProvider,

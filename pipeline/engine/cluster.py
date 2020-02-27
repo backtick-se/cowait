@@ -1,55 +1,11 @@
 from __future__ import annotations
 import json
-import asyncio
 from abc import abstractmethod
 from typing import Iterable
 from marshmallow import Schema, fields
-from concurrent.futures import Future
-from websockets.exceptions import ConnectionClosed
-from pipeline.tasks import TaskDefinition
+from pipeline.tasks import TaskDefinition, RemoteTask
 from pipeline.utils import EventEmitter
 from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
-
-
-class ClusterTask(TaskDefinition):
-    def __init__(self, taskdef: TaskDefinition, cluster: ClusterProvider):
-        kwargs = taskdef.serialize()
-        super().__init__(**kwargs)
-        self.conn = None
-        self.nonce = 0
-        self.cluster = cluster
-        self.future = Future()
-        self.awaitable = asyncio.wrap_future(self.future)
-
-    def __await__(self):
-        return self.awaitable.__await__()
-
-    def destroy(self):
-        self.cluster.destroy(self.id)
-
-    async def wait_for_init(self, timeout=30):
-        slept = 0
-        interval = 0.2
-        while self.conn is None and slept < timeout:
-            await asyncio.sleep(interval)
-            slept += interval
-
-    async def call(self, method, args={}):
-        if self.conn is None:
-            raise RuntimeError('Task connection not yet available')
-        return await self.conn.rpc.call(method, args)
-
-    async def stop(self):
-        # special case RPC - it always causes a send exception
-        try:
-            await self.call('stop')
-        except ConnectionClosed:
-            pass
-
-    def __getattr__(self, method):
-        async def magic_rpc(**kwargs):
-            return await self.call(method, kwargs)
-        return magic_rpc
 
 
 class ClusterProvider(EventEmitter):
@@ -59,7 +15,7 @@ class ClusterProvider(EventEmitter):
         self.args = args
 
     @abstractmethod
-    def spawn(self, taskdef: TaskDefinition) -> ClusterTask:
+    def spawn(self, taskdef: TaskDefinition) -> RemoteTask:
         """ Spawn a task in the cluster """
         pass
 
@@ -77,12 +33,12 @@ class ClusterProvider(EventEmitter):
         pass
 
     @abstractmethod
-    def wait(self, task: ClusterTask) -> None:
+    def wait(self, task: RemoteTask) -> None:
         """ Wait for task to exit """
         pass
 
     @abstractmethod
-    def logs(self, task: ClusterTask) -> Iterable[str]:
+    def logs(self, task: RemoteTask) -> Iterable[str]:
         """ Stream logs from task """
         pass
 

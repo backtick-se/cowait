@@ -1,13 +1,13 @@
 import docker
-from pipeline.tasks import TaskDefinition
-from .cluster import ClusterProvider, ClusterTask
+from pipeline.tasks import TaskDefinition, RemoteTask
+from .cluster import ClusterProvider
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
 from .routers import LocalPortRouter
 
 DEFAULT_NETWORK = 'tasks'
 
 
-class DockerTask(ClusterTask):
+class DockerTask(RemoteTask):
     def __init__(
         self,
         cluster: ClusterProvider,
