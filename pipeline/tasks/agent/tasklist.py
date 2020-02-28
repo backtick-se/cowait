@@ -1,16 +1,18 @@
 import json
 from pipeline.network import Conn
+from pipeline.tasks.messages import \
+    TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
 
 
 class TaskList(dict):
     """ In-memory database containing all seen tasks and logs """
 
     def __init__(self, task):
-        task.node.children.on('init', self.on_init)
-        task.node.children.on('status', self.on_status)
-        task.node.children.on('return', self.on_return)
-        task.node.children.on('fail', self.on_fail)
-        task.node.children.on('log', self.on_log)
+        task.node.children.on(TASK_INIT, self.on_init)
+        task.node.children.on(TASK_STATUS, self.on_status)
+        task.node.children.on(TASK_RETURN, self.on_return)
+        task.node.children.on(TASK_FAIL, self.on_fail)
+        task.node.children.on(TASK_LOG, self.on_log)
 
     async def on_init(self, conn: Conn, id: str, task: dict, **msg):
         print('~~ create', task['id'], 'from', task['image'], task['inputs'])

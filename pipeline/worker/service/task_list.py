@@ -1,6 +1,8 @@
 from datetime import datetime
 from marshmallow import Schema, fields, post_load
 from pipeline.tasks.status import WAIT, WORK
+from pipeline.tasks.messages import \
+    TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
 
 
 class TaskList(object):
@@ -17,16 +19,16 @@ class TaskList(object):
         return self.items.keys()
 
     def attach(self, node):
-        node.on('init', self.on_init)
-        node.on('status', self.on_status)
-        node.on('fail', self.on_fail)
-        node.on('return', self.on_return)
+        node.on(TASK_INIT, self.on_init)
+        node.on(TASK_STATUS, self.on_status)
+        node.on(TASK_FAIL, self.on_fail)
+        node.on(TASK_RETURN, self.on_return)
 
     def detach(self, node):
-        node.off('init', self.on_init)
-        node.off('status', self.on_status)
-        node.off('fail', self.on_fail)
-        node.off('return', self.on_return)
+        node.off(TASK_INIT, self.on_init)
+        node.off(TASK_STATUS, self.on_status)
+        node.off(TASK_FAIL, self.on_fail)
+        node.off(TASK_RETURN, self.on_return)
 
     def on_init(self, task: dict):
         task = TaskListItem(**task)

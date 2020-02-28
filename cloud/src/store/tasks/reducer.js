@@ -1,9 +1,16 @@
-
 const DefaultState = {
     order: [ ],
     items: { },
     logs: { },
 }
+
+// task messages
+const TASK_INIT = 'task/init'
+const TASK_STATUS = 'task/status'
+const TASK_RETURN = 'task/return'
+const TASK_FAIL = 'task/fail'
+const TASK_LOG = 'task/log'
+
 
 export function tasks(state, action) {
     if (typeof(state) == 'undefined') {
@@ -11,7 +18,7 @@ export function tasks(state, action) {
     }
 
     switch(action.type) {
-    case 'init': {
+    case TASK_INIT: {
         const { task } = action
         if (!task.parent) {
             return {
@@ -53,7 +60,7 @@ export function tasks(state, action) {
         }
     }
 
-    case 'status': {
+    case TASK_STATUS: {
         const { id, status } = action
         const item = state.items[id]
         if (!item) {
@@ -76,7 +83,7 @@ export function tasks(state, action) {
         }
     }
 
-    case 'log': {
+    case TASK_LOG: {
         const { id, data } = action
         return {
             ...state,
@@ -87,7 +94,7 @@ export function tasks(state, action) {
         }
     }
 
-    case 'return': {
+    case TASK_RETURN: {
         const { id, result } = action
         return {
             ...state,
@@ -101,7 +108,7 @@ export function tasks(state, action) {
         }
     }
 
-    case 'fail': {
+    case TASK_FAIL: {
         const { id, error } = action
         return {
             ...state,

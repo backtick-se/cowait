@@ -2,6 +2,8 @@
 from typing import Any
 from pipeline.network import Node
 from pipeline.tasks import TaskDefinition, WORK, DONE, STOP, FAIL
+from pipeline.tasks.messages import \
+    TASK_INIT, TASK_LOG, TASK_STATUS, TASK_RETURN, TASK_FAIL
 
 
 class WorkerAPI:
@@ -35,17 +37,17 @@ class WorkerAPI:
         Arguments:
             taskdef (TaskDefinition): New task definition
         """
-        await self.msg('init', task=self.taskdef.serialize())
+        await self.msg(TASK_INIT, task=self.taskdef.serialize())
 
     async def run(self) -> None:
         """ Send status update: Running """
-        await self.msg('status', status=WORK)
+        await self.msg(TASK_STATUS, status=WORK)
 
     async def stop(self, id: str = None) -> None:
         """ Send status update: Stopped """
         id = self.id if id is None else id
-        await self.msg('status', status=STOP, id=id)
-        await self.msg('return', result={}, id=id)
+        await self.msg(TASK_STATUS, status=STOP, id=id)
+        await self.msg(TASK_RETURN, result={}, id=id)
 
     async def done(self, result: Any) -> None:
         """
@@ -54,8 +56,8 @@ class WorkerAPI:
         Arguments:
             result (any): Any serializable data to return to the upstream task.
         """
-        await self.msg('status', status=DONE)
-        await self.msg('return', result=result)
+        await self.msg(TASK_STATUS, status=DONE)
+        await self.msg(TASK_RETURN, result=result)
 
     async def fail(self, error: str) -> None:
         """
@@ -64,8 +66,8 @@ class WorkerAPI:
         Arguments:
             error (str): Error message
         """
-        await self.msg('status', status=FAIL)
-        await self.msg('fail',   error=error)
+        await self.msg(TASK_STATUS, status=FAIL)
+        await self.msg(TASK_FAIL,   error=error)
 
     async def log(self, file: str, data: str) -> None:
         """
@@ -75,4 +77,4 @@ class WorkerAPI:
             file (str): Capture source (stdout/stderr)
             data (str): Captured output data
         """
-        await self.msg('log', file=file, data=data)
+        await self.msg(TASK_LOG, file=file, data=data)

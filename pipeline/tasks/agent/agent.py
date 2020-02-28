@@ -1,6 +1,7 @@
 from pipeline.tasks import Task, TaskDefinition, sleep
 from pipeline.network import Conn, get_local_connstr
 from pipeline.tasks.components import HttpComponent
+from pipeline.tasks.messages import TASK_INIT
 from .tasklist import TaskList
 from .subscriptions import Subscriptions
 from .api import Dashboard, TaskAPI
@@ -16,7 +17,7 @@ class Agent(Task):
             """" sends the state of all known tasks """
             for task in self.tasks.values():
                 await conn.send({
-                    'type': 'init',
+                    'type': TASK_INIT,
                     'id': task['id'],
                     'task': task,
                 })

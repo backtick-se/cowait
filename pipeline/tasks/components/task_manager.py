@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 from ..errors import TaskError
+from ..messages import TASK_INIT, TASK_FAIL, TASK_RETURN
 
 
 class TaskManager(dict):
@@ -11,9 +12,9 @@ class TaskManager(dict):
         self.conns = {}
 
         # subscribe to child task status updates
-        task.node.children.on('init', self.on_child_init)
-        task.node.children.on('return', self.on_child_return)
-        task.node.children.on('fail', self.on_child_fail)
+        task.node.children.on(TASK_INIT, self.on_child_init)
+        task.node.children.on(TASK_RETURN, self.on_child_return)
+        task.node.children.on(TASK_FAIL, self.on_child_fail)
         task.node.children.on('error', self.on_child_error)
 
         # forward child events to parent

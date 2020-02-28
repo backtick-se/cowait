@@ -1,18 +1,26 @@
 import json
 from pipeline.utils import EventEmitter
+from pipeline.tasks.messages import \
+    TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 
-logged_types = ['init', 'status', 'fail', 'return', 'log']
+logged_types = [
+    TASK_INIT,
+    TASK_STATUS,
+    TASK_FAIL,
+    TASK_RETURN,
+    TASK_LOG,
+]
 
 
 class FlowLogger(EventEmitter):
     def __init__(self):
         super().__init__()
         self.ws = None  # hack due to stdout loop
-        self.on('init', self.on_init)
-        self.on('status', self.on_status)
-        self.on('fail', self.on_fail)
-        self.on('return', self.on_return)
-        self.on('log', self.on_log)
+        self.on(TASK_INIT, self.on_init)
+        self.on(TASK_STATUS, self.on_status)
+        self.on(TASK_FAIL, self.on_fail)
+        self.on(TASK_RETURN, self.on_return)
+        self.on(TASK_LOG, self.on_log)
 
     async def close(self) -> None:
         pass

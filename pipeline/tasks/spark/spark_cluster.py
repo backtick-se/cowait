@@ -6,6 +6,7 @@ from pyspark.conf import SparkConf
 from pipeline.network import get_local_ip
 from pipeline.tasks import Task, sleep, rpc
 from pipeline.tasks.components import HttpComponent
+from pipeline.tasks.messages import TASK_LOG
 
 MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
@@ -73,7 +74,7 @@ class SparkCluster(Task):
         inputs = await super().before(inputs)
 
         # subscribe to logs
-        self.node.children.on('log', self.on_log)
+        self.node.children.on(TASK_LOG, self.on_log)
 
         # create cluster
         await self.setup_cluster()
@@ -109,6 +110,7 @@ class SparkCluster(Task):
 
         await super().after(inputs)
 
+    @rpc
     def task(
         self,
         name: str,
@@ -184,13 +186,6 @@ class SparkCluster(Task):
             # scale down
             print(f'~~ scale({workers}): removing {abs(diff)} workers')
             await self.remove_workers(diff)
-
-    @rpc
-    async def stop(self):
-        await self.master.stop()
-        for worker in self.workers:
-            await worker.stop()
-        await super().stop()
 
     async def add_workers(self, count):
         for i in range(0, count):
