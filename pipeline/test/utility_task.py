@@ -1,9 +1,9 @@
 import os
 import json
-from pipeline.tasks import Flow, sleep
+from pipeline.tasks import Task, sleep
 
 
-class ToolsTask(Flow):
+class UtilityTask(Task):
     """
     Test utility container
     """
@@ -22,10 +22,7 @@ class ToolsTask(Flow):
 
         # create a child
         if inputs.get('child', False):
-            await self.task(
-                'test',
-                'docker.backtick.se/core',
-            )
+            await self.task('pipeline.test.utility_task')
 
         # run forever
         if inputs.get('forever', False):

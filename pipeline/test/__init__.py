@@ -1,4 +1,4 @@
 # flake8: noqa: F401
 
-from .test_task import TestTask
+from .test_task import PytestTask
 from .fixtures import tester
