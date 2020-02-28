@@ -13,4 +13,3 @@ __pycache__/
 
 build_task_image.sh
 Dockerfile
-pytest.ini
