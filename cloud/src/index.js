@@ -6,19 +6,25 @@ import PipeClientStore from './PipeClientStore'
 
 const PORT = 1337
 
+export function getWsUrl() {
+    // figure out websocket uri from current location
+    let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws'
 
-// figure out websocket uri from current location
-let wsUri = `ws://${window.location.hostname}:${PORT}`
-if (window.location.protocol === 'https:') {
-    // if TLS is enabled, it means the agent is behind a reverse proxy.
-    // the websocket should be available at /ws instead of port 1337
-    // we should also use TLS.
-    wsUri = `wss://${window.location.host}/ws`
+    // if we are on port 80, it means the agent is behind a reverse proxy.
+    // the websocket should be available at /ws
+    if (window.location.port === '') {
+        return `${wsProto}://${window.location.host}/ws`
+    }
+
+    // default to window url on port 1337
+    return `${wsProto}://${window.location.hostname}:${PORT}`
 }
 
-const client = new PipeClientStore(wsUri)
+// connect websocket client
+const client = new PipeClientStore(getWsUrl())
 client.connect()
 
+// render page
 render(
     <Provider store={client.store}>
         <App />
