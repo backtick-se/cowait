@@ -3,16 +3,21 @@ from .definition import TaskDefinition
 
 def test_taskdef_serialization():
     sample = {
-        'id':        'lazy-kcjvnrsg',
-        'image':     'pipeline/task:lazy',
-        'name':      'lazy',
-        'parent':    'root',
-        'config':    {},
-        'env':       {},
-        'meta':      {},
-        'inputs':    {},
-        'ports':     {},
-        'upstream':  None,
+        'id':         'lazy-kcjvnrsg',
+        'image':      'pipeline/task:lazy',
+        'name':       'lazy',
+        'parent':     'root',
+        'config':     {},
+        'env':        {},
+        'meta':       {},
+        'inputs':     {},
+        'ports':      {},
+        'routes':     {},
+        'upstream':   None,
+        'created_at': '2020-02-02T20:00:02+00:00',
+        'cpu':        '0',
+        'memory':     '0',
+        'owner':      'santa',
     }
 
     taskdef = TaskDefinition.deserialize(sample)

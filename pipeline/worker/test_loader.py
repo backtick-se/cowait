@@ -4,11 +4,11 @@ from pipeline.tasks import Task, TaskNotFoundError
 from pipeline.tasks.shell import ShellTask
 
 
-class TestTask(Task):
+class TaskOne(Task):
     pass
 
 
-class AnotherTask(Task):
+class TaskTwo(Task):
     pass
 
 

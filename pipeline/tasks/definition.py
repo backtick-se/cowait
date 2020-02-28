@@ -9,6 +9,9 @@ def generate_task_id(name: str) -> str:
         dot = name.rfind('.')
         name = name[dot+1:]
 
+    name = name.replace('.', '-')
+    name = name.replace('_', '-')
+
     return '%s-%s' % (name.lower(), uuid())
 
 

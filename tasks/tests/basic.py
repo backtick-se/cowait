@@ -3,7 +3,7 @@ import json
 from pipeline.tasks import Flow, sleep
 
 
-class TestTask(Flow):
+class ToolsTask(Flow):
     """
     Test utility container
     """
@@ -24,7 +24,7 @@ class TestTask(Flow):
         if inputs.get('child', False):
             await self.task(
                 'test',
-                'docker.backtick.se/test',
+                'docker.backtick.se/core',
             )
 
         # run forever
