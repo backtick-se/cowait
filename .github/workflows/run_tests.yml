@@ -1,0 +1,19 @@
+name: Run Tests
+
+on: [push]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Build task base image
+      run: docker build . --file Dockerfile --tag docker.backtick.se/task
+
+    - name: Create tasks network
+      run: docker network create tasks
+      
+    - name: Run tests
+      run: docker run -v /var/run/docker.sock:/var/run/docker.sock docker.backtick.se/task python -m pytest
