@@ -17,7 +17,14 @@ class PipelineContext(object):
         return self.get(key, required=True)
 
     def get(self, key: str, default: any = None, required: bool = True):
-        path = key.split('.')
+        path = None
+        if isinstance(key, str):
+            path = key.split('.')
+        elif isinstance(key, list):
+            path = key
+        else:
+            raise RuntimeError("Expected key to be str or list")
+
         value = self.definition
         for part in path:
             if not isinstance(value, dict) or part not in value:

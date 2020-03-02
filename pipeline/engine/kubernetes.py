@@ -49,7 +49,7 @@ class KubernetesProvider(ClusterProvider):
 
     @property
     def domain(self):
-        return self.args.get('domain', 'dev.c.backtick.se')
+        return self.args.get('domain', 'cluster.backtick.se')
 
     @property
     def timeout(self):
@@ -102,6 +102,7 @@ class KubernetesProvider(ClusterProvider):
         timeout = self.timeout
         while True:
             pod = self.get_task_pod(taskdef.id)
+            print('**', pod.status.phase, pod.status.reason)
             if pod and pod.status.phase != 'Pending':
                 break
             timeout -= 1

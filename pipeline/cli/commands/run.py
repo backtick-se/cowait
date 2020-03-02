@@ -1,8 +1,9 @@
 import os
 import sys
+from pipeline.tasks import TaskDefinition
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
-from pipeline.tasks import TaskDefinition
+from ..const import DEFAULT_REPO
 from .push import push
 
 
@@ -31,7 +32,7 @@ def run(
         task = task[s+1:]
         if '/' not in image:
             # prepend default repo
-            image = f'docker.backtick.se/{image}'
+            image = f'{DEFAULT_REPO}/{image}'
     else:
         if build:
             push()
@@ -44,10 +45,7 @@ def run(
     taskdef = TaskDefinition(
         name=task,
         image=image,
-        config={
-            **context.get('worker', {}),
-            **config,
-        },
+        config=config,
         inputs=inputs,
         env={
             **context.get('environment', {}),
