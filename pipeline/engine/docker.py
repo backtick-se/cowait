@@ -47,7 +47,7 @@ class DockerProvider(ClusterProvider):
             environment=self.create_env(taskdef),
             volumes={
                 # this is the secret sauce that allows us to create new
-                # tasks on the host from within containers:
+                # tasks as sibling containers
                 '/var/run/docker.sock': {
                     'bind': '/var/run/docker.sock',
                     'mode': 'ro',

@@ -3,7 +3,7 @@ import { createStore } from './store'
 import socket from './store/socket'
 
 const DefaultStoreOptions = {
-    logging: false
+    logging: true,
 }
 
 

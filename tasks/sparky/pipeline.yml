@@ -3,14 +3,13 @@ pipeline:
   image: docker.backtick.se/sparky-test
   base: docker.backtick.se/spark
 
-  provider:
+  cluster:
     default: docker
     docker:
       network: tasks
     kubernetes:
       namespace: default
-    backtick:
-      key: BACKTICK_CLOUD_KEY
+      domain: cluster.backtick.se
 
   environment:
     AWS_ACCESS_KEY_ID: AKIASMZJSEC3JBSJKUMZ
