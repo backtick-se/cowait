@@ -1,8 +1,9 @@
 import sys
+from pipeline.tasks import TaskDefinition
+from pipeline.engine.errors import TaskCreationError
 from ..const import DEFAULT_BASE_IMAGE
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
-from pipeline.tasks import TaskDefinition
 
 
 def agent(provider: str) -> None:
@@ -25,7 +26,14 @@ def agent(provider: str) -> None:
         },
     )
 
-    task = cluster.spawn(taskdef)
+    # submit task to cluster
+    try:
+        task = cluster.spawn(taskdef)
+    except TaskCreationError as e:
+        printheader('error')
+        print('Error creating task:', str(e))
+        printheader()
+        return
 
     def destroy(*args):
         print()

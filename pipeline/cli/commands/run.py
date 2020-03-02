@@ -1,6 +1,7 @@
 import os
 import sys
 from pipeline.tasks import TaskDefinition
+from pipeline.engine.errors import TaskCreationError
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 from ..const import DEFAULT_REPO
@@ -71,11 +72,16 @@ def run(
     print('   env:       ', env)
 
     # submit task to cluster
-    task = cluster.spawn(taskdef)
+    try:
+        task = cluster.spawn(taskdef)
+    except TaskCreationError as e:
+        printheader('error')
+        print('Error creating task:', str(e))
+        printheader()
+        return
 
     if detach:
-        print('~~ running in detached mode')
-        printheader()
+        printheader('detached')
         return
 
     def destroy(*args):

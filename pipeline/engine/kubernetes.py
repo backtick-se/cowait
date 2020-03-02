@@ -6,6 +6,7 @@ from pipeline.tasks import TaskDefinition
 from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider, ClusterTask
 from .routers import TraefikRouter
+from .errors import TaskCreationError
 
 DEFAULT_NAMESPACE = 'default'
 
@@ -100,15 +101,37 @@ class KubernetesProvider(ClusterProvider):
 
         # wait for pod to become ready
         timeout = self.timeout
+        interval = 0.5
         while True:
+            time.sleep(interval)
             pod = self.get_task_pod(taskdef.id)
-            print('**', pod.status.phase, pod.status.reason)
-            if pod and pod.status.phase != 'Pending':
-                break
-            timeout -= 1
-            if timeout == 0:
+
+            statuses = pod.status.container_statuses
+            if statuses is not None and len(statuses) > 0:
+                state = statuses[0].state
+
+                # check for termination errors
+                if state.terminated is not None:
+                    raise TaskCreationError(
+                        f'Pod terminated: {state.terminated.reason}\n'
+                        f'{state.terminated.message}')
+
+                # check waiting state
+                if state.waiting is not None:
+                    # abort if the image is not available
+                    if state.waiting.reason == 'ErrImagePull':
+                        self.kill(taskdef.id)
+                        raise TaskCreationError(
+                            f'Image pull failed\n'
+                            f'{state.waiting.message}')
+
+                # we are go
+                if state.running is not None:
+                    break
+
+            timeout -= interval
+            if timeout <= 0:
                 raise TimeoutError(f'Could not find pod for {taskdef.id}')
-            time.sleep(1)
 
         # wrap & return task
         print('~~ created kubenetes pod', pod.metadata.name)

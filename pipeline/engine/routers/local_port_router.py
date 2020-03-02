@@ -10,7 +10,9 @@ class LocalPortRouter(Router):
     def on_prepare(self, taskdef):
         for path, port in taskdef.routes.items():
             if path != '/':
-                raise RuntimeError('Subdirectory HTTP paths are not supported')
+                print(f'warning: HTTP subdirectory path {path} '
+                      'is not routable locally')
+                continue
 
             host_port = random.randint(60000, 65000)
             url = f'http://localhost:{host_port}/'
