@@ -178,10 +178,17 @@ class KubernetesProvider(ClusterProvider):
             self.logs(task)
 
     def destroy_all(self) -> list:
-        raise NotImplementedError()
+        self.core.delete_collection_namespaced_pod(
+            namespace=self.namespace,
+            label_selector=LABEL_TASK_ID,
+        )
 
     def list_all(self) -> list:
-        raise NotImplementedError()
+        res = self.core.list_namespaced_pod(
+            namespace=self.namespace,
+            label_selector=LABEL_TASK_ID,
+        )
+        return map(lambda pod: pod.metadata.name, res.items)
 
     def destroy(self, task_id) -> list:
         def kill_family(task_id):

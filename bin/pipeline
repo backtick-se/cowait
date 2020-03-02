@@ -25,7 +25,8 @@ def cli():
 
 @cli.command(help='create a new context')
 @click.argument('name', type=str, required=False)
-@click.option('--image', type=str, required=False)
+@click.option('--image', type=str, required=False, help='image name')
+@click.option('--base', type=str, required=False, help='base image name')
 @click.option('--provider',
               default='docker',
               type=str,
