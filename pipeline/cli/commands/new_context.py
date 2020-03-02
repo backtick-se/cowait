@@ -7,6 +7,7 @@ from ..const import CONTEXT_FILE_NAME, DEFAULT_PROVIDER
 def new_context(
     name: str,
     image: str,
+    base: str,
     provider: str = DEFAULT_PROVIDER,
     docker_network: str = None,
     kube_namespace: str = None,
@@ -21,11 +22,18 @@ def new_context(
         print('Created context folder', path)
 
     context = {}
+
+    # image name
     if image is not None:
         print('Image:', image)
         context['image'] = image
 
-    context['provider'] = {
+    # base image name
+    if base is not None:
+        print('Base image:', base)
+        context['base'] = base
+
+    context['cluster'] = {
         'default': provider,
     }
 
