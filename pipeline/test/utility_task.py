@@ -22,7 +22,7 @@ class UtilityTask(Task):
 
         # create a child
         if inputs.get('child', False):
-            await self.task('pipeline.test.utility_task')
+            await self.spawn('pipeline.test.utility_task')
 
         # run forever
         if inputs.get('forever', False):

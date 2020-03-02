@@ -9,7 +9,7 @@ async def test_lazy(task_test):
     Provided a set of input, assert what the output of a task will be.
     """
 
-    result = await task_test.task(Lazy, duration=1)
+    result = await task_test.spawn(Lazy, duration=1)
     assert result == {
         'duration': 1,
         'crash_at': -1,

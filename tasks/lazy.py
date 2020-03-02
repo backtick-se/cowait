@@ -16,7 +16,7 @@ from duration_decider import DurationDecider
 class Lazy(Task):
     async def run(self, duration: int = 0, block=False, crash_at=-1, **inputs):
         if duration == 0:
-            duration = await self.task(DurationDecider)
+            duration = await self.spawn(DurationDecider)
 
         print('sleeping...')
         if block:

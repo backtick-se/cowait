@@ -111,14 +111,14 @@ class SparkCluster(Task):
         await super().after(inputs)
 
     @rpc
-    def task(
+    def spawn(
         self,
         name: str,
         image: str = None,
         env: dict = {},
         **inputs,
     ) -> Task:
-        return super().task(
+        return super().spawn(
             name=name,
             image=image,
             env=env,
@@ -131,7 +131,7 @@ class SparkCluster(Task):
         print(f'~~   num_workers = {num_workers}')
 
         # create spark master
-        self.master = self.task(
+        self.master = self.spawn(
             name='pipeline.tasks.spark.master',
             image='docker.backtick.se/spark',
             routes={
@@ -189,7 +189,7 @@ class SparkCluster(Task):
 
     async def add_workers(self, count):
         for i in range(0, count):
-            w = self.task(
+            w = self.spawn(
                 name='pipeline.tasks.spark.worker',
                 image='docker.backtick.se/spark',
                 routes={},

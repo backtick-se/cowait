@@ -25,7 +25,7 @@ class LazyParentTask(Task):
             max_duration = duration
 
         def make_task():
-            return self.task(
+            return self.spawn(
                 Lazy,
                 block=block,
                 duration=random.randint(duration, max_duration),

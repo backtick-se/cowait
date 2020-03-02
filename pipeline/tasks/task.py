@@ -52,7 +52,7 @@ class Task(TaskDefinition):
         os._exit(1)
 
     @rpc
-    def task(
+    def spawn(
         self,
         name: str,
         image: str = None,
