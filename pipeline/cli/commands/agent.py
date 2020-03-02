@@ -21,6 +21,7 @@ def agent(provider: str) -> None:
         },
         routes={
             '/': 80,
+            '/ws': 1337,
         },
     )
 
