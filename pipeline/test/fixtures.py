@@ -9,9 +9,9 @@ def set_test_task(task):
     __TEST_TASK = task
 
 
-@pytest.fixture
-def tester():
-    # ensure nested asyncio is supported
+@pytest.fixture(name='task_test')
+def task_test():
+    # apply asyncio patch
     nest_asyncio.apply()
 
     global __TEST_TASK

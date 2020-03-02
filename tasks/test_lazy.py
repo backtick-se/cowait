@@ -1,11 +1,15 @@
-import pytest
-from pipeline.test import tester
+from pipeline.test import task_test
 from lazy import Lazy
 
 
-@pytest.mark.asyncio
-async def test_lazy(tester):
-    result = await tester.task(Lazy, duration=1)
+@task_test
+async def test_lazy(task_test):
+    """
+    This is an example of a black-box test of a task.
+    Provided a set of input, assert what the output of a task will be.
+    """
+
+    result = await task_test.task(Lazy, duration=1)
     assert result == {
         'duration': 1,
         'crash_at': -1,
