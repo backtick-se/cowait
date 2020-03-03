@@ -37,6 +37,9 @@ class Server(EventEmitter):
         except ConnectionClosedOK:
             pass
 
+        except json.decoder.JSONDecodeError:
+            await self.emit(type='error', conn=conn, reason=str(e))
+
         except ConnectionClosedError as e:
             await self.emit(type='error', conn=conn, reason=e.reason)
 
