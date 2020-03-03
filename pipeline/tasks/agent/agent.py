@@ -1,4 +1,4 @@
-from pipeline.tasks import Task, TaskDefinition, sleep
+from pipeline.tasks import Task, TaskDefinition, sleep, rpc
 from pipeline.network import Conn, get_local_connstr
 from pipeline.tasks.components import HttpComponent
 from pipeline.tasks.messages import TASK_INIT
@@ -40,23 +40,20 @@ class Agent(Task):
             await sleep(1.0)
         return {}
 
-    def spawn(self,
-              name: str,
-              image: str = None,
-              inputs: dict = {},
-              config: dict = {},
-              ports: dict = {},
-              env: dict = {},
-              ) -> TaskDefinition:
-        taskdef = TaskDefinition(
-            name=name,
-            inputs=inputs,
-            image=image if image else self.image,
-            upstream=get_local_connstr(),
-            config=config,
-            ports=ports,
-            env=env,
-        )
+    @rpc
+    async def destroy(self, task_id):
+        self.cluster.destroy(task_id)
 
-        self.cluster.spawn(taskdef)
-        return taskdef
+    @rpc
+    async def destroy_all(self):
+        self.cluster.destroy_all()
+
+    @rpc
+    async def list_tasks(self):
+        return self.cluster.list_all()
+
+    @rpc
+    async def spawn(self, **kwargs):
+        print(kwargs)
+        task = super().spawn(**kwargs)
+        return task.serialize()

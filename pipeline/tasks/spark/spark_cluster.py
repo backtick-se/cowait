@@ -110,7 +110,6 @@ class SparkCluster(Task):
 
         await super().after(inputs)
 
-    @rpc
     def spawn(
         self,
         name: str,
