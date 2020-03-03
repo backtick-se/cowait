@@ -45,6 +45,9 @@ def new(name: str, image: str, provider: str):
               default='docker',
               type=str,
               help='cluster provider type')
+@click.option('--name',
+              type=str,
+              help='specific task name')
 @click.option('--input',
               type=(str, str),
               multiple=True,
@@ -70,12 +73,13 @@ def new(name: str, image: str, provider: str):
               help='run in detached mode',
               default=False)
 def run(
-    task: str, provider: str,
+    task: str, provider: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
         task,
+        name=name,
         provider=provider,
         inputs=option_dict(input),
         env=option_dict(env),

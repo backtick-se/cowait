@@ -11,6 +11,7 @@ from .push import push
 def run(
     task: str,
     provider: str,
+    name: str = None,
     inputs: dict = {},
     env: dict = {},
     ports: dict = {},
@@ -43,6 +44,7 @@ def run(
 
     # create task definition
     taskdef = TaskDefinition(
+        id=name,
         name=task,
         image=image,
         inputs=inputs,
