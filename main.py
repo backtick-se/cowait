@@ -25,7 +25,7 @@ async def main():
         await execute(cluster, taskdef)
 
     except Exception:
-        print(f'~~ {taskdef.id} exiting with error:')
+        print(f'!! {taskdef.id} failed with error:')
         traceback.print_exc()
         os._exit(1)
 
