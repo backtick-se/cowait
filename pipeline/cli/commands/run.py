@@ -12,7 +12,6 @@ def run(
     task: str,
     provider: str,
     inputs: dict = {},
-    config: dict = {},
     env: dict = {},
     ports: dict = {},
     routes: dict = {},
@@ -46,7 +45,6 @@ def run(
     taskdef = TaskDefinition(
         name=task,
         image=image,
-        config=config,
         inputs=inputs,
         env={
             **context.get('environment', {}),

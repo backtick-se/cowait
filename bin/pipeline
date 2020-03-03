@@ -49,10 +49,6 @@ def new(name: str, image: str, provider: str):
               type=(str, str),
               multiple=True,
               help='specify task input')
-@click.option('--config',
-              type=(str, str),
-              multiple=True,
-              help='specify task config')
 @click.option('--env',
               type=(str, str),
               multiple=True,
@@ -75,14 +71,13 @@ def new(name: str, image: str, provider: str):
               default=False)
 def run(
     task: str, provider: str,
-    input, config, env, port, route,
+    input, env, port, route,
     upstream: str, build: bool, detach: bool
 ):
     pipeline.cli.run(
         task,
         provider=provider,
         inputs=option_dict(input),
-        config=option_dict(config),
         env=option_dict(env),
         ports={p: p for p in port},
         routes=option_dict(route),

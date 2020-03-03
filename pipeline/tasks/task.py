@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from datetime import datetime
 from pipeline.network import get_local_connstr
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
@@ -51,15 +52,20 @@ class Task(TaskDefinition):
 
         os._exit(1)
 
-    @rpc
     def spawn(
         self,
         name: str,
+        id: str = None,
         image: str = None,
         ports: dict = {},
         routes: dict = {},
+        inputs: dict = {},
+        meta: dict = {},
         env: dict = {},
-        **inputs: dict,
+        cpu: str = '0',
+        memory: str = '0',
+        owner: str = '',
+        **kwargs: dict,
     ) -> 'Task':
         """
         Spawn a subtask.
@@ -77,13 +83,16 @@ class Task(TaskDefinition):
 
         task = self.cluster.spawn(TaskDefinition(
             name=name,
-            inputs=inputs,
             parent=self.id,
             image=image if image else self.image,
             upstream=get_local_connstr(),
-            config=self.config,
+            meta=meta,
             ports=ports,
             routes=routes,
+            inputs={
+                **inputs,
+                **kwargs,
+            },
             env={
                 **self.env,
                 **env,

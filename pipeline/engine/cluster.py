@@ -17,30 +17,34 @@ class ClusterProvider(EventEmitter):
     @abstractmethod
     def spawn(self, taskdef: TaskDefinition) -> RemoteTask:
         """ Spawn a task in the cluster """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def destroy(self, task_id: str) -> None:
         """ Destroy a task """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def destroy_all(self) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def destroy_children(self, parent_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def wait(self, task: RemoteTask) -> None:
         """ Wait for task to exit """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def logs(self, task: RemoteTask) -> Iterable[str]:
         """ Stream logs from task """
-        pass
+        raise NotImplementedError()
+
+    @abstractmethod
+    def list_all(self) -> list:
+        raise NotImplementedError()
 
     def serialize(self) -> dict:
         """ Serialize ClusterProvider into a dict """
