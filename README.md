@@ -97,13 +97,13 @@ $ pipeline run hello --provider kubernetes
 Changes to the `pipeline/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
 
 ```bash
-$ ./build_base_image.sh
+$ ./build.sh
 ```
 
 If you have access to `docker.backtick.se` you can also push it automatically:
 
 ```bash
-$ ./build_base_image.sh --push
+$ ./build.sh --push
 ```
 
 **Note:** Tasks will have to rebuilt with `pipeline build` for the changes to take effect.

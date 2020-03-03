@@ -1,5 +1,5 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+cd "${0%/*}" || exit
 set -e
 
 TAG="latest"
