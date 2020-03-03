@@ -24,3 +24,9 @@ def list_tasks(provider: str) -> None:
     tasks = cluster.list_all()
     for task in tasks:
         print(task)
+
+
+def kill(task_id: str, provider: str):
+    context = PipelineContext.open()
+    cluster = get_context_cluster(context, provider)
+    cluster.destroy(task_id)

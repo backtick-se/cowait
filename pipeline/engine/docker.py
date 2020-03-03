@@ -112,8 +112,8 @@ class DockerProvider(ClusterProvider):
 
         def kill_family(container):
             container_task_id = container.labels[LABEL_TASK_ID]
-            print('~~ docker kill', container.id[:12],
-                  '->', container_task_id)
+            container_id = container.id[:12]
+            print(f'~~ kill {container_task_id} ({container_id})')
 
             children = self.find_child_containers(container_task_id)
             kills = []

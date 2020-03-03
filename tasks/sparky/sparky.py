@@ -1,7 +1,7 @@
 import pyspark.sql.functions as F
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
-from pipeline.tasks import sleep
 from pipeline.tasks.spark import SparkFlow
+from pyspark.sql.types import \
+    StructType, StructField, StringType, IntegerType, FloatType
 
 TIMESTAMP = "yyyy-MM-dd'D'HH:mm:ss.SSS"
 
@@ -31,8 +31,6 @@ class SparkyTask(SparkFlow):
     ):
         print('bitmex trades csv->parquet')
 
-        await sleep(0.1)
-
         df = spark.read \
             .csv(
                 f's3a://stackpoint-spark/data/bitmex/trades/{filter}.csv.gz',
@@ -48,7 +46,11 @@ class SparkyTask(SparkFlow):
         df = df.drop('foreignNotional')
 
         # cut milli/nanoseconds and convert to timestamp
-        df = df.withColumn("timestamp", F.to_timestamp(F.substring(df.timestamp, 0, 23), TIMESTAMP))
+        conv_timestamp = F.to_timestamp(
+            F.substring(df.timestamp, 0, 23),
+            TIMESTAMP)
+        df = df.withColumn("timestamp", conv_timestamp)
+
         df = df.withColumn("time", F.unix_timestamp(df.timestamp))
         df = df.withColumn("date", F.from_unixtime(df.time, "yyyyMMdd"))
         df.drop('timestamp')

@@ -10,7 +10,7 @@ class LocalPortRouter(Router):
     def on_prepare(self, taskdef):
         for path, port in taskdef.routes.items():
             if path != '/':
-                print(f'warning: HTTP subdirectory path {path} '
+                print(f'!! warning: http subdirectory path {path} '
                       'is not routable locally')
                 continue
 
