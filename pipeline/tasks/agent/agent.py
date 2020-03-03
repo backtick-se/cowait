@@ -53,7 +53,45 @@ class Agent(Task):
         return self.cluster.list_all()
 
     @rpc
-    async def spawn(self, **kwargs):
-        print(kwargs)
-        task = super().spawn(**kwargs)
+    async def spawn(
+        self,
+        name: str,
+        image: str,
+        id: str = None,
+        ports: dict = {},
+        routes: dict = {},
+        inputs: dict = {},
+        meta: dict = {},
+        env: dict = {},
+        cpu: str = '0',
+        memory: str = '0',
+        owner: str = '',
+        **kwargs: dict,
+    ) -> Task:
+        if not isinstance(name, str) and issubclass(name, Task):
+            name = name.__module__
+
+        # todo: throw error if any input is a coroutine
+
+        task = self.cluster.spawn(TaskDefinition(
+            id=id,
+            name=name,
+            image=image,
+            upstream=get_local_connstr(),
+            meta=meta,
+            ports=ports,
+            routes=routes,
+            env=env,
+            cpu=cpu,
+            memory=memory,
+            owner=owner,
+            inputs={
+                **inputs,
+                **kwargs,
+            },
+        ))
+
+        # register with subtask manager
+        self.subtasks.watch(task)
+
         return task.serialize()
