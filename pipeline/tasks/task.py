@@ -1,6 +1,5 @@
 import os
 from typing import Any
-from datetime import datetime
 from pipeline.network import get_local_connstr
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
@@ -82,6 +81,7 @@ class Task(TaskDefinition):
         # todo: throw error if any input is a coroutine
 
         task = self.cluster.spawn(TaskDefinition(
+            id=id,
             name=name,
             parent=self.id,
             image=image if image else self.image,
@@ -89,6 +89,9 @@ class Task(TaskDefinition):
             meta=meta,
             ports=ports,
             routes=routes,
+            cpu=cpu,
+            memory=memory,
+            owner=owner,
             inputs={
                 **inputs,
                 **kwargs,
