@@ -1,65 +1,58 @@
-import json
-import websockets
-from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+import aiohttp
+from aiohttp import web
 from pipeline.utils import EventEmitter
 from .conn import Conn
 
-ANY_IP = '0.0.0.0'
-
 
 class Server(EventEmitter):
-    def __init__(self, port: int):
+    def __init__(self, port):
         super().__init__()
-        self.ws = None
-        self.port = port
         self.conns = []
+        self.port = port
 
-    async def serve(self) -> None:
-        self.ws = await websockets.serve(
-            self.handle_client,
-            host=ANY_IP,
-            port=self.port,
-        )
-        await self.ws.wait_closed()
+    async def handle_client(self, request):
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
 
-    async def handle_client(self, ws, path: str) -> None:
-        conn = Conn(ws)
+        conn = Conn(ws, request.remote)
         self.conns.append(conn)
 
-        try:
-            await self.emit(type='__connect', conn=conn)
-            while True:
-                msg = await conn.recv()
-                if msg is None:
-                    break
-                await self.emit(**msg, conn=conn)
+        await self.emit(type='__connect', conn=conn)
 
-        except ConnectionClosedOK:
-            pass
+        # connected!
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                event = msg.json()
 
-        except json.decoder.JSONDecodeError as e:
-            await self.emit(type='error', conn=conn, reason=str(e))
+                if conn.rpc.intercept_event(event):
+                    continue
 
-        except ConnectionClosedError as e:
-            await self.emit(type='error', conn=conn, reason=e.reason)
+                await self.emit(**event, conn=conn)
 
-        finally:
-            self.conns.remove(conn)
-            await self.emit(type='__close', conn=conn)
+            elif msg.type == aiohttp.WSMsgType.CLOSE:
+                print('ws clean exit')
+
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                print('ws error', ws.exception())
+
+        # disconnected
+        self.conns.remove(conn)
+        await self.emit(type='__close', conn=conn)
 
     async def send(self, msg: dict) -> None:
-        if self.ws is None:
-            raise RuntimeError('call serve() first')
+        for ws in self.conns:
+            await ws.send_json(msg)
 
-        js = json.dumps(msg)
+    async def close(self):
         for conn in self.conns:
-            try:
-                await conn.ws.send(js)
-            except websockets.exceptions.ConnectionClosedOK:
-                continue
+            await conn.close()
 
-    def close(self) -> None:
-        if self.ws is None:
-            return
-
-        self.ws.close()
+    async def serve(self):
+        app = web.Application()
+        app.add_routes([
+            web.get('/', self.handle_client)
+        ])
+        runner = web.AppRunner(app, handle_signals=False)
+        await runner.setup()
+        site = web.TCPSite(runner, host='*', port=self.port)
+        await site.start()

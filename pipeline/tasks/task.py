@@ -2,7 +2,7 @@ import os
 from typing import Any
 from pipeline.network import get_local_connstr
 from .definition import TaskDefinition
-from .components import TaskManager, RpcComponent, rpc
+from .components import TaskManager, RpcComponent, HttpComponent, rpc
 
 
 class Task(TaskDefinition):
@@ -20,8 +20,9 @@ class Task(TaskDefinition):
         super().__init__(**kwargs)
         self.node = node
         self.cluster = cluster
-        self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
+        self.http = HttpComponent(self)
+        self.subtasks = TaskManager(self)
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'

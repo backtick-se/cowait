@@ -17,10 +17,10 @@ class RpcClient(object):
 
         self.calls[nonce] = Future()
         await self.ws.send({
-            'type': RPC_CALL,
+            'type':   RPC_CALL,
             'method': method,
-            'args': args,
-            'nonce': nonce,
+            'args':   args,
+            'nonce':  nonce,
         })
 
         return await asyncio.wrap_future(self.calls[nonce])
@@ -30,12 +30,12 @@ class RpcClient(object):
             if not future.done():
                 future.set_exception(ConnectionClosed(1000, ''))
 
-    def intercept_msg(self, msg):
-        if msg['type'] == RPC_RESULT:
+    def intercept_event(self, type, **msg):
+        if type == RPC_RESULT:
             self._rpc_result(**msg)
             return True
 
-        if msg['type'] == RPC_ERROR:
+        if type == RPC_ERROR:
             self._rpc_error(**msg)
             return True
 

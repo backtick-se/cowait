@@ -28,15 +28,20 @@ class WorkerNode(Node):
                 TaskClass = load_task_class(taskdef.name)
                 task = TaskClass(taskdef, self.cluster, self)
 
-                # run task
+                # set state to running
                 await self.api.run()
 
+                # before hook
                 inputs = await task.before(taskdef.inputs)
                 if inputs is None:
                     raise ValueError(
                         'Task.before() returned None, '
                         'did you forget to return inputs?')
+
+                # execute task
                 result = await task.run(**inputs)
+
+                # after hook
                 await task.after(inputs)
 
                 # submit result
@@ -64,3 +69,6 @@ class WorkerNode(Node):
             return callback
 
         return StreamCapturing(logger('stdout'), logger('stderr'))
+
+    async def close(self):
+        self.io.create_task(super().close())

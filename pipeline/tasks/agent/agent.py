@@ -1,6 +1,5 @@
 from pipeline.tasks import Task, TaskDefinition, sleep, rpc
 from pipeline.network import Conn, get_local_connstr
-from pipeline.tasks.components import HttpComponent
 from pipeline.tasks.messages import TASK_INIT
 from .tasklist import TaskList
 from .subscriptions import Subscriptions
@@ -18,18 +17,16 @@ class Agent(Task):
             for task in self.tasks.values():
                 await conn.send({
                     'type': TASK_INIT,
-                    'id': task['id'],
+                    'id':   task['id'],
                     'task': task,
                 })
         self.subs.on('subscribe', send_state)
 
         # create http server
-        self.http = HttpComponent(self)
         self.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
         self.http.add_routes(Dashboard().routes())
 
-        self.http.start()
-        return inputs
+        return await super().before(inputs)
 
     async def run(self, **inputs):
         print('agent ready. available at:')

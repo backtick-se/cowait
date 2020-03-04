@@ -31,7 +31,7 @@ class Subscriptions(EventEmitter):
                 pass
 
     async def subscribe(self, conn: Conn, **msg):
-        print(f'~~ add subscriber {conn.remote_ip}:{conn.remote_port}')
+        print(f'~~ add subscriber {conn.remote}')
         self.subscribers.append(conn)
         await self.emit(
             type='subscribe',
@@ -40,11 +40,11 @@ class Subscriptions(EventEmitter):
 
     async def unsubscribe(self, conn: Conn, **msg):
         if conn in self.subscribers:
-            print(f'~~ drop subscriber {conn.remote_ip}:{conn.remote_port}')
+            print(f'~~ drop subscriber {conn.remote}')
             self.subscribers.remove(conn)
             await self.emit(
                 type='unsubscribe',
                 conn=conn,
             )
         else:
-            print(f'~~ drop task {conn.remote_ip}:{conn.remote_port}')
+            print(f'~~ drop task {conn.remote}')
