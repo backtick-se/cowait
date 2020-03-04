@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 const DefaultState = {
     order: [ ],
     items: { },
@@ -12,6 +14,25 @@ const TASK_FAIL = 'task/fail'
 const TASK_LOG = 'task/log'
 
 
+// Prepend an item to a set. If replace is true and the item already exists,
+// it will be moved to the front. Otherwise, the set is returned without change.
+function setPrepend(list, item, replace = true) {
+    const idx = _.indexOf(list, item)
+    if (idx > 0) {
+        if (replace) {
+            return [
+                item, 
+                ...list.slice(0, idx), 
+                ...list.slice(idx+1),
+            ]
+        } else {
+            return list
+        }
+    }
+    return [ item, ...list ]
+}
+
+
 export function tasks(state, action) {
     if (typeof(state) == 'undefined') {
         return DefaultState
@@ -23,7 +44,7 @@ export function tasks(state, action) {
         if (!task.parent) {
             return {
                 ...state,
-                order: [ task.id, ...state.order ],
+                order: setPrepend(state.order, task.id),
                 items: {
                     ...state.items,
                     [task.id]: {

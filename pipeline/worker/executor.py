@@ -50,6 +50,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
     finally:
         # ensure event loop has a chance to run
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.5)
 
         await node.close()

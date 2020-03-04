@@ -4,9 +4,11 @@ import requests
 import traceback
 from threading import Thread
 from queue import Queue, Empty as QueueEmpty
-from pipeline.tasks.messages import TASK_FAIL, TASK_RETURN, TASK_LOG
 from pipeline.tasks import TaskDefinition, RemoteTask
+from pipeline.tasks.messages import TASK_FAIL, TASK_RETURN, TASK_LOG
+from pipeline.tasks.components.rpc import RpcError
 from .cluster import ClusterProvider
+from .errors import TaskCreationError
 
 
 class ApiProvider(ClusterProvider):
@@ -22,12 +24,15 @@ class ApiProvider(ClusterProvider):
         if resp.status_code == 200:
             return msg
         if resp.status_code == 400 and 'error' in msg:
-            raise RuntimeError(msg['error'])
-        raise RuntimeError(f'Request status {resp.status_code}')
+            raise RpcError(msg['error'])
+        raise RpcError(f'Request status {resp.status_code}')
 
     def spawn(self, taskdef: TaskDefinition) -> RemoteTask:
-        task = self.rpc('spawn', **taskdef.serialize())
-        return RemoteTask(TaskDefinition.deserialize(task), self)
+        try:
+            task = self.rpc('spawn', **taskdef.serialize())
+            return RemoteTask(TaskDefinition.deserialize(task), self)
+        except RpcError as e:
+            raise TaskCreationError(str(e))
 
     def destroy(self, task_id):
         self.rpc('destroy', task_id=task_id)

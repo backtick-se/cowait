@@ -33,7 +33,7 @@ class WorkerNode(Node):
 
                 inputs = await task.before(taskdef.inputs)
                 if inputs is None:
-                    raise RuntimeError(
+                    raise ValueError(
                         'Task.before() returned None, '
                         'did you forget to return inputs?')
                 result = await task.run(**inputs)

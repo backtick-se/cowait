@@ -1,5 +1,5 @@
 import os.path
-from ..const import DEFAULT_BASE_IMAGE
+from pipeline.utils.const import DEFAULT_BASE_IMAGE
 from ..task_image import TaskImage
 from ..context import PipelineContext
 

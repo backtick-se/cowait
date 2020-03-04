@@ -9,7 +9,7 @@ def test_create_context():
     assert context.root_path == os.path.join(os.getcwd(), 'test')
 
     # raise error if path is invalid
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         context = PipelineContext.open('does_not_exist')
 
     # raise error if no context definition is found
