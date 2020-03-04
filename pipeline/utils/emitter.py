@@ -17,7 +17,7 @@ class EventEmitter(object):
 
     async def emit(self, type: str, **kwargs: dict) -> None:
         if type == '*':
-            raise RuntimeError('Cannot emit wildcard events')
+            raise ValueError('Cannot emit wildcard events')
 
         try:
             # wildcard events
@@ -33,7 +33,7 @@ class EventEmitter(object):
 
     def emit_sync(self, type: str, **kwargs: dict) -> None:
         if type == '*':
-            raise RuntimeError('Cannot emit wildcard events')
+            raise ValueError('Cannot emit wildcard events')
 
         try:
             # wildcard events

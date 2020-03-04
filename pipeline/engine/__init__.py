@@ -15,4 +15,4 @@ def get_cluster_provider(type, args = { }):
     elif type == 'api':
         return ApiProvider(args)
     else:
-        raise RuntimeError(f'Unknown cluster provider: {type}')
+        raise ValueError(f'Unknown cluster provider: {type}')

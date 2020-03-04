@@ -1,7 +1,7 @@
 import sys
 from pipeline.tasks import TaskDefinition
 from pipeline.engine.errors import TaskCreationError
-from ..const import DEFAULT_BASE_IMAGE
+from pipeline.utils.const import DEFAULT_BASE_IMAGE
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 

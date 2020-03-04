@@ -87,7 +87,7 @@ class TaskDefinition(object):
                 "%Y-%m-%dT%H:%M:%S.%f")
         else:
             print('created_at', created_at)
-            raise RuntimeError('Expected created_at to be None or datetime')
+            raise TypeError('Expected created_at to be None or datetime')
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """

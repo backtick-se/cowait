@@ -2,9 +2,9 @@ import os
 import sys
 from pipeline.tasks import TaskDefinition
 from pipeline.engine.errors import TaskCreationError
+from pipeline.utils import parse_task_image_name
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
-from ..const import DEFAULT_REPO
 from .push import push
 
 
@@ -26,15 +26,8 @@ def run(
     cluster = get_context_cluster(context, provider)
 
     # figure out image name
-    image = None
-    if '/' in task:
-        s = task.rfind('/')
-        image = task[:s]
-        task = task[s+1:]
-        if '/' not in image:
-            # prepend default repo
-            image = f'{DEFAULT_REPO}/{image}'
-    else:
+    image, task = parse_task_image_name(task, None)
+    if image is None:
         if build:
             push()
         image = context.get_image_name()

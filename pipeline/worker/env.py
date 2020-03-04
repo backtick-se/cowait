@@ -9,7 +9,7 @@ from pipeline.engine import \
 
 def env_get_cluster_provider():
     if ENV_TASK_CLUSTER not in os.environ:
-        raise RuntimeError(
+        raise ValueError(
             f'Cluster provider must be passed in the '
             f'{ENV_TASK_CLUSTER} environment variable.')
 
@@ -19,7 +19,7 @@ def env_get_cluster_provider():
 
 def env_get_task_definition():
     if ENV_TASK_DEFINITION not in os.environ:
-        raise RuntimeError(
+        raise ValueError(
             f'Task definition must be passed in the '
             f'{ENV_TASK_DEFINITION} environment variable.')
 

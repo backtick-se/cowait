@@ -31,6 +31,9 @@ class Conn(object):
             await self.close()
             raise e
 
+        except ConnectionClosedOK:
+            return None
+
     async def send(self, msg: dict) -> None:
         try:
             js = json.dumps(msg)

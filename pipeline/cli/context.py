@@ -23,7 +23,7 @@ class PipelineContext(object):
         elif isinstance(key, list):
             path = key
         else:
-            raise RuntimeError("Expected key to be str or list")
+            raise TypeError("Expected key to be str or list")
 
         value = self.definition
         for part in path:
@@ -85,7 +85,7 @@ class PipelineContext(object):
 
         # ensure the provided path is an actual directory
         if not os.path.isdir(path):
-            raise RuntimeError(f'Invalid context path {path}: Not a directory')
+            raise ValueError(f'Invalid context path {path}: Not a directory')
 
         # find context root by looking for the context definition file
         context_file_path = find_file_in_parents(path, CONTEXT_FILE_NAME)
@@ -100,7 +100,7 @@ class PipelineContext(object):
         with open(context_file_path, 'r') as context_file:
             context_def = yaml.load(context_file, Loader=yaml.FullLoader)
             if 'version' not in context_def or context_def['version'] != 1:
-                raise RuntimeError('Invalid pipeline context version')
+                raise ValueError('Invalid pipeline context version')
 
             context = context_def.get('pipeline', {})
 
