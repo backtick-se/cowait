@@ -6,7 +6,7 @@ from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 
 
-def agent(provider: str) -> None:
+def agent(provider: str, detach: bool) -> None:
     context = PipelineContext.open()
     cluster = get_context_cluster(context, provider)
 
@@ -33,6 +33,10 @@ def agent(provider: str) -> None:
         printheader('error')
         print('Error creating task:', str(e))
         printheader()
+        return
+
+    if detach:
+        printheader('detached')
         return
 
     def destroy(*args):
