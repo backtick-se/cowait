@@ -147,8 +147,12 @@ def kill(task, provider):
               default='docker',
               type=str,
               help='cluster provider type')
-def agent(provider: str):
-    pipeline.cli.agent(provider)
+@click.option('--detach',
+              type=bool, is_flag=True,
+              help='run in detached mode',
+              default=False)
+def agent(provider: str, detach: bool):
+    pipeline.cli.agent(provider, detach)
 
 
 if __name__ == '__main__':
