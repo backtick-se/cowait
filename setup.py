@@ -5,15 +5,15 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pipeline",
-    version="0.0.4",
+    version="0.0.5",
     author="castle",
-    author_email="author@example.com",
-    description="castle pipeline client",
+    author_email="johan@backtick.se",
+    description="backtick pipeline core",
 
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    url="https://github.com/castle/data-science-pipeline",
+    url="https://github.com/backtick-se/pipeline",
 
     packages=setuptools.find_packages(),
     scripts=['bin/pipeline'],

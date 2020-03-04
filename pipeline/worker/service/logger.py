@@ -11,8 +11,6 @@ logged_types = [
     TASK_LOG,
 ]
 
-logged_types = ['init', 'status', 'fail', 'return', 'log']
-
 
 class FlowLogger(EventEmitter):
     def __init__(self):

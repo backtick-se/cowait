@@ -19,7 +19,7 @@ class Node(object):
 
     async def close(self) -> None:
         if self.children:
-            self.children.close()
+            await self.children.close()
         if self.parent:
             await self.parent.close()
 

@@ -96,6 +96,6 @@ class Client(EventEmitter):
         self.rpc.cancel_all()
 
         try:
-            return await self.ws.close()
+            return await self.ws.close(reason='{}')
         except Exception:
             pass
