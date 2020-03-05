@@ -1,5 +1,4 @@
 import asyncio
-from websockets.exceptions import ConnectionClosed
 from concurrent.futures import Future
 from pipeline.tasks.components.rpc import RpcError, \
     RPC_CALL, RPC_ERROR, RPC_RESULT
@@ -28,7 +27,7 @@ class RpcClient(object):
     def cancel_all(self):
         for nonce, future in self.calls.items():
             if not future.done():
-                future.set_exception(ConnectionClosed(1000, ''))
+                future.set_exception(RpcError('Cancelled'))
 
     def intercept_event(self, type, **msg):
         if type == RPC_RESULT:

@@ -1,7 +1,6 @@
 from __future__ import annotations
 import asyncio
 from concurrent.futures import Future
-from websockets.exceptions import ConnectionClosed
 from .definition import TaskDefinition
 
 
@@ -35,10 +34,7 @@ class RemoteTask(TaskDefinition):
 
     async def stop(self):
         # special case RPC - it always causes a send exception
-        try:
-            await self.call('stop')
-        except ConnectionClosed:
-            pass
+        await self.call('stop')
 
     def __getattr__(self, method):
         async def magic_rpc(**kwargs):
