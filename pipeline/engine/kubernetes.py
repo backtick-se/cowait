@@ -87,6 +87,7 @@ class KubernetesProvider(ClusterProvider):
                     labels={
                         LABEL_TASK_ID: taskdef.id,
                         LABEL_PARENT_ID: taskdef.parent,
+                        **taskdef.meta,
                     },
                 ),
                 spec=client.V1PodSpec(
@@ -246,7 +247,9 @@ class KubernetesProvider(ClusterProvider):
         pod = self.get_task_pod('agent')
         if pod is None:
             return None
-        return f'ws://{pod.status.pod_ip}/ws'
+
+        token = pod.metadata.labels['http_token']
+        return f'ws://{pod.status.pod_ip}/ws?token={token}'
 
 
 def convert_port(port, host_port: str = None):

@@ -83,7 +83,7 @@ class Task(TaskDefinition):
 
         # todo: throw error if any input is a coroutine
 
-        task = self.cluster.spawn(TaskDefinition(
+        taskdef = TaskDefinition(
             id=id,
             name=name,
             parent=self.id,
@@ -103,7 +103,13 @@ class Task(TaskDefinition):
                 **self.env,
                 **env,
             },
-        ))
+        )
+
+        # authorize id
+        self.node.http.auth.add_token(taskdef.id)
+
+        # spawn task
+        task = self.cluster.spawn(taskdef)
 
         # register with subtask manager
         self.subtasks.watch(task)

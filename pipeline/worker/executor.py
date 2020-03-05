@@ -12,7 +12,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     """
 
     # create network node
-    node = WorkerNode(cluster, taskdef)
+    node = WorkerNode(taskdef.id)
 
     if taskdef.upstream:
         if taskdef.upstream == 'disabled':
@@ -28,7 +28,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
     try:
         # run task
-        await node.run(taskdef)
+        await node.run(taskdef, cluster)
 
     except Exception as e:
         # capture local errors
@@ -39,7 +39,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         raise e
 
     finally:
-        node.close()
+        await node.close()
 
         # ensure event loop has a chance to run
         await asyncio.sleep(0.5)

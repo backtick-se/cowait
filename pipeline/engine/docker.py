@@ -56,6 +56,7 @@ class DockerProvider(ClusterProvider):
             labels={
                 LABEL_TASK_ID: taskdef.id,
                 LABEL_PARENT_ID: taskdef.parent,
+                **taskdef.meta,
             },
         )
 
@@ -163,7 +164,8 @@ class DockerProvider(ClusterProvider):
 
     def find_agent(self):
         try:
-            self.docker.containers.get('agent')
-            return 'ws://agent/ws'
+            container = self.docker.containers.get('agent')
+            token = container.labels['http_token']
+            return f'ws://agent/ws?token={token}'
         except docker.errors.NotFound:
             return None
