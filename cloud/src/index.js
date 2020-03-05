@@ -3,13 +3,11 @@ import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 import App from './components/App'
 import PipeClientStore from './PipeClientStore'
+import { getWsUrl, updateToken } from './utils'
 
 
-export function getWsUrl() {
-    // figure out websocket uri from current location
-    let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    return `${wsProto}://${window.location.host}/ws`
-}
+// update token from url
+updateToken()
 
 // connect websocket client
 const client = new PipeClientStore(getWsUrl())
