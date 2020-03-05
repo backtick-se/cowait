@@ -11,9 +11,12 @@ class Client(EventEmitter):
     def connected(self) -> bool:
         return self.ws is not None
 
-    async def connect(self, url):
+    async def connect(self, url: str, token: str) -> None:
+        headers = {
+            'Authorization': f'Bearer {token}',
+        }
         async with aiohttp.ClientSession() as session:
-            async with session.ws_connect(url) as ws:
+            async with session.ws_connect(url, headers=headers) as ws:
                 self.ws = ws
 
                 async for msg in ws:

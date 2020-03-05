@@ -10,30 +10,31 @@ from .parent_client import ParentClient
 
 
 class WorkerNode(object):
-    def __init__(self, cluster, taskdef):
+    def __init__(self, id):
         super().__init__()
-        self.cluster = cluster
+        self.id = id
         self.io = IOThread()
         self.io.start()
 
-        self.http = HttpServer(self)
+        self.http = HttpServer()
         self.children = Server(self)
-        self.parent = ParentClient(taskdef.id)
+        self.parent = ParentClient(id)
 
     async def connect(self, uri) -> None:
-        self.io.create_task(self.parent.connect(uri))
+        self.io.create_task(self.parent.connect(uri, self.id))
         while not self.parent.connected:
             await asyncio.sleep(0.1)
 
-    def close(self) -> None:
+    async def close(self) -> None:
         async def close():
             if self.children:
                 await self.children.close()
             if self.parent:
                 await self.parent.close()
-        self.io.create_task(close())
 
-    async def run(self, taskdef):
+        await self.io.create_task(close())
+
+    async def run(self, taskdef, cluster):
         try:
             await self.parent.send_init(taskdef)
 
@@ -41,7 +42,7 @@ class WorkerNode(object):
             with self.capture_logs():
                 # instantiate
                 TaskClass = load_task_class(taskdef.name)
-                task = TaskClass(taskdef, self.cluster, self)
+                task = TaskClass(taskdef, cluster, self)
 
                 # initialize task
                 task.init()

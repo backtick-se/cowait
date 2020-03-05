@@ -22,13 +22,17 @@ class Agent(Task):
                 })
         self.subs.on('subscribe', send_state)
 
+        self.token = self.meta['http_token']
+
         # create http server
         self.node.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
         self.node.http.add_routes(Dashboard().routes())
+        self.node.http.auth.add_token(self.token)
 
     async def run(self, **inputs):
+        url = self.routes['/']['url']
         print('agent ready. available at:')
-        print(self.routes['/']['url'])
+        print(f'{url}?token={self.token}')
 
         # wait forever
         while True:

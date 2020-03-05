@@ -2,6 +2,7 @@ import sys
 from pipeline.tasks import TaskDefinition
 from pipeline.engine.errors import TaskCreationError
 from pipeline.utils.const import DEFAULT_BASE_IMAGE
+from pipeline.utils import uuid
 from ..context import PipelineContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 
@@ -19,6 +20,9 @@ def agent(provider: str, detach: bool) -> None:
         image=DEFAULT_BASE_IMAGE,
         routes={
             '/': 80,
+        },
+        meta={
+            'http_token': uuid(),
         },
     )
 
