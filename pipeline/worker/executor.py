@@ -1,7 +1,6 @@
 import asyncio
 import traceback
 from pipeline.engine import ClusterProvider
-from pipeline.network import ConnectionClosedOK, ConnectionClosedError
 from pipeline.tasks import TaskDefinition
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
@@ -20,7 +19,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             node.parent = NopLogger(taskdef.id)
         else:
             # start upstream client
-            print('~~ connecting upstream')
             await node.connect(taskdef.upstream)
     else:
         # if we dont have anywhere to forward events, log them to stdout.
@@ -31,13 +29,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     try:
         # run task
         await node.run(taskdef)
-
-    except ConnectionClosedOK:
-        print('~~ upstream connection closed')
-
-    except ConnectionClosedError:
-        print('~~ upstream connection error')
-        traceback.print_exc()
 
     except Exception as e:
         # capture local errors

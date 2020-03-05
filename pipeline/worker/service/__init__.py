@@ -2,4 +2,3 @@
 
 from .logger import FlowLogger
 from .nop_logger import NopLogger
-from .task_list import TaskList

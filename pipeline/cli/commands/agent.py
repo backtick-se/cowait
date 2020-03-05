@@ -17,12 +17,8 @@ def agent(provider: str, detach: bool) -> None:
         id='agent',
         name='pipeline.tasks.agent',
         image=DEFAULT_BASE_IMAGE,
-        ports={
-            1337: 1337,
-        },
         routes={
             '/': 80,
-            '/ws': 1337,
         },
     )
 
