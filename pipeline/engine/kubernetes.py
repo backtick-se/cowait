@@ -246,7 +246,7 @@ class KubernetesProvider(ClusterProvider):
         pod = self.get_task_pod('agent')
         if pod is None:
             return None
-        return f'ws://{pod.status.pod_ip}:1337'
+        return f'ws://{pod.status.pod_ip}/ws'
 
 
 def convert_port(port, host_port: str = None):

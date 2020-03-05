@@ -17,20 +17,16 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
     if taskdef.upstream:
         if taskdef.upstream == 'disabled':
-            node.parent = NopLogger()
+            node.parent = NopLogger(taskdef.id)
         else:
+            # start upstream client
             print('~~ connecting upstream')
-
-            # handle downstream messages
-            node.io.create_task(node.parent.connect(taskdef.upstream))
-
-            while node.parent.ws is None:
-                await asyncio.sleep(0.1)
+            await node.connect(taskdef.upstream)
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up from the top level task by docker/kubernetes.
         print('~~ output logging enabled')
-        node.parent = FlowLogger()
+        node.parent = FlowLogger(taskdef.id)
 
     try:
         # run task
@@ -46,11 +42,13 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     except Exception as e:
         # capture local errors
         error = traceback.format_exc()
-        await node.api.fail(f'Caught exception in {taskdef.id}:\n{error}')
+        await node.parent.send_fail(
+            f'Caught exception in {taskdef.id}:\n'
+            f'{error}')
         raise e
 
     finally:
+        node.close()
+
         # ensure event loop has a chance to run
         await asyncio.sleep(0.5)
-
-        await node.close()

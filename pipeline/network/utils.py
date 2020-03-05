@@ -11,4 +11,4 @@ def get_local_ip():
 
 def get_local_connstr():
     local_ip = get_local_ip()
-    return f'ws://{local_ip}:{PORT}'
+    return f'ws://{local_ip}/ws'

@@ -29,10 +29,8 @@ class Client(EventEmitter):
 
     async def close(self):
         if self.connected:
-            self.rpc.cancel_all()
             await self.ws.close()
             self.ws = None
-            self.rpc = None
 
     async def send(self, msg: dict) -> None:
         if not self.connected:

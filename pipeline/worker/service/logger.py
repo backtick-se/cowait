@@ -1,5 +1,5 @@
 import json
-from pipeline.utils import EventEmitter
+from ..parent_client import ParentClient
 from pipeline.tasks.messages import \
     TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 
@@ -12,9 +12,9 @@ logged_types = [
 ]
 
 
-class FlowLogger(EventEmitter):
-    def __init__(self):
-        super().__init__()
+class FlowLogger(ParentClient):
+    def __init__(self, id: str):
+        super().__init__(id)
         self.ws = None  # hack due to stdout loop
         self.on(TASK_INIT, self.on_init)
         self.on(TASK_STATUS, self.on_status)
@@ -22,10 +22,10 @@ class FlowLogger(EventEmitter):
         self.on(TASK_RETURN, self.on_return)
         self.on(TASK_LOG, self.on_log)
 
-    async def close(self) -> None:
+    async def connect(self, url) -> None:
         pass
 
-    async def recv(self, *args, **kwargs) -> None:
+    async def close(self) -> None:
         pass
 
     async def send(self, msg: dict) -> None:

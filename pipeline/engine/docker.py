@@ -164,6 +164,6 @@ class DockerProvider(ClusterProvider):
     def find_agent(self):
         try:
             self.docker.containers.get('agent')
-            return 'ws://agent:1337'
+            return 'ws://agent/ws'
         except docker.errors.NotFound:
             return None
