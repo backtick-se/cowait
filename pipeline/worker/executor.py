@@ -22,7 +22,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             print('~~ connecting upstream')
 
             # handle downstream messages
-            node.io.create_task(node.parent.serve(taskdef.upstream))
+            node.io.create_task(node.parent.connect(taskdef.upstream))
 
             while node.parent.ws is None:
                 await asyncio.sleep(0.1)
