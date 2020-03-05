@@ -1,26 +1,41 @@
+import asyncio
 from contextlib import nullcontext
-from pipeline.network import Node
+from pipeline.network import Server, HttpServer
 from pipeline.tasks import TaskError, StopException
 from pipeline.utils import StreamCapturing
-from .worker_api import WorkerAPI
 from .service import FlowLogger
 from .io_thread import IOThread
 from .loader import load_task_class
+from .parent_client import ParentClient
 
 
-class WorkerNode(Node):
+class WorkerNode(object):
     def __init__(self, cluster, taskdef):
         super().__init__()
         self.cluster = cluster
-        self.api = WorkerAPI(self, taskdef)
         self.io = IOThread()
         self.io.start()
 
-        self.io.create_task(self.children.serve())
+        self.http = HttpServer(self)
+        self.children = Server(self)
+        self.parent = ParentClient(taskdef.id)
+
+    async def connect(self, uri) -> None:
+        self.io.create_task(self.parent.connect(uri))
+        while not self.parent.connected:
+            await asyncio.sleep(0.1)
+
+    def close(self) -> None:
+        async def close():
+            if self.children:
+                await self.children.close()
+            if self.parent:
+                await self.parent.close()
+        self.io.create_task(close())
 
     async def run(self, taskdef):
         try:
-            await self.api.init()
+            await self.parent.send_init(taskdef)
 
             # run task within a log capture context
             with self.capture_logs():
@@ -28,8 +43,14 @@ class WorkerNode(Node):
                 TaskClass = load_task_class(taskdef.name)
                 task = TaskClass(taskdef, self.cluster, self)
 
+                # initialize task
+                task.init()
+
+                # start http server
+                self.io.create_task(self.http.serve())
+
                 # set state to running
-                await self.api.run()
+                await self.parent.send_run()
 
                 # before hook
                 inputs = await task.before(taskdef.inputs)
@@ -45,14 +66,14 @@ class WorkerNode(Node):
                 await task.after(inputs)
 
                 # submit result
-                await self.api.done(result)
+                await self.parent.send_done(result)
 
         except StopException:
-            await self.api.stop()
+            await self.parent.send_stop()
 
         except TaskError as e:
             # pass subtask errors upstream
-            await self.api.fail(
+            await self.parent.send_fail(
                 f'Caught exception in {taskdef.id}:\n'
                 f'{e.error}')
 
@@ -65,10 +86,7 @@ class WorkerNode(Node):
         def logger(file):
             def callback(x):
                 nonlocal file
-                self.io.create_task(self.api.log(file, x))
+                self.io.create_task(self.parent.send_log(file, x))
             return callback
 
         return StreamCapturing(logger('stdout'), logger('stderr'))
-
-    async def close(self):
-        self.io.create_task(super().close())

@@ -5,7 +5,6 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pipeline.network import get_local_ip
 from pipeline.tasks import Task, sleep, rpc
-from pipeline.tasks.components import HttpComponent
 from pipeline.tasks.messages import TASK_LOG
 
 MSG_LEADER = 'I have been elected leader!'
@@ -51,11 +50,13 @@ def conf_from_cluster(app_name, master, config):
 
 
 class SparkCluster(Task):
-    def __init__(self, taskdef, cluster, node):
-        super().__init__(taskdef, cluster, node)
+    def init(self):
         self.master = None
         self.workers = []
         self.spark_cluster = {}
+
+        # subscribe to logs
+        self.node.children.on(TASK_LOG, self.on_log)
 
     async def on_log(self, id, file, data, **msg) -> None:
         if self.master and id == self.master.id:
@@ -71,11 +72,6 @@ class SparkCluster(Task):
         return True
 
     async def before(self, inputs: dict) -> dict:
-        inputs = await super().before(inputs)
-
-        # subscribe to logs
-        self.node.children.on(TASK_LOG, self.on_log)
-
         # create cluster
         await self.setup_cluster()
 
@@ -93,9 +89,6 @@ class SparkCluster(Task):
 
             print('~~ spark session ready')
             inputs['spark'] = self.spark
-
-        self.http = HttpComponent(self)
-        self.http.start()
 
         print('spark dashboard available at:')
         print(self.master.routes['/']['url'])

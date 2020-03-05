@@ -5,10 +5,10 @@ from .conn import Conn
 
 
 class Server(EventEmitter):
-    def __init__(self, port):
+    def __init__(self, node):
         super().__init__()
         self.conns = []
-        self.port = port
+        node.http.add_get('/ws', self.handle_client)
 
     async def handle_client(self, request):
         ws = web.WebSocketResponse()
@@ -46,13 +46,3 @@ class Server(EventEmitter):
     async def close(self):
         for conn in self.conns:
             await conn.close()
-
-    async def serve(self):
-        app = web.Application()
-        app.add_routes([
-            web.get('/', self.handle_client)
-        ])
-        runner = web.AppRunner(app, handle_signals=False)
-        await runner.setup()
-        site = web.TCPSite(runner, host='*', port=self.port)
-        await site.start()

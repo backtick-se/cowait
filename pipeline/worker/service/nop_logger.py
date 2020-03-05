@@ -1,10 +1,13 @@
-from pipeline.utils import EventEmitter
+from ..parent_client import ParentClient
 
 
-class NopLogger(EventEmitter):
-    def __init__(self):
-        super().__init__()
+class NopLogger(ParentClient):
+    def __init__(self, id: str):
+        super().__init__(id)
         self.ws = None  # hack due to stdout loop
+
+    async def connect(self, url) -> None:
+        pass
 
     async def close(self) -> None:
         pass

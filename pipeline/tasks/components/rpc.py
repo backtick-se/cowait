@@ -1,5 +1,6 @@
 import inspect
 import traceback
+from aiohttp import web
 
 RPC_CALL = 'rpc/call'
 RPC_ERROR = 'rpc/error'
@@ -10,8 +11,12 @@ class RpcComponent():
     def __init__(self, task):
         self.task = task
         self.methods = get_rpc_methods(task)
+
+        # listen for websocket rpc
         task.node.parent.on(RPC_CALL, self.on_rpc)
-        task.node.children.on(RPC_CALL, self.on_rpc)
+
+        # register http handler
+        task.node.http.add_post('/rpc/{method}', self.http_rpc_handler)
 
     async def call(self, method, args):
         if method not in self.methods:
@@ -41,6 +46,17 @@ class RpcComponent():
                 'args': args,
                 'error': str(e),
             })
+
+    async def http_rpc_handler(self, req):
+        try:
+            args = await req.json()
+            method = req.match_info['method']
+            result = await self.task.rpc.call(method, args)
+            return web.json_response(result)
+        except Exception as e:
+            print('HTTP RPC Error:')
+            traceback.print_exc()
+            return web.json_response({'error': str(e)}, status=400)
 
 
 class RpcError(RuntimeError):

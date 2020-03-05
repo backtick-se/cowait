@@ -32,6 +32,5 @@ install_requires=[
     'dask',
     'distributed',
     'kubernetes',
-    'pyzmq',
 ],
 """

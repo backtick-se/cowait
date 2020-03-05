@@ -2,7 +2,7 @@ import os
 from typing import Any
 from pipeline.network import get_local_connstr
 from .definition import TaskDefinition
-from .components import TaskManager, RpcComponent, HttpComponent, rpc
+from .components import TaskManager, RpcComponent, rpc
 
 
 class Task(TaskDefinition):
@@ -20,12 +20,14 @@ class Task(TaskDefinition):
         super().__init__(**kwargs)
         self.node = node
         self.cluster = cluster
-        self.rpc = RpcComponent(self)
-        self.http = HttpComponent(self)
         self.subtasks = TaskManager(self)
+        self.rpc = RpcComponent(self)
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
+
+    def init(self):
+        pass
 
     async def before(self, inputs: dict) -> dict:
         return inputs
@@ -46,7 +48,7 @@ class Task(TaskDefinition):
         """
         print('\n~~ STOPPED ~~')
 
-        await self.node.api.stop()
+        await self.node.parent.send_stop()
         for task in self.subtasks.values():
             await task.stop()
 

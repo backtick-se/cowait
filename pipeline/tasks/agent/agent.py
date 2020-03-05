@@ -7,7 +7,7 @@ from .api import Dashboard, TaskAPI
 
 
 class Agent(Task):
-    async def before(self, inputs: dict) -> None:
+    def init(self):
         self.tasks = TaskList(self)
         self.subs = Subscriptions(self)
 
@@ -23,10 +23,8 @@ class Agent(Task):
         self.subs.on('subscribe', send_state)
 
         # create http server
-        self.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
-        self.http.add_routes(Dashboard().routes())
-
-        return await super().before(inputs)
+        self.node.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
+        self.node.http.add_routes(Dashboard().routes())
 
     async def run(self, **inputs):
         print('agent ready. available at:')
