@@ -4,8 +4,11 @@ set -e
 
 # build
 if [ "$1" == "--build" ]; then
-    bash build.sh
+    bash ./build.sh
 fi
+
+# -e TASK_CLUSTER="{\"type\":\"docker\"}" \
+# -e TASK_DEFINITION="{\"id\":\"test\",\"name\":\"pipeline.test\",\"image\":\"docker.backtick.se/task\",\"inputs\":{\"folder\":\"./\"}}" \
 
 # run tests
 docker run \

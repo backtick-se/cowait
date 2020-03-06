@@ -11,5 +11,7 @@ __pycache__/
 .vscode
 .gitignore
 
-build_task_image.sh
+build.sh
+test.sh
 Dockerfile
+examples/

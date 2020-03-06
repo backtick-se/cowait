@@ -23,7 +23,10 @@ class RemoteTask(TaskDefinition):
     async def wait_for_init(self, timeout=30):
         slept = 0
         interval = 0.2
-        while self.conn is None and slept < timeout:
+        while self.conn is None:
+            if slept > timeout:
+                raise TimeoutError('Task took to long to initialize')
+
             await asyncio.sleep(interval)
             slept += interval
 

@@ -24,7 +24,7 @@ class Server(EventEmitter):
             if msg.type == aiohttp.WSMsgType.TEXT:
                 event = msg.json()
 
-                if conn.rpc.intercept_event(event):
+                if conn.rpc.intercept_event(**event):
                     continue
 
                 await self.emit(**event, conn=conn)

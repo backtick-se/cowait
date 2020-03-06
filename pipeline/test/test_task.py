@@ -4,8 +4,6 @@ from pipeline.test.fixtures import set_test_task
 
 
 class PytestTask(Task):
-    async def run(self):
+    async def run(self, folder='context/'):
         set_test_task(self)
-        pytest.main([
-            'context/',
-        ])
+        pytest.main([folder])

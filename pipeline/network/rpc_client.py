@@ -15,7 +15,7 @@ class RpcClient(object):
         self.nonce += 1
 
         self.calls[nonce] = Future()
-        await self.ws.send({
+        await self.ws.send_json({
             'type':   RPC_CALL,
             'method': method,
             'args':   args,

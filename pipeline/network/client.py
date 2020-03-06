@@ -22,7 +22,7 @@ class Client(EventEmitter):
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         event = msg.json()
-                        self.emit(**event, conn=self)
+                        await self.emit(**event, conn=self)
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
                         print('parent ws clean close')
                     elif msg.type == aiohttp.WSMsgType.ERROR:

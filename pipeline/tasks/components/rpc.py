@@ -14,6 +14,7 @@ class RpcComponent():
 
         # listen for websocket rpc
         task.node.parent.on(RPC_CALL, self.on_rpc)
+        task.node.children.on(RPC_CALL, self.on_rpc)
 
         # register http handler
         task.node.http.add_post('/rpc/{method}', self.http_rpc_handler)
