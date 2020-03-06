@@ -165,6 +165,8 @@ class DockerProvider(ClusterProvider):
     def find_agent(self):
         try:
             container = self.docker.containers.get('agent')
+            if container.status != 'running':
+                return None
             token = container.labels['http_token']
             return f'ws://agent/ws?token={token}'
         except docker.errors.NotFound:

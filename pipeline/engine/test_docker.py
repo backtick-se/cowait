@@ -6,7 +6,7 @@ from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from pipeline.tasks import TaskDefinition
 
 TEST_IMAGE = 'docker.backtick.se/task'
-TEST_TASK = 'pipeline.test.utility_task'
+TEST_TASK = 'pipeline.test.tasks.utility_task'
 
 
 def test_create_docker_task():

@@ -36,7 +36,6 @@ class WorkerNode(object):
 
     async def run(self, taskdef, cluster):
         try:
-            await self.parent.send_init(taskdef)
 
             # run task within a log capture context
             with self.capture_logs():
@@ -49,6 +48,8 @@ class WorkerNode(object):
 
                 # start http server
                 self.io.create_task(self.http.serve())
+
+                await self.parent.send_init(taskdef)
 
                 # set state to running
                 await self.parent.send_run()
