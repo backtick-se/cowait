@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
 from ..errors import TaskError
-from ..messages import TASK_INIT, TASK_FAIL, TASK_RETURN
+from ..messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
 
 
 class TaskManager(dict):
@@ -13,6 +13,7 @@ class TaskManager(dict):
 
         # subscribe to child task status updates
         task.node.children.on(TASK_INIT, self.on_child_init)
+        task.node.children.on(TASK_STATUS, self.on_child_status)
         task.node.children.on(TASK_RETURN, self.on_child_return)
         task.node.children.on(TASK_FAIL, self.on_child_fail)
         task.node.children.on('error', self.on_child_error)
@@ -44,20 +45,21 @@ class TaskManager(dict):
             task = self[id]
             task.conn = conn
 
+    async def on_child_status(self, conn, id: str, status: str, **msg: dict):
+        if id in self:
+            task = self[id]
+            task.set_status(status)
+
     async def on_child_return(self, conn, id: str, result: Any, **msg: dict):
         task = self[id]
-        if not task.future.done():
-            task.future.set_result(result)
+        task.set_result(result)
 
     async def on_child_fail(self, conn, id: str, error: str, **msg: dict):
         task = self[id]
-        if not task.future.done():
-            task.future.set_exception(TaskError(error))
+        task.set_error(error)
 
     async def on_child_error(self, conn, reason: str):
         if conn in self.conns:
             task_id = self.conns[conn]
             task = self[task_id]
-            if not task.future.done():
-                task.future.set_exception(TaskError(
-                    f'Lost connection to {task_id}'))
+            task.set_error(f'Lost connection to {task_id}')
