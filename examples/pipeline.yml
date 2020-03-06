@@ -10,3 +10,6 @@ pipeline:
     kubernetes:
       namespace: default
       domain: cluster.backtick.se
+    api:
+      url: http://localhost:63258
+      ws_url: http://localhost:1337
