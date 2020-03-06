@@ -1,9 +1,10 @@
 import asyncio
 import traceback
 from pipeline.engine import ClusterProvider
-from pipeline.tasks import TaskDefinition
+from pipeline.tasks import TaskDefinition, TaskError
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
+from .loader import load_task_class
 
 
 async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
@@ -27,8 +28,45 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         node.parent = FlowLogger(taskdef.id)
 
     try:
-        # run task
-        await node.run(taskdef, cluster)
+        # init should always be the first command sent
+        await node.parent.send_init(taskdef)
+
+        # run task within a log capture context
+        with node.capture_logs():
+            # instantiate
+            TaskClass = load_task_class(taskdef.name)
+            task = TaskClass(taskdef, cluster, node)
+
+            # initialize task
+            task.init()
+
+            # start http server
+            node.io.create_task(node.http.serve())
+
+            # set state to running
+            await node.parent.send_run()
+
+            # before hook
+            inputs = await task.before(taskdef.inputs)
+            if inputs is None:
+                raise ValueError(
+                    'Task.before() returned None, '
+                    'did you forget to return inputs?')
+
+            # execute task
+            result = await task.run(**inputs)
+
+            # after hook
+            await task.after(inputs)
+
+            # submit result
+            await node.parent.send_done(result)
+
+    except TaskError as e:
+        # pass subtask errors upstream
+        await node.parent.send_fail(
+            f'Caught exception in {taskdef.id}:\n'
+            f'{e.error}')
 
     except Exception as e:
         # capture local errors
