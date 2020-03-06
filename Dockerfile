@@ -17,8 +17,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# copy minimum set of files to install pip package
+COPY setup.py README.md ./
+COPY bin /app/bin
+RUN pip install .
+
 # copy code
 COPY . .
-RUN pip install .
 
 CMD [ "python", "-u", "main.py" ]
