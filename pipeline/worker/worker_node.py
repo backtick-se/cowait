@@ -1,8 +1,6 @@
 import asyncio
-from contextlib import nullcontext
 from pipeline.network import Server, HttpServer
 from pipeline.utils import StreamCapturing
-from .service import FlowLogger
 from .io_thread import IOThread
 from .parent_client import ParentClient
 
@@ -34,10 +32,6 @@ class WorkerNode(object):
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """
-        # hack to avoid stdout loop
-        if isinstance(self.parent, FlowLogger):
-            return nullcontext()
-
         def logger(file):
             def callback(x):
                 nonlocal file

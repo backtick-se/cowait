@@ -48,3 +48,7 @@ class FlowLogger(ParentClient):
 
     async def on_log(self, id, file, data, **msg):
         print(data, end='')
+
+    async def send_log(self, file: str, data: str) -> None:
+        # no need to forward local logs, they will be sent to stdout anyway
+        pass
