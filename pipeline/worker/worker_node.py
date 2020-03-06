@@ -1,11 +1,9 @@
 import asyncio
 from contextlib import nullcontext
 from pipeline.network import Server, HttpServer
-from pipeline.tasks import TaskError, StopException
 from pipeline.utils import StreamCapturing
 from .service import FlowLogger
 from .io_thread import IOThread
-from .loader import load_task_class
 from .parent_client import ParentClient
 
 
@@ -21,7 +19,7 @@ class WorkerNode(object):
         self.parent = ParentClient(id)
 
     async def connect(self, uri) -> None:
-        self.io.create_task(self.parent.connect(uri, self.id))
+        self.io.create_task(self.parent.connect(uri))
         while not self.parent.connected:
             await asyncio.sleep(0.1)
 
@@ -33,51 +31,6 @@ class WorkerNode(object):
                 await self.parent.close()
 
         await self.io.create_task(close())
-
-    async def run(self, taskdef, cluster):
-        try:
-
-            # run task within a log capture context
-            with self.capture_logs():
-                # instantiate
-                TaskClass = load_task_class(taskdef.name)
-                task = TaskClass(taskdef, cluster, self)
-
-                # initialize task
-                task.init()
-
-                # start http server
-                self.io.create_task(self.http.serve())
-
-                await self.parent.send_init(taskdef)
-
-                # set state to running
-                await self.parent.send_run()
-
-                # before hook
-                inputs = await task.before(taskdef.inputs)
-                if inputs is None:
-                    raise ValueError(
-                        'Task.before() returned None, '
-                        'did you forget to return inputs?')
-
-                # execute task
-                result = await task.run(**inputs)
-
-                # after hook
-                await task.after(inputs)
-
-                # submit result
-                await self.parent.send_done(result)
-
-        except StopException:
-            await self.parent.send_stop()
-
-        except TaskError as e:
-            # pass subtask errors upstream
-            await self.parent.send_fail(
-                f'Caught exception in {taskdef.id}:\n'
-                f'{e.error}')
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """

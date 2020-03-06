@@ -19,8 +19,3 @@ class TaskError(RuntimeError):
 class TaskNotFoundError(RuntimeError):
     """ Raised when a task can not be instantiated """
     pass
-
-
-class StopException(Exception):
-    """ Raised to abort task execution """
-    pass

@@ -3,7 +3,7 @@
 from asyncio import sleep
 
 from .status import WORK, WAIT, DONE, STOP, FAIL
-from .errors import TaskError, TaskNotFoundError, StopException
+from .errors import TaskError, TaskNotFoundError
 
 from .task import Task
 from .remote_task import RemoteTask

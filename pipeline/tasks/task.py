@@ -42,9 +42,6 @@ class Task(TaskDefinition):
     async def stop(self) -> None:
         """
         Abort task execution.
-
-        Raises:
-            StopException: Used to stop execution.
         """
         print('\n~~ STOPPED ~~')
 
