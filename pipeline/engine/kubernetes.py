@@ -247,6 +247,8 @@ class KubernetesProvider(ClusterProvider):
         pod = self.get_task_pod('agent')
         if pod is None:
             return None
+        if pod.status.phase != 'Running':
+            return None
 
         token = pod.metadata.labels['http_token']
         return f'ws://{pod.status.pod_ip}/ws?token={token}'

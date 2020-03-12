@@ -52,6 +52,11 @@ class Agent(Task):
         return self.cluster.list_all()
 
     @rpc
+    async def get_agent_url(self):
+        url = get_local_connstr()
+        return f'{url}?token={self.token}'
+
+    @rpc
     async def spawn(
         self,
         name: str,

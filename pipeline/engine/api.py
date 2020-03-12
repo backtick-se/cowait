@@ -50,6 +50,9 @@ class ApiProvider(ClusterProvider):
         for log in watcher.watch():
             yield log
 
+    def find_agent(self):
+        return self.rpc('get_agent_url')
+
 
 class ApiLogsWatcher(Thread):
     END = object()
