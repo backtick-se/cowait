@@ -15,6 +15,11 @@ class ParentClient(Client):
         super().__init__()
         self.id = id
 
+    async def connect(self, url: str, token: str = None) -> None:
+        if token is None:
+            token = self.id
+        return await super().connect(url, token)
+
     async def msg(self, type: str, **msg) -> None:
         """
         Send a message upstream.

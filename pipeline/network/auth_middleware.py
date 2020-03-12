@@ -27,6 +27,7 @@ class AuthMiddleware(object):
             return False
         if path.startswith('/rpc/'):
             return False
+
         return True
 
     @web.middleware

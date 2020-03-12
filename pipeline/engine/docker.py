@@ -113,8 +113,7 @@ class DockerProvider(ClusterProvider):
 
         def kill_family(container):
             container_task_id = container.labels[LABEL_TASK_ID]
-            container_id = container.id[:12]
-            print(f'~~ kill {container_task_id} ({container_id})')
+            print(f'~~ kill {container_task_id} ({container.short_id})')
 
             children = self.find_child_containers(container_task_id)
             kills = []
@@ -167,7 +166,9 @@ class DockerProvider(ClusterProvider):
             container = self.docker.containers.get('agent')
             if container.status != 'running':
                 return None
+
             token = container.labels['http_token']
             return f'ws://agent/ws?token={token}'
+
         except docker.errors.NotFound:
             return None
