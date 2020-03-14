@@ -1,6 +1,6 @@
 version: 1
 pipeline:
-  image: docker.backtick.se/core
+  image: backtickse/task-examples
 
   cluster:
     default: docker

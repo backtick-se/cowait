@@ -1,4 +1,4 @@
-FROM docker.backtick.se/task
+FROM backtickse/task
 
 RUN apt-get install -y wget default-jre-headless
 

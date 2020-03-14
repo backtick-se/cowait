@@ -16,7 +16,7 @@ class JupyterTask(ContainerTask):
 
         await super().run(
             name='jupyter',
-            image='docker.backtick.se/dask-notebook:latest',
+            image='backtickse/dask-notebook:latest',
             routes={
                 '/': 8888,
             },

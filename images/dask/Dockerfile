@@ -1,4 +1,4 @@
-FROM docker.backtick.se/task
+FROM backtickse/task
 
 RUN conda install --yes \
     -c conda-forge \

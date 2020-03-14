@@ -2,10 +2,10 @@ version: '2'
 services:
   dask-notebook:
     build: './dask-notebook'
-    image: 'docker.backtick.se/dask-notebook'
+    image: 'backtickse/dask-notebook'
   dask:
     build: './dask'
-    image: 'docker.backtick.se/dask'
+    image: 'backtickse/task-dask'
   spark:
     build: './spark'
-    image: 'docker.backtick.se/spark'
+    image: 'backtickse/task-spark'

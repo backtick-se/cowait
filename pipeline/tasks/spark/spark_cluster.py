@@ -125,7 +125,7 @@ class SparkCluster(Task):
         # create spark master
         self.master = self.spawn(
             name='pipeline.tasks.spark.master',
-            image='docker.backtick.se/spark',
+            image='backtickse/task-spark',
             routes={
                 '/': 8080,
             },
@@ -183,7 +183,7 @@ class SparkCluster(Task):
         for i in range(0, count):
             w = self.spawn(
                 name='pipeline.tasks.spark.worker',
-                image='docker.backtick.se/spark',
+                image='backtickse/task-spark',
                 routes={},
                 ports={},
                 env={
