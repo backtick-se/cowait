@@ -1,6 +1,6 @@
 version: 1
 pipeline:
-  image: docker.backtick.se/core
+  image: docker.backtick.se/tensor
 
   cluster:
     default: docker
