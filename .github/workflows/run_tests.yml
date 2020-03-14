@@ -16,4 +16,4 @@ jobs:
       run: docker network create tasks
       
     - name: Run tests
-      run: docker run -v /var/run/docker.sock:/var/run/docker.sock backtickse/task python -m pytest
+      run: bash test.sh
