@@ -65,7 +65,7 @@ Before you can run tasks on a remote cluster, they must be pushed to a docker re
 ```yaml
 version: 1
 pipeline:
-    image: docker.backtick.se/test
+    image: backtickse/task-test
 ```
 
 Once the image url has been configured, you can push the image:
@@ -100,7 +100,7 @@ Changes to the `pipeline/` directory require a rebuild of the base image. You ca
 $ ./build.sh
 ```
 
-If you have access to `docker.backtick.se` you can also push it automatically:
+If you have access to `backtickse` on Docker Hub you can also push it automatically:
 
 ```bash
 $ ./build.sh --push

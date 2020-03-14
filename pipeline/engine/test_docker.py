@@ -5,7 +5,7 @@ import docker
 from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from pipeline.tasks import TaskDefinition
 
-TEST_IMAGE = 'docker.backtick.se/task'
+TEST_IMAGE = 'backtickse/task'
 TEST_TASK = 'pipeline.test.tasks.utility_task'
 
 
