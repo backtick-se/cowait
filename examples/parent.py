@@ -2,7 +2,7 @@ from pipeline.tasks import Task, join
 from lazy import Lazy
 
 
-class LazyParentTask(Task):
+class Parent(Task):
     async def run(self, duration, count: int = 2, **inputs):
         # spawn a bunch of tasks using a list comprehension:
         tasks = [

@@ -38,7 +38,7 @@ class JupyterTask(ContainerTask):
                 self.display_url(task, token)
 
     def display_url(self, task, token):
-        print('notebook ready. available at:')
+        print('Notebook ready. Available at:')
 
         url = task.routes['/']['url']
         print(f'{url}{TOKEN_STR}{token}')
