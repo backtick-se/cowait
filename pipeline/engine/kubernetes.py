@@ -59,6 +59,9 @@ class KubernetesProvider(ClusterProvider):
     def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
         self.emit_sync('prepare', taskdef=taskdef)
 
+        if len(taskdef.volumes) > 0:
+            print('!! warning: KubernetesProvider does not support volumes')
+
         # container definition
         container = client.V1Container(
             name=taskdef.id,

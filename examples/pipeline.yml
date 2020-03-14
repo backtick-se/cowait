@@ -2,6 +2,11 @@ version: 1
 pipeline:
   image: backtickse/task-examples
 
+  volumes:
+  - type: bind
+    src: output
+    dst: output
+
   cluster:
     default: docker
     docker:

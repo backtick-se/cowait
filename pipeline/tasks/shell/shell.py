@@ -1,4 +1,4 @@
-import os
+import sys
 import asyncio
 from pipeline.tasks import Task
 
@@ -10,12 +10,12 @@ class ShellTask(Task):
             command,
             stderr=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            env=os.environ,  # inherit environment
+            env=self.env,  # inherit environment
         )
 
         # setup stream readers
-        stream_log_to_node(process.stdout, self.node, 'stdout')
-        stream_log_to_node(process.stderr, self.node, 'stderr')
+        stream_log_to_node(process.stdout, sys.stdout, self.node, 'stdout')
+        stream_log_to_node(process.stderr, sys.stderr, self.node, 'stderr')
 
         # wait for process to finish
         result = await process.wait()
@@ -25,13 +25,13 @@ class ShellTask(Task):
         }
 
 
-def stream_log_to_node(stream, node, name):
+def stream_log_to_node(stream, out_stream, node, name):
     async def logger():
         while True:
             line = await stream.readline()
             if line == b'':
                 return
 
-            await node.parent.send_log(name, line.decode('utf-8'))
+            print(line.decode('utf-8'), file=out_stream, end='', flush=True)
 
     asyncio.create_task(logger())

@@ -25,4 +25,5 @@ RUN pip install .
 # copy code
 COPY . .
 
-CMD [ "python", "-u", "main.py" ]
+WORKDIR /app/context
+CMD [ "python", "-u", "/app/main.py" ]

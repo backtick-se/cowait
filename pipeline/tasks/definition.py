@@ -42,6 +42,7 @@ class TaskDefinition(object):
         env:       dict = {},
         ports:     dict = {},
         routes:    dict = {},
+        volumes:   list = [],
         cpu:       str = '0',
         memory:    str = '0',
         owner:     str = '',
@@ -76,6 +77,7 @@ class TaskDefinition(object):
         self.cpu = cpu
         self.memory = memory
         self.owner = owner
+        self.volumes = volumes
 
         if created_at is None:
             self.created_at = datetime.now()
@@ -99,6 +101,12 @@ class TaskDefinition(object):
         return TaskDefinitionSchema().load(taskdef)
 
 
+class VolumeDefinitionSchema(Schema):
+    type = fields.Str(required=True)
+    src = fields.Str(required=True)
+    dst = fields.Str(required=True)
+
+
 class TaskDefinitionSchema(Schema):
     """ TaskDefinition serialization schema. """
 
@@ -116,6 +124,7 @@ class TaskDefinitionSchema(Schema):
     memory = fields.Str(missing='0')
     owner = fields.String(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now())
+    volumes = fields.List(fields.Nested(VolumeDefinitionSchema), missing=[])
 
     @post_load
     def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:

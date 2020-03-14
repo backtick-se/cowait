@@ -1,3 +1,4 @@
+import os
 import docker
 from pipeline.tasks import TaskDefinition, RemoteTask
 from .cluster import ClusterProvider
@@ -20,6 +21,10 @@ class DockerTask(RemoteTask):
         )
         self.container = container
         self.ip = taskdef.id  # id should be routable within docker
+
+
+def deconstruct(dict, *keys):
+    return map(lambda key: dict[key], keys)
 
 
 class DockerProvider(ClusterProvider):
@@ -45,14 +50,7 @@ class DockerProvider(ClusterProvider):
             network=self.network,
             ports=self.create_ports(taskdef),
             environment=self.create_env(taskdef),
-            volumes={
-                # this is the secret sauce that allows us to create new
-                # tasks as sibling containers
-                '/var/run/docker.sock': {
-                    'bind': '/var/run/docker.sock',
-                    'mode': 'ro',
-                },
-            },
+            volumes=self.create_volumes(taskdef),
             labels={
                 LABEL_TASK_ID: taskdef.id,
                 LABEL_PARENT_ID: taskdef.parent,
@@ -161,6 +159,35 @@ class DockerProvider(ClusterProvider):
 
     def create_ports(self, taskdef):
         return taskdef.ports
+
+    def create_volumes(self, taskdef):
+        volumes = {
+            # this is the secret sauce that allows us to create new
+            # tasks as sibling containers
+            '/var/run/docker.sock': {
+                'bind': '/var/run/docker.sock',
+                'mode': 'ro',
+            },
+        }
+
+        # add any additional volume mounts
+        for volume in taskdef.volumes:
+            [type, src, dst] = deconstruct(volume, 'type', 'src', 'dst')
+            if dst[0] != '/':
+                dest = '/app/context/' + dst
+
+            if type == 'bind':
+                if src[0] != '/':
+                    src = os.getcwd() + '/' + src
+                volumes[src] = {
+                    'bind': dest,
+                }
+            else:
+                raise RuntimeError(
+                    f'Volume type {type} is not supported by DockerProvider')
+
+        print(volumes)
+        return volumes
 
     def find_agent(self):
         try:
