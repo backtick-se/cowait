@@ -12,5 +12,4 @@ async def test_lazy(task_test):
     result = await task_test.spawn(Lazy, duration=1)
     assert result == {
         'duration': 1,
-        'crash_at': -1,
     }

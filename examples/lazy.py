@@ -7,34 +7,20 @@ Inputs:
 Outputs:
     duration (int): Number of seconds slept
 """
-import time
 import asyncio
 from pipeline.tasks import Task
-from duration_decider import DurationDecider
 
 
 class Lazy(Task):
-    async def run(self, duration: int = 0, block=False, crash_at=-1, **inputs):
-        if duration == 0:
-            duration = await self.spawn(DurationDecider)
-
+    async def run(self, duration: int = 0, **inputs):
         print('sleeping...')
-        if block:
-            print('running in blocking mode')
 
-        for i in range(1, int(duration)+1):
-            if crash_at and i == crash_at:
-                raise RuntimeError(f'planned crash at {i}')
+        # wait for a while
+        for i in range(0, int(duration)):
+            print('slept', i+1)
+            await asyncio.sleep(1)
 
-            print('slept', i)
-            if block:
-                time.sleep(1)
-            else:
-                await asyncio.sleep(1)
-
-        print('rest level ok')
-
+        # return the duration slept
         return {
             'duration': duration,
-            'crash_at': crash_at,
         }
