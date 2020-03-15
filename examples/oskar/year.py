@@ -60,7 +60,7 @@ def get_runner_urls(driver):
 
 
 class ScrapeYear(Task):
-    async def run(self, year, **inputs):
+    async def run(self, date, year, **inputs):
         year = str(year)
         driver = init_driver()                      # setup selenium web driver (chrome)
         driver = await navigate_to_results(driver, year)  # go to result list
@@ -73,8 +73,8 @@ class ScrapeYear(Task):
             print("Collecting for", old_title)
             urls += get_runner_urls(driver)
 
-            if len(urls) >= 1000:
-                subtasks.append(self.spawn(Collect, year=year, urls=urls))
+            if len(urls) >= 100:
+                subtasks.append(self.spawn(Collect, date=date, year=year, urls=urls))
 
                 urls = []
 
@@ -93,10 +93,9 @@ class ScrapeYear(Task):
                     break
                 except:
                     await sleep(1)
-            break
         
         if len(urls) > 0:
-            subtasks.append(self.spawn(Collect, year=year, urls=urls))  # remaining urls
+            subtasks.append(self.spawn(Collect, date=date, year=year, urls=urls))  # remaining urls
 
         driver.close()          # close selenium driver
         await join(*subtasks)   # wait for all background jobs to complete

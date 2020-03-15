@@ -1,11 +1,12 @@
 import boto3
+import os
 import json
 import pandas as pd
 import aiohttp
 import asyncio
 from lxml import html
 
-from pipeline.tasks import Task, join
+from pipeline.tasks import Task, join, sleep
 from pipeline.utils import uuid
 
 def parse_table(data, content):
@@ -34,26 +35,36 @@ def parse_info(data, content):
     return data
 
 
-async def fetch_runner_data(session, url):
-    async with session.get(url) as response:
-        content = await response.content.read()
+async def fetch_runner_data(session, url, current_retry=0):
+    try:
+        async with session.get(url) as response:
+            content = await response.content.read()
 
-        data = {}
+            data = {}
+            try:
+                data = parse_table(data, content)
+            except:
+                print("Couldnt parse table for", url)
+                pass
+            data = parse_info(data, content)
 
-        data = parse_table(data, content)
-        data = parse_info(data, content)
+            return data
+    except:
+        print("couldn't fetch", url)
+        if current_retry < 3:
+            await sleep(0.1)
+            return await fetch_runner_data(session, url, current_retry=current_retry+1)
 
-        return data
+    return False
 
 class Collect(Task):
-    async def run(self, year, urls, **inputs):
+    async def run(self, date, year, urls, **inputs):
         async with aiohttp.ClientSession() as session:
             reqs = [fetch_runner_data(session, url) for url in urls]
             data = await join(*reqs)
+            data = list(filter(lambda x: x != False, data))     # remove failed requests
         
-        s3 = boto3.resource('s3').Object('backtick-running', f'{year}/{uuid()}.json')
+        s3 = boto3.resource('s3').Object('backtick-running', f'{date}/{year}/{uuid()}.json')
         s3.put(Body=(bytes(json.dumps(data).encode('UTF-8'))))
 
-        return {
-            'processed': len(data)
-        }
+        return f"{year} finished {len(data)}"
