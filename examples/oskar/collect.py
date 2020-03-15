@@ -1,10 +1,12 @@
+import boto3
+import json
 import pandas as pd
 import aiohttp
 import asyncio
 from lxml import html
 
 from pipeline.tasks import Task, join
-
+from pipeline.utils import uuid
 
 def parse_table(data, content):
     splits = pd.read_html(content)[0]
@@ -44,11 +46,14 @@ async def fetch_runner_data(session, url):
         return data
 
 class Collect(Task):
-    async def run(self, urls, **inputs):
+    async def run(self, year, urls, **inputs):
         async with aiohttp.ClientSession() as session:
             reqs = [fetch_runner_data(session, url) for url in urls]
             data = await join(*reqs)
         
+        s3 = boto3.resource('s3').Object('backtick-running', f'{year}/{uuid()}.json')
+        s3.put(Body=(bytes(json.dumps(data).encode('UTF-8'))))
+
         return {
             'processed': len(data)
         }

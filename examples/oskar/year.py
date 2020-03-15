@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from pipeline.tasks import Task, join
+from pipeline.tasks import Task, join, sleep
 
 URL = "https://reg.goteborgsvarvet.se/sok/resultatlista.aspx"
 TAB_RESULT = "//*[@id='tabs']/li[3]/a"
@@ -30,7 +30,7 @@ def init_driver():
     return driver
 
 
-def navigate_to_results(driver, year):
+async def navigate_to_results(driver, year):
     driver.get(URL)
 
     driver.find_element_by_xpath(TAB_RESULT).click()
@@ -44,7 +44,7 @@ def navigate_to_results(driver, year):
     select.select_by_visible_text("Göteborgsvarvet " + year)
 
     # apply filter
-    time.sleep(2)
+    await sleep(2)
     filterbtn = driver.find_element_by_xpath(SUBMIT_FILTER)
     filterbtn.click()
 
@@ -63,7 +63,7 @@ class ScrapeYear(Task):
     async def run(self, year, **inputs):
         year = str(year)
         driver = init_driver()                      # setup selenium web driver (chrome)
-        driver = navigate_to_results(driver, year)  # go to result list
+        driver = await navigate_to_results(driver, year)  # go to result list
 
         urls = []
         subtasks = []
@@ -73,8 +73,8 @@ class ScrapeYear(Task):
             print("Collecting for", old_title)
             urls += get_runner_urls(driver)
 
-            if len(urls) >= 100:
-                subtasks.append(self.spawn(Collect, urls=urls))
+            if len(urls) >= 1000:
+                subtasks.append(self.spawn(Collect, year=year, urls=urls))
 
                 urls = []
 
@@ -92,9 +92,11 @@ class ScrapeYear(Task):
                     old_title = title
                     break
                 except:
-                    time.sleep(1)
-
-        subtasks.append(self.spawn(Collect, urls=urls))  # remaining urls
+                    await sleep(1)
+            break
+        
+        if len(urls) > 0:
+            subtasks.append(self.spawn(Collect, year=year, urls=urls))  # remaining urls
 
         driver.close()          # close selenium driver
         await join(*subtasks)   # wait for all background jobs to complete
