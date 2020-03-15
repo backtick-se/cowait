@@ -61,6 +61,7 @@ class Task(TaskDefinition):
         inputs: dict = {},
         meta: dict = {},
         env: dict = {},
+        volumes: list = [],
         cpu: str = '0',
         memory: str = '0',
         owner: str = '',
@@ -92,6 +93,10 @@ class Task(TaskDefinition):
             cpu=cpu,
             memory=memory,
             owner=owner,
+            volumes=[
+                *self.volumes,
+                *volumes,
+            ],
             inputs={
                 **inputs,
                 **kwargs,
