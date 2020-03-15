@@ -119,7 +119,7 @@ def push():
               default='docker',
               type=str,
               help='cluster provider type')
-def destroy(provider):
+def rm(provider):
     pipeline.cli.destroy(provider)
 
 

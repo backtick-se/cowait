@@ -79,6 +79,7 @@ class DockerProvider(ClusterProvider):
     def destroy_all(self) -> None:
         """ Destroys all running tasks """
         containers = self.docker.containers.list(
+            all=True,
             filters={
                 'label': LABEL_TASK_ID,
             },
