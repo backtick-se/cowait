@@ -18,5 +18,4 @@ ENV DISPLAY=:99
 RUN pip install --upgrade pip
 
 # install selenium
-RUN pip install selenium
-RUN pip install pandas lxml
+RUN pip install selenium pandas lxml

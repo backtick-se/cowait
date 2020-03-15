@@ -5,7 +5,9 @@ from year import ScrapeYear
 
 class Scrape(Task):
     async def run(self, start, end, **inputs):
-        years = range(start, int(end)+1)
+        assert int(start) >= 2014
+
+        years = range(int(start), int(end)+1)
         tasks = [self.spawn(ScrapeYear, year=year) for year in years]
         
         return await join(*tasks)
