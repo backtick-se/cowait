@@ -14,6 +14,9 @@ class StreamCapture(object):
         self.capture = StringIO()
         self.callback = callback
 
+    def isatty(self):
+        return False
+
     def write(self, data):
         self.capture.write(data)
 
