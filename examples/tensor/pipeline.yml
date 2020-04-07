@@ -1,0 +1,8 @@
+version: 1
+pipeline:
+  image: docker.backtick.se/tensor
+
+  cluster:
+    default: docker
+    docker:
+      network: tasks
