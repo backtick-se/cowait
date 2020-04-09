@@ -1,11 +1,15 @@
 from pipeline.tasks import Task, join
+from number import Number
 
 class Minimum(Task):
     async def run(self, value1=1, value2=2, value3=3):
-        tasks = join([
-            Number(value=value1),
-            Number(value=value2),
-            Number(value=value3)
-        ])
+        tasks = [
+            self.spawn(Number, value=value1),
+            self.spawn(Number, value=value2),
+            self.spawn(Number, value=value3)
+        ]
 
-        return min(await tasks)
+        result = min(await join(*tasks))
+        print('Minimum value:', result)
+
+        return result
