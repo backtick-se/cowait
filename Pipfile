@@ -21,6 +21,7 @@ pytest-sugar = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
 nest-asyncio = "*"
+pipeline = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"
