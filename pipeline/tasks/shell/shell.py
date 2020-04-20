@@ -32,6 +32,6 @@ def stream_log_to_node(stream, node, name):
             if line == b'':
                 return
 
-            await node.parent.send_log(name, line.decode('utf-8'))
+            print(line.decode('utf-8'), end='')
 
     asyncio.create_task(logger())
