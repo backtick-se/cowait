@@ -1,12 +1,12 @@
 import os
 import asyncio
-from pipeline.tasks import Task
+from pipeline.tasks import Task, rpc
 
 
 class ShellTask(Task):
     async def run(self, command, **inputs):
         # run shell command
-        process = await asyncio.create_subprocess_shell(
+        self.process = await asyncio.create_subprocess_shell(
             command,
             stderr=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
@@ -14,15 +14,22 @@ class ShellTask(Task):
         )
 
         # setup stream readers
-        stream_log_to_node(process.stdout, self.node, 'stdout')
-        stream_log_to_node(process.stderr, self.node, 'stderr')
+        stream_log_to_node(self.process.stdout, self.node, 'stdout')
+        stream_log_to_node(self.process.stderr, self.node, 'stderr')
 
         # wait for process to finish
-        result = await process.wait()
+        result = await self.process.wait()
 
         return {
             'code': result,
         }
+
+    @rpc
+    async def stop(self):
+        print('stopping shell process')
+        self.process.kill()
+
+        return await super().stop()
 
 
 def stream_log_to_node(stream, node, name):

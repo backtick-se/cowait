@@ -4,10 +4,10 @@ from dask.distributed import Client as DaskClient
 
 class DaskTask(Task):
     async def before(self, inputs: dict) -> dict:
-        if 'scheduler' not in inputs:
-            raise RuntimeError('Dask scheduler URI not found in input')
+        if 'cluster' not in inputs:
+            raise RuntimeError('Dask cluster info not found in inputs')
 
-        scheduler = inputs.get('scheduler')
+        scheduler = inputs.get('cluster').get('scheduler')
         dask = DaskClient(address=scheduler)
 
         print('~~ starting dask session')

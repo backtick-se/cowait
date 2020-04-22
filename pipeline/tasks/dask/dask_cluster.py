@@ -1,5 +1,5 @@
 import asyncio
-from pipeline.tasks import Task, sleep
+from pipeline.tasks import Task, sleep, rpc
 from pipeline.tasks.messages import TASK_LOG
 from concurrent.futures import Future
 from dask.distributed import Client as DaskClient
@@ -42,9 +42,10 @@ class DaskCluster(Task):
         self.dask.close()
 
         print('~~ destroying dask cluster')
-        await self.scheduler.stop()
+        self.scheduler.destroy()
+
         for worker in self.workers:
-            await worker.stop()
+            worker.destroy()
 
         await super().after(inputs)
 
@@ -89,6 +90,15 @@ class DaskCluster(Task):
             w.ready = Future()
             self.workers.append(w)
 
+    async def remove_workers(self, count):
+        count = abs(count)
+        if count > len(self.workers):
+            count = len(self.workers)
+
+        for worker in self.workers[-count:]:
+            worker.destroy()
+        self.workers = self.workers[:-count]
+
     async def wait_for_nodes(self):
         await asyncio.gather(
             asyncio.wrap_future(self.scheduler.ready),
@@ -107,5 +117,28 @@ class DaskCluster(Task):
             image=image,
             env=env,
             **inputs,
-            dask=self.dask_cluster,
+            cluster=self.dask_cluster,
         )
+
+    @rpc
+    async def get_workers(self):
+        ready = filter(lambda w: w.ready.done(), self.workers)
+        ids = list(map(lambda w: w.id, ready))
+        return {
+            'workers': ids,
+            'ready': len(ids),
+            'total': len(self.workers),
+        }
+
+    @rpc
+    async def scale(self, workers: int):
+        diff = workers - len(self.workers)
+        if diff > 0:
+            # scale up
+            print(f'~~ scale({workers}): adding {diff} workers')
+            await self.add_workers(diff)
+
+        elif diff < 0:
+            # scale down
+            print(f'~~ scale({workers}): removing {abs(diff)} workers')
+            await self.remove_workers(diff)
