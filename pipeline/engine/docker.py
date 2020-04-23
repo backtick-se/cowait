@@ -156,7 +156,7 @@ class DockerProvider(ClusterProvider):
                 check_duplicate=False,
                 driver='bridge',
                 labels={
-                    'pipeline': 1,
+                    'pipeline': 'true',
                 })
 
     def create_ports(self, taskdef):
