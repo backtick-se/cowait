@@ -14,7 +14,7 @@ def build() -> TaskImage:
     # if it exists, it will be copied to the container, and installed
     requirements = context.file_rel('requirements.txt')
     if requirements:
-        print('found custom requirements.txt:', requirements)
+        print('found custom requirements.txt')
 
     # find custom Dockerfile
     # if it exists, build it and extend that instead of the default base image

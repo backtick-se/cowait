@@ -1,0 +1,12 @@
+version: 1
+pipeline:
+  image: backtickse/dasky-test
+  base: backtickse/task
+
+  cluster:
+    default: docker
+    docker:
+      network: tasks
+    kubernetes:
+      namespace: default
+      domain: cluster.backtick.se

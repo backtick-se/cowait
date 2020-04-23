@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from pipeline.tasks.spark import SparkFlow
+from pipeline.tasks.spark import SparkCluster
 from pyspark.sql.types import \
     StructType, StructField, StringType, IntegerType, FloatType
 
@@ -19,7 +19,7 @@ BitmexTrades = StructType([
 ])
 
 
-class SparkyTask(SparkFlow):
+class SparkyTask(SparkCluster):
     async def run(
         self,
         spark,
