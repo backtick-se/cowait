@@ -3,9 +3,6 @@ services:
   dask-notebook:
     build: './dask-notebook'
     image: 'backtickse/dask-notebook'
-  dask:
-    build: './dask'
-    image: 'backtickse/task-dask'
   spark:
     build: './spark'
     image: 'backtickse/task-spark'
