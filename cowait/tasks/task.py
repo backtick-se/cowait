@@ -5,6 +5,9 @@ from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
 
 
+CURRENT_TASK = None
+
+
 class Task(TaskDefinition):
     """
     Task base class.
@@ -22,6 +25,19 @@ class Task(TaskDefinition):
         self.cluster = cluster
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
+
+    def __new__(cls, *args, **inputs):
+        global CURRENT_TASK
+        if CURRENT_TASK is None:
+            # there is no active task.
+            # instantiate one and make it the active task.
+            task = object.__new__(cls)
+            CURRENT_TASK = task
+            return task
+        else:
+            # we already have a task.
+            # spawn a remote task and return it.
+            return CURRENT_TASK.spawn(cls, **inputs)
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
