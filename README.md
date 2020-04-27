@@ -1,17 +1,18 @@
-# cowait Bro
+# cowait
+
+Cowait is a framework for creating containerized workflows with asynchronous Python. Tasks can be run locally with Docker or on a kubernetes cluster. The goal is complete flexibility with minimal setup and configuration.
 
 ## Getting Started
 
-**Requirements:**
+**Requirements**
 - docker
-- pipenv
+- python 3.6+
 
+**Installation**
 
-**Installation:**
-1. Clone repository
-1. `$ pipenv install`
-1. `$ pipenv install -e .`
-1. `$ pipenv shell`
+```bash
+$ pip3 install cowait
+```
 
 ## Task Development
 
@@ -21,7 +22,7 @@
 
 ```python
 # hello.py
-from cowait.tasks import Task
+from cowait import Task
 
 class Hello(Task):
     async def run(self):
@@ -29,6 +30,8 @@ class Hello(Task):
 ```
 
 2. **Build the task image**
+
+All files within a folder is bundled into a task image.
 
 In the same folder as `hello.py`, run:
 
@@ -48,9 +51,20 @@ $ cowait run hello
 - `hello` supplied to `cowait run` is the module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
 - Class name does not matter, except for importing to other tasks.
 
-### Task Inputs
+### Subtasks, Arguments & Return Values
 
-*Todo*
+Tasks can create subtasks, by importing and calling other tasks as if they were asynchronous python functions. Subtasks accept arguments and return results. Arguments and results must be JSON serializable.
+
+```python
+from cowait import Task
+from some_subtask import SomeSubtask
+
+class MainTask(Task):
+    async def run(self, **inputs):
+        subtask_result = await SomeSubtask(custom_argument = 'hello')
+        print('Subtask finished with result', subtask_result)
+        return 'ok'
+```
 
 ### Task Contexts
 
@@ -58,7 +72,7 @@ Tasks live in a *Task Context*. If you have not explicitly defined one, the encl
 
 *Todo*
 
-### Pushing Tasks
+### Pushing Task Images
 
 Before you can run tasks on a remote cluster, they must be pushed to a docker registry accessible from the cluster. To do this, you must define a proper image name in the context configuration file.
 
@@ -74,10 +88,10 @@ Once the image url has been configured, you can push the image:
 $ cowait push
 ```
 
-## Task Deployment
+## Cluster Deployment
 
-**Requiurements:**
-- Configured kubernetes cluster.
+**Requiurements**
+- Configured kubernetes cluster context.
 - Docker registry accessible from the cluster.
 
 First, ensure that the image has been pushed to your docker registry.
@@ -86,13 +100,29 @@ First, ensure that the image has been pushed to your docker registry.
 $ cowait push
 ```
 
-Run the task with the kubernetes provider:
+**Kubernetes Configuration**
+
+Before you can run tasks on a kubernetes cluster, you need to apply some RBAC rules to allow pods to interact with other pods. A sample configuration is provided in `k8setup.yml`, which will allow pods owned by the default service account to create, list and destroy other pods.
+
+**Running Tasks**
+
+Once the cluster has been configured, simply run a task with the kubernetes provider:
 
 ```bash
 $ cowait run hello --provider kubernetes
 ```
 
-## cowait Development
+## Development
+
+**Requirements**
+- docker
+- pipenv
+
+**Installation**
+1. Clone repository
+1. `$ pipenv install`
+1. `$ pipenv install -e .`
+1. `$ pipenv shell`
 
 Changes to the `cowait/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
 

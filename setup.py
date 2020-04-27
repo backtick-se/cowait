@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cowait",
-    version="0.0.5",
-    author="Backtick Technologies AB",
-    author_email="johan@backtick.se",
+    version="0.1.0",
+    author="Backtick Technologies",
+    author_email="hello@backtick.se",
     description="Cowait Core",
 
     long_description=long_description,
