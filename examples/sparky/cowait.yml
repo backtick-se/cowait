@@ -1,0 +1,12 @@
+version: 1
+cowait:
+  image: cowait/sparky-test
+  base: cowait/task-spark
+
+  cluster:
+    default: docker
+    docker:
+      network: tasks
+    kubernetes:
+      namespace: default
+      domain: cluster.backtick.se

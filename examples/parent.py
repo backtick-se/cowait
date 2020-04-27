@@ -1,4 +1,4 @@
-from pipeline.tasks import Task, join
+from cowait.tasks import Task, join
 from lazy import Lazy
 
 

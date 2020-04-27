@@ -1,4 +1,4 @@
-# Pipeline Bro
+# cowait Bro
 
 ## Getting Started
 
@@ -21,7 +21,7 @@
 
 ```python
 # hello.py
-from pipeline.tasks import Task
+from cowait.tasks import Task
 
 class Hello(Task):
     async def run(self):
@@ -33,7 +33,7 @@ class Hello(Task):
 In the same folder as `hello.py`, run:
 
 ```bash
-$ pipeline build
+$ cowait build
 ```
 
 3. **Run it locally in Docker.** Make sure you're in a pipenv shell.
@@ -41,11 +41,11 @@ $ pipeline build
 In the same folder as `hello.py`, run:
 
 ```bash
-$ pipeline run hello
+$ cowait run hello
 ```
 
 **Notes**
-- `hello` supplied to `pipeline run` is the module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
+- `hello` supplied to `cowait run` is the module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
 - Class name does not matter, except for importing to other tasks.
 
 ### Task Inputs
@@ -64,14 +64,14 @@ Before you can run tasks on a remote cluster, they must be pushed to a docker re
 
 ```yaml
 version: 1
-pipeline:
-    image: backtickse/task-test
+cowait:
+    image: cowait/task-test
 ```
 
 Once the image url has been configured, you can push the image:
 
 ```bash
-$ pipeline push
+$ cowait push
 ```
 
 ## Task Deployment
@@ -83,27 +83,27 @@ $ pipeline push
 First, ensure that the image has been pushed to your docker registry.
 
 ```
-$ pipeline push
+$ cowait push
 ```
 
 Run the task with the kubernetes provider:
 
 ```bash
-$ pipeline run hello --provider kubernetes
+$ cowait run hello --provider kubernetes
 ```
 
-## Pipeline Development
+## cowait Development
 
-Changes to the `pipeline/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
+Changes to the `cowait/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
 
 ```bash
 $ ./build.sh
 ```
 
-If you have access to `backtickse` on Docker Hub you can also push it automatically:
+If you have access to `cowait` on Docker Hub you can also push it automatically:
 
 ```bash
 $ ./build.sh --push
 ```
 
-**Note:** Tasks will have to rebuilt with `pipeline build` for the changes to take effect.
+**Note:** Tasks will have to rebuilt with `cowait build` for the changes to take effect.

@@ -1,0 +1,4 @@
+
+
+DEFAULT_REPO = 'cowait'
+DEFAULT_BASE_IMAGE = f'{DEFAULT_REPO}/task'

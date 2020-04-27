@@ -1,0 +1,6 @@
+# test context
+version: 1
+cowait:
+  repo: repo
+  cluster:
+    type: docker

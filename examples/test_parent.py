@@ -1,4 +1,4 @@
-from pipeline.test import task_test
+from cowait.test import task_test
 from parent import Parent
 
 

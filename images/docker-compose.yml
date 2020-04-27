@@ -1,8 +1,7 @@
 version: '2'
 services:
   dask-notebook:
-    build: './dask-notebook'
-    image: 'backtickse/dask-notebook'
+    image: 'cowait/dask-notebook'
   spark:
     build: './spark'
-    image: 'backtickse/task-spark'
+    image: 'cowait/task-spark'

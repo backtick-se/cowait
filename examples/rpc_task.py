@@ -1,4 +1,4 @@
-from pipeline.tasks import Task, sleep, rpc
+from cowait.tasks import Task, sleep, rpc
 
 
 class RpcTask(Task):
