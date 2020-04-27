@@ -1,4 +1,4 @@
-from pipeline.tasks import Task
+from cowait.tasks import Task
 
 
 class Hello(Task):

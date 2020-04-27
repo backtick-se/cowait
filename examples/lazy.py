@@ -8,7 +8,7 @@ Outputs:
     duration (int): Number of seconds slept
 """
 import asyncio
-from pipeline.tasks import Task
+from cowait.tasks import Task
 
 
 class Lazy(Task):

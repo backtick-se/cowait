@@ -1,7 +1,7 @@
 .git/
 dist/
 **/node_modules/
-pipeline.egg-info/
+cowait.egg-info/
 dask-worker-space/
 .pytest_cache/
 __pycache__/

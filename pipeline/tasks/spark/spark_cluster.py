@@ -3,9 +3,9 @@ import asyncio
 from concurrent.futures import Future
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
-from pipeline.network import get_local_ip
-from pipeline.tasks import Task, sleep, rpc
-from pipeline.tasks.messages import TASK_LOG
+from cowait.network import get_local_ip
+from cowait.tasks import Task, sleep, rpc
+from cowait.tasks.messages import TASK_LOG
 
 MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
@@ -124,8 +124,8 @@ class SparkCluster(Task):
 
         # create spark master
         self.master = self.spawn(
-            name='pipeline.tasks.spark.master',
-            image='backtickse/task-spark',
+            name='cowait.tasks.spark.master',
+            image='cowait/task-spark',
             routes={
                 '/': 8080,
             },
@@ -182,8 +182,8 @@ class SparkCluster(Task):
     async def add_workers(self, count):
         for i in range(0, count):
             w = self.spawn(
-                name='pipeline.tasks.spark.worker',
-                image='backtickse/task-spark',
+                name='cowait.tasks.spark.worker',
+                image='cowait/task-spark',
                 routes={},
                 ports={},
                 env={

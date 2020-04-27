@@ -10,10 +10,10 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Build task base image
-      run: docker build . --file Dockerfile --tag backtickse/task
+      run: docker build . --file Dockerfile --tag cowait/task
 
     - name: Create tasks network
       run: docker network create tasks
       
     - name: Run tests
-      run: docker run -v /var/run/docker.sock:/var/run/docker.sock backtickse/task python -m pytest
+      run: docker run -v /var/run/docker.sock:/var/run/docker.sock cowait/task python -m pytest

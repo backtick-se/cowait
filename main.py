@@ -8,7 +8,7 @@ Environment:
 import os
 import asyncio
 import traceback
-from pipeline.worker import execute, \
+from cowait.worker import execute, \
     env_get_cluster_provider, \
     env_get_task_definition
 

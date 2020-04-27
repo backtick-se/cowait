@@ -1,4 +1,4 @@
-from pipeline.tasks.container import ContainerTask
+from cowait.tasks.container import ContainerTask
 
 TOKEN_STR = '?token='
 TOKEN_LEN = 48
@@ -16,7 +16,7 @@ class JupyterTask(ContainerTask):
 
         await super().run(
             name='jupyter',
-            image='backtickse/dask-notebook:latest',
+            image='cowait/dask-notebook:latest',
             routes={
                 '/': 8888,
             },

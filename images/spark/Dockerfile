@@ -1,4 +1,4 @@
-FROM backtickse/task
+FROM cowait/task
 
 RUN apt-get install -y wget default-jre-headless
 

@@ -50,8 +50,8 @@ def create_cluster(**kwargs):
     pod = client.V1Pod(
         metadata=client.V1ObjectMeta(
             labels={
-                'pipeline/task': 'worker-' + task.get('id'),
-                'pipeline/parent': task.get('id'),
+                'cowait/task': 'worker-' + task.get('id'),
+                'cowait/parent': task.get('id'),
             },
         ),
         spec=client.V1PodSpec(

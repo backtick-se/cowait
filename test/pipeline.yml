@@ -1,6 +1,6 @@
 # test context
 version: 1
-pipeline:
+cowait:
   repo: repo
   cluster:
     type: docker

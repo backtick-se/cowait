@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from pipeline.tasks.spark import SparkCluster
+from cowait.tasks.spark import SparkCluster
 from pyspark.sql.types import \
     StructType, StructField, StringType, IntegerType, FloatType
 

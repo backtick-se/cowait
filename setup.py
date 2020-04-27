@@ -4,19 +4,19 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pipeline",
+    name="cowait",
     version="0.0.5",
-    author="castle",
+    author="Backtick Technologies AB",
     author_email="johan@backtick.se",
-    description="backtick pipeline core",
+    description="Cowait Core",
 
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    url="https://github.com/backtick-se/pipeline",
+    url="https://github.com/backtick-se/cowait",
 
     packages=setuptools.find_packages(),
-    scripts=['bin/pipeline'],
+    scripts=['bin/cowait'],
 
     classifiers=[],
 
