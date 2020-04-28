@@ -1,11 +1,11 @@
 import os.path
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from ..task_image import TaskImage
-from ..context import cowaitContext
+from ..context import CowaitContext
 
 
 def build() -> TaskImage:
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     image = TaskImage.open(context)
     print('context path:', context.root_path)
     print('image:', image.name)

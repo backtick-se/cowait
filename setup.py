@@ -5,9 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cowait",
-    version="0.1.1",
+    version="0.1.2",
     author="Backtick Technologies",
-    author_email="hello@backtick.se",
     description="Cowait Core",
 
     long_description=long_description,
@@ -21,16 +20,22 @@ setuptools.setup(
     classifiers=[],
 
     python_requires='>=3.6',
-)
 
-"""
-install_requires=[
-    'click',
-    'docker',
-    'requests',
-    'pyyaml',
-    'dask',
-    'distributed',
-    'kubernetes',
-],
-"""
+    install_requires=[
+        'click',
+        'docker',
+        'requests',
+        'pyyaml',
+        'dask',
+        'distributed',
+        'kubernetes',
+        'pyyaml',
+        'marshmallow',
+        'aiohttp',
+        'pytest',
+        'pytest-sugar',
+        'pytest-cov',
+        'pytest-asyncio',
+        'nest-asyncio',
+    ],
+)

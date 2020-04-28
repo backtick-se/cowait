@@ -1,11 +1,11 @@
 from ..const import DEFAULT_PROVIDER
-from ..context import cowaitContext
+from ..context import CowaitContext
 from ..utils import get_context_cluster
 from cowait.engine import get_cluster_provider
 
 
 def destroy(provider: str) -> None:
-    context = cowaitContext.open()
+    context = CowaitContext.open()
 
     # grab cluster provider
     cluster = get_cluster_provider(
@@ -18,7 +18,7 @@ def destroy(provider: str) -> None:
 
 
 def list_tasks(provider: str) -> None:
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     cluster = get_context_cluster(context, provider)
 
     tasks = cluster.list_all()
@@ -27,6 +27,6 @@ def list_tasks(provider: str) -> None:
 
 
 def kill(task_id: str, provider: str):
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     cluster = get_context_cluster(context, provider)
     cluster.destroy(task_id)

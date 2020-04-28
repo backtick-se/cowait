@@ -1,5 +1,5 @@
 import os
-from ..context import cowaitContext
+from ..context import CowaitContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 from cowait.tasks import TaskDefinition
 from .build import build as run_build
@@ -10,7 +10,7 @@ def test(
     provider: str,
     push: bool,
 ):
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     cluster = get_context_cluster(context, provider)
 
     if push:

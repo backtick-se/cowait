@@ -1,6 +1,6 @@
 import os
 import docker
-from .context import cowaitContext
+from .context import CowaitContext
 
 client = docker.from_env()
 
@@ -69,10 +69,10 @@ class TaskImage(object):
         return logs
 
     @staticmethod
-    def open(context: cowaitContext = None):
+    def open(context: CowaitContext = None):
         # automatically create context
         if context is None:
-            context = cowaitContext.open()
+            context = CowaitContext.open()
 
         return TaskImage(
             context=context,

@@ -4,7 +4,7 @@ from .cluster import ClusterProvider
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
 from .routers import LocalPortRouter
 
-DEFAULT_NETWORK = 'tasks'
+DEFAULT_NETWORK = 'cowait'
 
 
 class DockerTask(RemoteTask):

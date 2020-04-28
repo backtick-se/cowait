@@ -1,24 +1,24 @@
 import os
 import os.path
 import pytest
-from .context import cowaitContext
+from .context import CowaitContext
 
 
 def test_create_context():
-    context = cowaitContext.open('test')
+    context = CowaitContext.open('test')
     assert context.root_path == os.path.join(os.getcwd(), 'test')
 
     # raise error if path is invalid
     with pytest.raises(ValueError):
-        context = cowaitContext.open('does_not_exist')
+        context = CowaitContext.open('does_not_exist')
 
     # raise error if no context definition is found
-    local = cowaitContext.open()
+    local = CowaitContext.open()
     assert local.root_path == os.getcwd()
 
 
 def test_get_values():
-    context = cowaitContext.open('test')
+    context = CowaitContext.open('test')
     assert context['repo'] == 'repo'
     assert context['cluster.type'] == 'docker'
 
@@ -42,7 +42,7 @@ def test_get_values():
 
 
 def test_get_files():
-    context = cowaitContext.open('test')
+    context = CowaitContext.open('test')
 
     # context files
     path_abs = context.file('Dockerfile')
