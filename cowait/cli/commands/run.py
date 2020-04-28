@@ -5,7 +5,7 @@ from cowait.engine.errors import TaskCreationError
 from cowait.utils import parse_task_image_name
 from ..context import cowaitContext
 from ..utils import ExitTrap, get_context_cluster, printheader
-from .push import push
+from .build import build as build_cmd
 
 
 def run(
@@ -29,7 +29,7 @@ def run(
     image, task = parse_task_image_name(task, None)
     if image is None:
         if build:
-            push()
+            build_cmd()
         image = context.get_image_name()
 
     # default to agent as upstream
