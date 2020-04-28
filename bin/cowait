@@ -41,18 +41,18 @@ def new(name: str, image: str, provider: str):
 
 @cli.command(help='run a task')
 @click.argument('task', type=str)
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
 @click.option('--name',
               type=str,
               help='specific task name')
-@click.option('--input',
+@click.option('-i', '--input',
               type=(str, str),
               multiple=True,
               help='specify task input')
-@click.option('--env',
+@click.option('-e', '--env',
               type=(str, str),
               multiple=True,
               help='define enviornment variable')
@@ -64,11 +64,11 @@ def new(name: str, image: str, provider: str):
 @click.option('--upstream',
               type=str,
               help='root task upstream uri')
-@click.option('--build',
+@click.option('-b', '--build',
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
-@click.option('--detach',
+@click.option('-d', '--detach',
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
@@ -92,7 +92,7 @@ def run(
 
 
 @cli.command(help='run task tests')
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
@@ -115,7 +115,7 @@ def push():
 
 
 @cli.command(help='destroy tasks')
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
@@ -124,7 +124,7 @@ def rm(provider):
 
 
 @cli.command(help='list tasks')
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
@@ -134,7 +134,7 @@ def ps(provider):
 
 @cli.command(help='kill task')
 @click.argument('task', type=str)
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
@@ -143,11 +143,11 @@ def kill(task, provider):
 
 
 @cli.command(help='deploy cowait agent')
-@click.option('--provider',
+@click.option('-p', '--provider',
               default='docker',
               type=str,
               help='cluster provider type')
-@click.option('--detach',
+@click.option('-d', '--detach',
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
