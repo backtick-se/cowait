@@ -3,12 +3,12 @@ from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
-from ..context import cowaitContext
+from ..context import CowaitContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 
 
 def agent(provider: str, detach: bool) -> None:
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     cluster = get_context_cluster(context, provider)
 
     cluster.destroy('agent')

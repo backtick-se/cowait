@@ -3,7 +3,7 @@ import sys
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError
 from cowait.utils import parse_task_image_name
-from ..context import cowaitContext
+from ..context import CowaitContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 from .build import build as build_cmd
 
@@ -22,7 +22,7 @@ def run(
     cpu: str = '0',
     memory: str = '0',
 ):
-    context = cowaitContext.open()
+    context = CowaitContext.open()
     cluster = get_context_cluster(context, provider)
 
     # figure out image name

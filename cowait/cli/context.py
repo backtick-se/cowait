@@ -8,7 +8,7 @@ from .const import CONTEXT_FILE_NAME
 client = docker.from_env()
 
 
-class cowaitContext(object):
+class CowaitContext(object):
     def __init__(self, root_path: str, definition: dict):
         self.root_path = root_path
         self.definition = definition
@@ -91,7 +91,7 @@ class cowaitContext(object):
         context_file_path = find_file_in_parents(path, CONTEXT_FILE_NAME)
         if context_file_path is None:
             # use the current directory as the context
-            return cowaitContext(
+            return CowaitContext(
                 root_path=os.path.abspath(path),
                 definition={},
             )
@@ -107,7 +107,7 @@ class cowaitContext(object):
         # context root path is the yml folder
         root_path = os.path.abspath(os.path.dirname(context_file_path))
 
-        return cowaitContext(
+        return CowaitContext(
             root_path=root_path,
             definition=context,
         )
