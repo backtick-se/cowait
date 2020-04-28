@@ -13,7 +13,7 @@ class Parent(Task):
         # join() waits for a list of tasks to finish
         # it returns their results as a list:
         print('waiting for children to finish...')
-        results = await join(*tasks)
+        results = await join(tasks)
 
         print('all done')
         return results
