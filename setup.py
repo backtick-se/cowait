@@ -7,7 +7,6 @@ setuptools.setup(
     name="cowait",
     version="0.1.2",
     author="Backtick Technologies",
-    author_email="hello@backtick.se",
     description="Cowait Core",
 
     long_description=long_description,

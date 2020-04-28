@@ -116,13 +116,13 @@ $ cowait run hello --provider kubernetes
 
 **Requirements**
 - docker
-- pipenv
+- python 3.6+
+- pipenv/virtualenv (optional)
 
 **Installation**
+
 1. Clone repository
-1. `$ pipenv install`
-1. `$ pipenv install -e .`
-1. `$ pipenv shell`
+1. `$ python3 -m pip install -e .`
 
 Changes to the `cowait/` directory require a rebuild of the base image. You can do this with the provided helper script in the root of the repository:
 

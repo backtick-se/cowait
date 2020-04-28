@@ -20,7 +20,7 @@ RUN pip install -r requirements.txt
 # copy minimum set of files to install pip package
 COPY setup.py README.md ./
 COPY bin /app/bin
-RUN pip install .
+RUN pip install -e .
 
 # copy code
 COPY . .
