@@ -4,6 +4,6 @@ from cowait.test.fixtures import set_test_task
 
 
 class PytestTask(Task):
-    async def run(self, folder='context/'):
+    async def run(self):
         set_test_task(self)
-        pytest.main([folder])
+        pytest.main()
