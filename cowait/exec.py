@@ -6,6 +6,7 @@ Environment:
     TASK_DEFINITION (json): JSON-serialized TaskDefinition
 """
 import os
+import sys
 import asyncio
 import traceback
 from cowait.worker import execute, \
@@ -14,6 +15,9 @@ from cowait.worker import execute, \
 
 
 async def main():
+    # add working directory to pythonpath
+    sys.path += [os.getcwd()]
+
     # unpack cluster provider
     cluster = env_get_cluster_provider()
 
@@ -33,5 +37,5 @@ async def main():
     # print(f'~~ {taskdef.id} completed')
     os._exit(0)
 
-if __name__ == '__main__':
-    asyncio.run(main())
+# run asyncio loop
+asyncio.run(main())

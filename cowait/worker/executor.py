@@ -24,7 +24,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     else:
         # if we dont have anywhere to forward events, log them to stdout.
         # logs will be picked up from the top level task by docker/kubernetes.
-        print('~~ output logging enabled')
         node.parent = FlowLogger(taskdef.id)
 
     try:
