@@ -10,6 +10,6 @@ from .remote_task import RemoteTask
 from .definition import TaskDefinition
 
 from .flow import Flow
-from .ops import join
+from .ops import join, gather
 
 from .components.rpc import rpc
