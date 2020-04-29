@@ -19,6 +19,7 @@ def option_dict(opts):
 
 
 @click.group()
+@click.version_option(1)
 def cli():
     pass
 
