@@ -7,8 +7,6 @@ RUN apt-get update && \
     apt-get install -y \
     build-essential ca-certificates
 
-ENV PYTHONPATH=/app:/app/context:$PYTHONPATH
-
 # create working directory
 RUN mkdir -p /app/context
 WORKDIR /app
@@ -25,4 +23,5 @@ RUN pip install -e .
 # copy code
 COPY . .
 
-CMD [ "python", "-u", "main.py" ]
+WORKDIR /app/context
+CMD [ "cowait", "exec" ]

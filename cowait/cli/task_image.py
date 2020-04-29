@@ -29,7 +29,7 @@ class TaskImage(object):
                 print('RUN pip install -r ./requirements.txt', file=df)
 
             # copy source code
-            print('COPY . context/', file=df)
+            print('COPY . .', file=df)
 
         # build image
         self.image, logs = self.build_image(

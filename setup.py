@@ -5,9 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cowait",
-    version="0.1.2",
+    version="0.1.3",
     author="Backtick Technologies",
-    description="Cowait Core",
+    description="Cowait is a framework for creating " +
+                "containerized workflows with asynchronous Python.",
 
     long_description=long_description,
     long_description_content_type="text/markdown",
