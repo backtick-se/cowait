@@ -13,5 +13,6 @@ fi
 # run tests
 docker run \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    --workdir /var/cowait \
     cowait/task \
     python -m pytest

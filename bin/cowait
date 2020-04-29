@@ -155,10 +155,5 @@ def agent(provider: str, detach: bool):
     cowait.cli.agent(provider, detach)
 
 
-@cli.command(hidden=True)
-def exec():
-    cowait.cli.exec()
-
-
 if __name__ == '__main__':
     cli()

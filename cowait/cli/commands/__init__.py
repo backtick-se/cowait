@@ -6,6 +6,5 @@ from .push import push
 from .agent import agent
 from .new_context import new_context
 from .test import test
-from .exec import exec
 
 from .misc import *
