@@ -24,4 +24,4 @@ RUN pip install -e .
 COPY . .
 
 WORKDIR /var/task
-CMD [ "python3", "-m", "cowait.exec" ]
+CMD [ "python3", "-um", "cowait.exec" ]

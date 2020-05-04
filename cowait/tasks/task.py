@@ -37,6 +37,10 @@ class Task(TaskDefinition):
         else:
             # we already have a task.
             # spawn a remote task and return it.
+
+            if len(args) > 0:
+                raise RuntimeError('Tasks do not accept positional arguments')
+
             return CURRENT_TASK.spawn(cls, **inputs)
 
     def __str__(self) -> str:
