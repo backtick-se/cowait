@@ -1,13 +1,12 @@
-from cowait.tasks import Task, join
-from lazy import Lazy
+from cowait import Task, join
+from sleep import Sleep
 
 
 class Parent(Task):
     async def run(self, duration, count: int = 2, **inputs):
         # spawn a bunch of tasks using a list comprehension:
         tasks = [
-            self.spawn(Lazy, duration=duration)
-            for _ in range(0, count)
+            Sleep(duration=duration) for _ in range(0, count)
         ]
 
         # join() waits for a list of tasks to finish

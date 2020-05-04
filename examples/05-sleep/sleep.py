@@ -8,11 +8,11 @@ Outputs:
     duration (int): Number of seconds slept
 """
 import asyncio
-from cowait.tasks import Task
+from cowait import Task
 
 
-class Lazy(Task):
-    async def run(self, duration: int = 0, **inputs):
+class Sleep(Task):
+    async def run(self, duration: int = 2, **inputs):
         print('sleeping...')
 
         # wait for a while
