@@ -2,6 +2,8 @@
 
 Cowait is a framework for creating containerized workflows with asynchronous Python. Tasks can be run locally with Docker or on a kubernetes cluster. The goal is complete flexibility with minimal setup and configuration.
 
+Docs: http://docs.cowait.io/
+
 ## Getting Started
 
 **Requirements**
