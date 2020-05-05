@@ -1,12 +1,13 @@
 import os
 import time
 import kubernetes
+import urllib3.exceptions
 from kubernetes import client, config, watch
 from cowait.tasks import TaskDefinition, RemoteTask
 from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider
 from .routers import TraefikRouter
-from .errors import TaskCreationError
+from .errors import TaskCreationError, ProviderError
 
 DEFAULT_NAMESPACE = 'default'
 
@@ -57,79 +58,95 @@ class KubernetesProvider(ClusterProvider):
         return self.args.get('timeout', 180)
 
     def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
-        self.emit_sync('prepare', taskdef=taskdef)
+        try:
+            self.emit_sync('prepare', taskdef=taskdef)
 
-        # container definition
-        container = client.V1Container(
-            name=taskdef.id,
-            image=taskdef.image,
-            env=self.create_env(taskdef),
-            ports=self.create_ports(taskdef),
-            image_pull_policy='Always',  # taskdef field??
-            resources=client.V1ResourceRequirements(
-                limits={
-                    'cpu': str(taskdef.cpu),
-                    'memory': str(taskdef.memory),
-                },
-                requests={
-                    'cpu': str(taskdef.cpu),
-                    'memory': str(taskdef.memory),
-                },
-            ),
-        )
-
-        pod = self.core.create_namespaced_pod(
-            namespace=self.namespace,
-            body=client.V1Pod(
-                metadata=client.V1ObjectMeta(
-                    name=taskdef.id,
-                    namespace=self.namespace,
-                    labels={
-                        LABEL_TASK_ID: taskdef.id,
-                        LABEL_PARENT_ID: taskdef.parent,
-                        **taskdef.meta,
+            # container definition
+            container = client.V1Container(
+                name=taskdef.id,
+                image=taskdef.image,
+                env=self.create_env(taskdef),
+                ports=self.create_ports(taskdef),
+                image_pull_policy='Always',  # taskdef field??
+                resources=client.V1ResourceRequirements(
+                    limits={
+                        'cpu': str(taskdef.cpu),
+                        'memory': str(taskdef.memory),
+                    },
+                    requests={
+                        'cpu': str(taskdef.cpu),
+                        'memory': str(taskdef.memory),
                     },
                 ),
-                spec=client.V1PodSpec(
-                    hostname=taskdef.id,
-                    restart_policy='Never',
-                    image_pull_secrets=self.get_pull_secrets(),
+            )
 
-                    containers=[container],
+            pod = self.core.create_namespaced_pod(
+                namespace=self.namespace,
+                body=client.V1Pod(
+                    metadata=client.V1ObjectMeta(
+                        name=taskdef.id,
+                        namespace=self.namespace,
+                        labels={
+                            LABEL_TASK_ID: taskdef.id,
+                            LABEL_PARENT_ID: taskdef.parent,
+                            **taskdef.meta,
+                        },
+                    ),
+                    spec=client.V1PodSpec(
+                        hostname=taskdef.id,
+                        restart_policy='Never',
+                        image_pull_secrets=self.get_pull_secrets(),
+
+                        containers=[container],
+                    ),
                 ),
-            ),
-        )
+            )
 
-        # wait for pod to become ready
-        self.wait_until_ready(taskdef.id)
+            # wait for pod to become ready
+            self.wait_until_ready(taskdef.id)
 
-        # wrap & return task
-        print('~~ created kubenetes pod', pod.metadata.name)
-        task = KubernetesTask(self, taskdef, pod)
-        self.emit_sync('spawn', task=task)
-        return task
+            # wrap & return task
+            print('~~ created kubenetes pod', pod.metadata.name)
+            task = KubernetesTask(self, taskdef, pod)
+            self.emit_sync('spawn', task=task)
+            return task
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def kill(self, task_id):
-        self.core.delete_collection_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=f'{LABEL_TASK_ID}={task_id}',
-        )
-        self.emit_sync('kill', task_id=task_id)
-        return task_id
+        try:
+            self.core.delete_collection_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=f'{LABEL_TASK_ID}={task_id}',
+            )
+            self.emit_sync('kill', task_id=task_id)
+            return task_id
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def get_task_pod(self, task_id):
-        res = self.core.list_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=f'{LABEL_TASK_ID}={task_id}',
-        )
-        return res.items[0] if len(res.items) > 0 else None
+        try:
+            res = self.core.list_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=f'{LABEL_TASK_ID}={task_id}',
+            )
+            return res.items[0] if len(res.items) > 0 else None
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def get_task_child_pods(self, task_id: str):
-        res = self.core.list_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=f'{LABEL_PARENT_ID}={task_id}',
-        )
-        return res.items
+        try:
+            res = self.core.list_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=f'{LABEL_PARENT_ID}={task_id}',
+            )
+            return res.items
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def wait(self, task: KubernetesTask) -> None:
         raise NotImplementedError()
@@ -179,17 +196,25 @@ class KubernetesProvider(ClusterProvider):
             self.logs(task)
 
     def destroy_all(self) -> list:
-        self.core.delete_collection_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=LABEL_TASK_ID,
-        )
+        try:
+            self.core.delete_collection_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=LABEL_TASK_ID,
+            )
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def list_all(self) -> list:
-        res = self.core.list_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=LABEL_TASK_ID,
-        )
-        return map(lambda pod: pod.metadata.name, res.items)
+        try:
+            res = self.core.list_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=LABEL_TASK_ID,
+            )
+            return map(lambda pod: pod.metadata.name, res.items)
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def destroy(self, task_id) -> list:
         def kill_family(task_id):
@@ -208,23 +233,27 @@ class KubernetesProvider(ClusterProvider):
         return kill_family(task_id)
 
     def destroy_children(self, parent_id: str) -> list:
-        # get a list of child pods
-        children = self.core.list_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
-        )
+        try:
+            # get a list of child pods
+            children = self.core.list_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=f'{LABEL_PARENT_ID}={parent_id}',
+            )
 
-        # destroy child pods
-        self.core.delete_collection_namespaced_pod(
-            namespace=self.namespace,
-            label_selector=f'{LABEL_PARENT_ID}={parent_id}',
-        )
+            # destroy child pods
+            self.core.delete_collection_namespaced_pod(
+                namespace=self.namespace,
+                label_selector=f'{LABEL_PARENT_ID}={parent_id}',
+            )
 
-        # return killed child ids
-        return [
-            child.metadata.labels[LABEL_TASK_ID]
-            for child in children.items
-        ]
+            # return killed child ids
+            return [
+                child.metadata.labels[LABEL_TASK_ID]
+                for child in children.items
+            ]
+
+        except urllib3.exceptions.MaxRetryError:
+            raise ProviderError('Kubernetes engine unavailable')
 
     def create_env(self, taskdef: TaskDefinition):
         env = super().create_env(taskdef)
