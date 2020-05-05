@@ -1,14 +1,16 @@
 import sys
 import json
 from ..task_image import TaskImage
+from ..const import CONTEXT_FILE_NAME
 from .build import build
 
 
 def push() -> TaskImage:
     image = build()
 
-    if '/' not in image.name:
-        print('Error: You must specify a full image name before you can push')
+    if image is None or '/' not in image.name:
+        print(f'Error: You must specify a full image name in '
+              f'{CONTEXT_FILE_NAME} before you can push')
         return
 
     sys.stdout.write('pushing...')

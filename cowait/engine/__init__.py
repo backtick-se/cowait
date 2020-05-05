@@ -5,6 +5,7 @@ from .cluster import ClusterProvider
 from .docker import DockerProvider
 from .kubernetes import KubernetesProvider
 from .api import ApiProvider
+from .errors import TaskCreationError, ProviderError
 
 
 def get_cluster_provider(type, args = { }):
