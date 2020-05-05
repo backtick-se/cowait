@@ -75,42 +75,58 @@ class DockerProvider(ClusterProvider):
 
     def list_all(self) -> list:
         """ Returns a list of all running tasks """
-        containers = self.docker.containers.list(
-            filters={
-                'label': LABEL_TASK_ID,
-            },
-        )
-        return list(map(lambda c: c.labels[LABEL_TASK_ID], containers))
+        try:
+            containers = self.docker.containers.list(
+                filters={
+                    'label': LABEL_TASK_ID,
+                },
+            )
+            return list(map(lambda c: c.labels[LABEL_TASK_ID], containers))
+
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
 
     def destroy_all(self) -> None:
         """ Destroys all running tasks """
-        containers = self.docker.containers.list(
-            all=True,
-            filters={
-                'label': LABEL_TASK_ID,
-            },
-        )
+        try:
+            containers = self.docker.containers.list(
+                all=True,
+                filters={
+                    'label': LABEL_TASK_ID,
+                },
+            )
 
-        for container in containers:
-            container.remove(force=True)
+            for container in containers:
+                container.remove(force=True)
+
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
 
     def find_child_containers(self, parent_id: str) -> list:
         """ Finds all child containers of a given task id """
-        return self.docker.containers.list(
-            filters={
-                'label': f'{LABEL_PARENT_ID}={parent_id}',
-            },
-        )
+        try:
+            return self.docker.containers.list(
+                filters={
+                    'label': f'{LABEL_PARENT_ID}={parent_id}',
+                },
+            )
+
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
 
     def destroy_children(self, parent_id: str) -> list:
         """ Destroy all child tasks of a given task id """
-        children = self.find_child_containers(parent_id)
+        try:
+            children = self.find_child_containers(parent_id)
 
-        tasks = []
-        for child in children:
-            tasks += self.destroy(child.labels[LABEL_TASK_ID])
+            tasks = []
+            for child in children:
+                tasks += self.destroy(child.labels[LABEL_TASK_ID])
 
-        return tasks
+            return tasks
+
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
 
     def destroy(self, task_id):
         """ Destroy a specific task id and all its descendants """
@@ -142,12 +158,19 @@ class DockerProvider(ClusterProvider):
         except docker.errors.NotFound:
             return [task_id]
 
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
+
     def logs(self, task: DockerTask):
         """ Stream task logs """
-        for log in task.container.logs(stream=True):
-            if log[-1] == 10:  # newline
-                log = log[:-1]
-            yield str(log, encoding='utf-8')
+        try:
+            for log in task.container.logs(stream=True):
+                if log[-1] == 10:  # newline
+                    log = log[:-1]
+                yield str(log, encoding='utf-8')
+
+        except requests.exceptions.ConnectionError:
+            raise ProviderError('Docker engine unavailable')
 
     def wait(self, task: DockerTask):
         """ Wait for a task to finish """
