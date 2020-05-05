@@ -3,6 +3,7 @@ from typing import Any
 from cowait.network import get_local_connstr
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
+from .types import Mixed
 
 
 CURRENT_TASK = None
@@ -12,6 +13,9 @@ class Task(TaskDefinition):
     """
     Task base class.
     """
+
+    input_types = Mixed()
+    return_type = Mixed()
 
     def __init__(
         self,

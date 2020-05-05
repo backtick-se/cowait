@@ -2,6 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
+from cowait.tasks.types import Dict
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -45,8 +46,16 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # set state to running
             await node.parent.send_run()
 
+            # validate inputs
+            if isinstance(task.input_types, dict):
+                task.input_types = Dict(task.input_types)
+            task.input_types.validate(taskdef.inputs, 'Inputs')
+
+            # deserialize inputs
+            inputs = task.input_types.deserialize(taskdef.inputs)
+
             # before hook
-            inputs = await task.before(taskdef.inputs)
+            inputs = await task.before(inputs)
             if inputs is None:
                 raise ValueError(
                     'Task.before() returned None, '
@@ -57,6 +66,12 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
             # after hook
             await task.after(inputs)
+
+            # validate result
+            task.return_type.validate(result, 'Return')
+
+            # serialize result
+            result = task.return_type.serialize(result)
 
             # submit result
             await node.parent.send_done(result)
