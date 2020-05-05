@@ -1,3 +1,56 @@
+import inspect
+
+
+def is_input_type(type):
+    if type == any:
+        return True
+    elif type == int:
+        return True
+    elif type == float:
+        return True
+    elif type == str:
+        return True
+    elif type == dict:
+        return True
+    elif type == list:
+        return True
+    else:
+        return isinstance(type, InputType)
+
+
+def convert_type(annot):
+    if annot == inspect._empty:
+        return Mixed()
+    elif annot == any:
+        return Mixed()
+    elif annot == int:
+        return Int()
+    elif annot == float:
+        return Float()
+    elif annot == str:
+        return String()
+    elif annot == dict:
+        return Dict()
+    elif annot == list:
+        return List()
+    elif isinstance(annot, InputType):
+        return annot
+    else:
+        raise TypeError('Expected an input type')
+
+
+def get_return_type(task):
+    sig = inspect.signature(task.run)
+    return convert_type(sig.return_annotation)
+
+
+def get_input_types(task):
+    sig = inspect.signature(task.run)
+    return Dict({
+        key: convert_type(parameter.annotation)
+        for key, parameter in sig.parameters.items()
+        if parameter.kind == inspect._POSITIONAL_OR_KEYWORD
+    })
 
 
 class InputType(object):
@@ -50,12 +103,12 @@ class String(InputType):
 
 
 class Dict(InputType):
-    def __init__(self, shape: dict):
+    def __init__(self, shape: dict = {}):
         for key, type in shape.items():
-            if not isinstance(type, InputType):
+            if not is_input_type(type):
                 raise ValueError(f'Key {key} is not an InputType')
 
-        self.shape = shape
+        self.shape = {key: convert_type(type) for key, type in shape.items()}
 
     def validate(self, value, name):
         if not isinstance(value, dict):
@@ -80,8 +133,11 @@ class Dict(InputType):
 
 
 class List(InputType):
-    def __init__(self, elementType: InputType):
-        self.elementType = elementType
+    def __init__(self, elementType: InputType = Mixed()):
+        if not is_input_type(elementType):
+            raise ValueError('Element type is not an InputType')
+
+        self.elementType = convert_type(elementType)
 
     def validate(self, value, name):
         if not isinstance(value, list):
