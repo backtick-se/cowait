@@ -10,6 +10,8 @@ def is_input_type(type):
         return True
     elif type == str:
         return True
+    elif type == bool:
+        return True
     elif type == dict:
         return True
     elif type == list:
@@ -29,6 +31,8 @@ def convert_type(annot):
         return Float()
     elif annot == str:
         return String()
+    elif annot == bool:
+        return Bool()
     elif annot == dict:
         return Dict()
     elif annot == list:
@@ -100,6 +104,30 @@ class String(InputType):
 
     def deserialize(self, value):
         return str(value)
+
+
+class Bool(InputType):
+    def validate(self, value, name):
+        if isinstance(value, bool):
+            return True
+
+        value = str(value).lower()
+        if value == 'true':
+            return True
+        elif value == 'false':
+            return False
+        else:
+            raise ValueError(f'{name} must be a boolean')
+
+    def deserialize(self, value):
+        if isinstance(value, bool):
+            return value
+
+        value = str(value).lower()
+        if value == 'true':
+            return True
+        elif value == 'false':
+            return False
 
 
 class Dict(InputType):
