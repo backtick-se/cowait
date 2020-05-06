@@ -22,6 +22,7 @@ def test_create_docker_task():
         env=env_vars,
         inputs={
             'hello': '123',
+            'child': False,
         },
 
         # disables any output.
@@ -95,7 +96,7 @@ def test_docker_child_task():
 
     # wait for the child to spawn
     child = None
-    for i in range(0, 10):
+    for i in range(0, 20):
         children = dp.find_child_containers(task.id)
         if len(children) > 0:
             child = children[0]
