@@ -88,3 +88,64 @@ def test_bool():
 
     assert bool.deserialize('true')
     assert not bool.deserialize('false')
+
+
+def test_list():
+    mixlist = List()
+    mixlist.validate([1, 'str', 3.14], 'mix')
+
+    # typed list
+    intlist = List(Int())
+    intlist.validate([1, 2], 'ok')
+
+    with pytest.raises(ValueError):
+        intlist.validate([1, 'woops'], 'fail')
+
+    assert intlist.deserialize([1, 2]) == [1, 2]
+
+
+def test_dict():
+    dct = Dict({
+        'text': String(),
+        'number': Int(),
+    })
+
+    dct.validate({
+        'text': 'hello',
+        'number': 123,
+    }, 'ok')
+
+    # member missing
+    with pytest.raises(ValueError):
+        dct.validate({
+            'text': 'hello',
+        }, 'missing')
+
+    # type error
+    with pytest.raises(ValueError):
+        dct.validate({
+            'text': 'hello',
+            'number': 'one'
+        }, 'type err')
+
+
+def test_composite():
+    custom = Dict({
+        'int_list': List(Int()),
+        'subdict': Dict({
+            'number': Int(),
+        }),
+    })
+
+    custom.validate({
+        'int_list': [1, 2],
+        'subdict': {
+            'number': 1,
+        }
+    }, 'ok')
+
+    with pytest.raises(ValueError):
+        custom.validate({
+            'int_list': [1, 2],
+            'subdict': {},
+        }, 'subdict fail')
