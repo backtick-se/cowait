@@ -1,36 +1,36 @@
 import pytest
-from .types import InputType, is_input_type, convert_type, \
-    String, Int, Float, Bool, Dict, List
+from .types import is_cowait_type, convert_type_annotation, \
+    Any, String, Int, Float, Bool, Dict, List
 
 
-class TestInputType(InputType):
+class TestType(Any):
     """ A custom input type """
     pass
 
 
-class NotInputType(object):
+class NotType(object):
     """ Another object that is not a valid type """
     pass
 
 
-def test_is_input_type():
-    assert is_input_type(str)
-    assert is_input_type(int)
-    assert is_input_type(float)
-    assert is_input_type(bool)
-    assert is_input_type(dict)
-    assert is_input_type(list)
-    assert is_input_type(TestInputType())
-    assert not is_input_type(NotInputType)
+def test_is_cowait_type():
+    assert is_cowait_type(str)
+    assert is_cowait_type(int)
+    assert is_cowait_type(float)
+    assert is_cowait_type(bool)
+    assert is_cowait_type(dict)
+    assert is_cowait_type(list)
+    assert is_cowait_type(TestType())
+    assert not is_cowait_type(NotType)
 
 
 def test_get_input_type():
-    assert isinstance(convert_type(str), String)
-    assert isinstance(convert_type(int), Int)
-    assert isinstance(convert_type(float), Float)
-    assert isinstance(convert_type(bool), Bool)
-    assert isinstance(convert_type(dict), Dict)
-    assert isinstance(convert_type(list), List)
+    assert isinstance(convert_type_annotation(str), String)
+    assert isinstance(convert_type_annotation(int), Int)
+    assert isinstance(convert_type_annotation(float), Float)
+    assert isinstance(convert_type_annotation(bool), Bool)
+    assert isinstance(convert_type_annotation(dict), Dict)
+    assert isinstance(convert_type_annotation(list), List)
 
 
 def test_string():
@@ -141,7 +141,7 @@ def test_composite():
         'int_list': [1, 2],
         'subdict': {
             'number': 1,
-        }
+        },
     }, 'ok')
 
     with pytest.raises(ValueError):

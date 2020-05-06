@@ -1,7 +1,9 @@
 import inspect
+from abc import ABC, abstractmethod
 
 
-def is_input_type(type):
+def is_cowait_type(type):
+    """ Checks if a type is a valid cowait type """
     if type == any:
         return True
     elif type == int:
@@ -17,14 +19,15 @@ def is_input_type(type):
     elif type == list:
         return True
     else:
-        return isinstance(type, InputType)
+        return isinstance(type, Type)
 
 
-def convert_type(annot):
+def convert_type_annotation(annot):
+    """ Converts a type annotation to a cowait type """
     if annot == inspect._empty:
-        return Mixed()
+        return Any()
     elif annot == any:
-        return Mixed()
+        return Any()
     elif annot == int:
         return Int()
     elif annot == float:
@@ -37,77 +40,91 @@ def convert_type(annot):
         return Dict()
     elif annot == list:
         return List()
-    elif isinstance(annot, InputType):
+    elif isinstance(annot, Type):
         return annot
     else:
-        raise TypeError('Expected an input type')
+        raise TypeError('Expected a valid cowait type')
 
 
 def get_return_type(task):
+    """ Gets the return type of a Task or task instance. """
     sig = inspect.signature(task.run)
-    return convert_type(sig.return_annotation)
+    return convert_type_annotation(sig.return_annotation)
 
 
 def get_input_types(task):
+    """
+    Gets the input types for a Task or task instance.
+    Returns a Dict, mapping parameter names to cowait types.
+    """
     sig = inspect.signature(task.run)
     return Dict({
-        key: convert_type(parameter.annotation)
+        key: convert_type_annotation(parameter.annotation)
         for key, parameter in sig.parameters.items()
         if parameter.kind == inspect._POSITIONAL_OR_KEYWORD
     })
 
 
-class InputType(object):
-    def validate(self, value, name):
+class Type(ABC):
+    @abstractmethod
+    def validate(self, value: any, name: str) -> None:
         raise NotImplementedError()
 
-    def serialize(self, value):
+    def serialize(self, value: any) -> 'Type':
         return value
 
-    def deserialize(self, value):
+    def deserialize(self, value: any) -> 'Type':
         return value
 
 
-class Mixed(InputType):
-    def validate(self, value, name):
+class Any(Type):
+    """ Any type. Disables typechecking. """
+    def validate(self, value: any, name: str) -> None:
         pass
 
 
-class Int(InputType):
-    def validate(self, value, name):
+class Int(Type):
+    """ Integer, or anything that can be cast to an integer """
+    def validate(self, value: any, name: str) -> None:
         try:
             int(value)
         except ValueError:
             raise ValueError(f'{name} must be an integer')
 
-    def deserialize(self, value):
+    def deserialize(self, value: any) -> int:
         return int(value)
 
 
-class Float(InputType):
-    def validate(self, value, name):
+class Float(Type):
+    """ Floating point, or anything that can be cast to a float """
+
+    def validate(self, value: any, name: str) -> None:
         try:
             float(value)
         except ValueError:
             raise ValueError(f'{name} must be a float')
 
-    def deserialize(self, value):
+    def deserialize(self, value: any) -> float:
         return float(value)
 
 
-class String(InputType):
-    def validate(self, value, name):
+class String(Type):
+    """ String """
+
+    def validate(self, value: any, name: str) -> None:
         try:
             str(value)
         except ValueError:
             raise ValueError(f'{name} must be a string')
 
-    def deserialize(self, value):
+    def deserialize(self, value: any) -> str:
         return str(value)
 
 
-class Bool(InputType):
-    def validate(self, value, name):
+class Bool(Type):
+    """ Boolean """
+
+    def validate(self, value: any, name: str) -> None:
         if isinstance(value, bool):
             return True
 
@@ -119,7 +136,7 @@ class Bool(InputType):
         else:
             raise ValueError(f'{name} must be a boolean')
 
-    def deserialize(self, value):
+    def deserialize(self, value: any) -> bool:
         if isinstance(value, bool):
             return value
 
@@ -130,17 +147,20 @@ class Bool(InputType):
             return False
 
 
-class Dict(InputType):
+class Dict(Type):
     def __init__(self, shape: dict = {}):
         for key, type in shape.items():
-            if not is_input_type(type):
-                raise ValueError(f'Key {key} is not an InputType')
+            if not is_cowait_type(type):
+                raise ValueError(f'Key {key} is not a cowait Type')
 
-        self.shape = {key: convert_type(type) for key, type in shape.items()}
+        self.shape = {
+            key: convert_type_annotation(type)
+            for key, type in shape.items()
+        }
 
-    def validate(self, value, name):
+    def validate(self, value: dict, name: str):
         if not isinstance(value, dict):
-            raise ValueError(f'{name} is not a dictionary')
+            raise ValueError(f'{name} is not a dict')
 
         for key, type in self.shape.items():
             if key not in value:
@@ -160,12 +180,12 @@ class Dict(InputType):
         }
 
 
-class List(InputType):
-    def __init__(self, elementType: InputType = Mixed()):
-        if not is_input_type(elementType):
-            raise ValueError('Element type is not an InputType')
+class List(Type):
+    def __init__(self, elementType: Type = Any()):
+        if not is_cowait_type(elementType):
+            raise ValueError('Element type is not a cowait Type')
 
-        self.elementType = convert_type(elementType)
+        self.elementType = convert_type_annotation(elementType)
 
     def validate(self, value, name):
         if not isinstance(value, list):
