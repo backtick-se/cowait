@@ -1,6 +1,8 @@
 import pytest
-from .types import is_cowait_type, convert_type_annotation, \
-    Any, String, Int, Float, Bool, Dict, List
+from .utils import is_cowait_type, convert_type_annotation
+from .simple import Any, String, Int, Float, Bool
+from .dict import Dict
+from .list import List
 
 
 class TestType(Any):

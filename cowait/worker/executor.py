@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
-from cowait.tasks.types import get_input_types, get_return_type
+from cowait.types.utils import get_input_types, get_return_type
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
