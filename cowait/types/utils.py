@@ -86,8 +86,6 @@ def instantiate_type(TypeClass) -> object:
         0,
     )
 
-    print(list(sig.parameters.values()))
-
     # can't auto instantiate if there are non-default parameters
     if (non_default_params > 0):
         raise TypeError(f'{TypeClass.__name__} has non-default parameters '

@@ -43,15 +43,15 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
-            # set state to running
-            await node.parent.send_run()
-
             # validate inputs
             input_types = get_input_types(task)
             input_types.validate(taskdef.inputs, 'Inputs')
 
             # deserialize inputs
             inputs = input_types.deserialize(taskdef.inputs)
+
+            # set state to running
+            await node.parent.send_run()
 
             # before hook
             inputs = await task.before(inputs)

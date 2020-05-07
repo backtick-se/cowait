@@ -96,7 +96,7 @@ def test_docker_child_task():
 
     # wait for the child to spawn
     child = None
-    for i in range(0, 20):
+    for i in range(0, 10):
         children = dp.find_child_containers(task.id)
         if len(children) > 0:
             child = children[0]
