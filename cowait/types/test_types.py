@@ -1,5 +1,5 @@
 import pytest
-from .utils import is_cowait_type, convert_type_annotation
+from .utils import is_cowait_type, convert_type
 from .simple import Any, String, Int, Float, Bool
 from .dict import Dict
 from .list import List
@@ -27,12 +27,12 @@ def test_is_cowait_type():
 
 
 def test_get_input_type():
-    assert isinstance(convert_type_annotation(str), String)
-    assert isinstance(convert_type_annotation(int), Int)
-    assert isinstance(convert_type_annotation(float), Float)
-    assert isinstance(convert_type_annotation(bool), Bool)
-    assert isinstance(convert_type_annotation(dict), Dict)
-    assert isinstance(convert_type_annotation(list), List)
+    assert isinstance(convert_type(str), String)
+    assert isinstance(convert_type(int), Int)
+    assert isinstance(convert_type(float), Float)
+    assert isinstance(convert_type(bool), Bool)
+    assert isinstance(convert_type(dict), Dict)
+    assert isinstance(convert_type(list), List)
 
 
 def test_string():
@@ -151,3 +151,33 @@ def test_composite():
             'int_list': [1, 2],
             'subdict': {},
         }, 'subdict fail')
+
+
+def test_instantiate_type():
+    """ Ensures all default types can be auto instantiated """
+    assert isinstance(convert_type(Any), Any)
+    assert isinstance(convert_type(String), String)
+    assert isinstance(convert_type(Int), Int)
+    assert isinstance(convert_type(Float), Float)
+    assert isinstance(convert_type(Bool), Bool)
+    assert isinstance(convert_type(Dict), Dict)
+    assert isinstance(convert_type(List), List)
+
+
+def test_instantiate_with_non_default_params():
+    class TypeWithParam(Any):
+        def __init__(self, non_default):
+            pass
+
+    with pytest.raises(TypeError):
+        convert_type(TypeWithParam)
+
+
+def test_instantiate_with_default_params():
+    class TypeWithParam(Any):
+        def __init__(self, a=1):
+            self.a = a
+
+    obj = convert_type(TypeWithParam)
+    assert isinstance(obj, TypeWithParam)
+    assert obj.a == 1
