@@ -1,5 +1,5 @@
 import pytest
-from .utils import is_cowait_type, convert_type
+from .mapping import is_cowait_type, convert_type
 from .simple import Any, String, Int, Float, Bool
 from .dict import Dict
 from .list import List

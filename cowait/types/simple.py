@@ -1,12 +1,15 @@
 from .type import Type
+from .mapping import TypeAlias
 
 
+@TypeAlias(any)
 class Any(Type):
     """ Any type. Disables typechecking. """
     def validate(self, value: any, name: str) -> None:
         pass
 
 
+@TypeAlias(int)
 class Int(Type):
     """ Integer, or anything that can be cast to an integer """
     def validate(self, value: int, name: str) -> None:
@@ -19,6 +22,7 @@ class Int(Type):
         return int(value)
 
 
+@TypeAlias(float)
 class Float(Type):
     """ Floating point, or anything that can be cast to a float """
 
@@ -32,6 +36,7 @@ class Float(Type):
         return float(value)
 
 
+@TypeAlias(str)
 class String(Type):
     """ String """
 
@@ -45,6 +50,7 @@ class String(Type):
         return str(value)
 
 
+@TypeAlias(bool)
 class Bool(Type):
     """ Boolean """
 

@@ -1,8 +1,11 @@
 from .type import Type
-from .utils import is_cowait_type, convert_type
+from .mapping import is_cowait_type, convert_type, TypeAlias
 
 
+@TypeAlias(dict)
 class Dict(Type):
+    """ Dictionary type """
+
     def __init__(self, shape: dict = {}):
         for key, type in shape.items():
             if not is_cowait_type(type):
@@ -13,7 +16,7 @@ class Dict(Type):
             for key, type in shape.items()
         }
 
-    def validate(self, value: dict, name: str):
+    def validate(self, value: dict, name: str) -> None:
         if not isinstance(value, dict):
             raise ValueError(f'{name} is not a dict')
 
@@ -22,13 +25,13 @@ class Dict(Type):
                 raise ValueError(f'{name}[{key}] is required')
             type.validate(value[key], f'{name}[{key}]')
 
-    def serialize(self, value):
+    def serialize(self, value: dict) -> dict:
         return {
             key: type.serialize(value[key])
             for key, type in self.shape.items()
         }
 
-    def deserialize(self, value):
+    def deserialize(self, value: dict) -> dict:
         return {
             key: type.deserialize(value[key])
             for key, type in self.shape.items()
