@@ -22,6 +22,7 @@ def test_create_docker_task():
         env=env_vars,
         inputs={
             'hello': '123',
+            'child': False,
         },
 
         # disables any output.
