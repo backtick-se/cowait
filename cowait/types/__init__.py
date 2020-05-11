@@ -4,9 +4,8 @@ from .type import Type
 from .dict import Dict
 from .list import List
 from .custom import CustomType
-from .simple import Any, String, Int, Float, Bool
+from .simple import Any, String, Int, Float, Bool, DateTime
 from .mapping import TypeAlias
-
-from .utils import get_return_type, \
-    get_parameter_types, get_parameter_defaults, \
+from .utils import typed_arguments, typed_return, \
+    typed_call, typed_async_call, serialize, \
     type_from_description

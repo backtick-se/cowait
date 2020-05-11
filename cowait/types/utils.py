@@ -63,3 +63,82 @@ def type_from_description(desc: any) -> Type:
         return get_type(desc)()
     else:
         raise TypeError('Invalid type description')
+
+
+def typed_arguments(func: callable, args: dict) -> dict:
+    """
+    Checks types against function signature, merges the passed args dict
+    with any defaults, and deserializes using cowait types.
+    """
+    # merge arguments with defaults
+    args = {
+        **get_parameter_defaults(func),
+        **args,
+    }
+
+    # validate args
+    parameter_types = get_parameter_types(func)
+    parameter_types.validate(args, 'Arguments')
+
+    # deeserialize args
+    return parameter_types.deserialize(args)
+
+
+def typed_return(func: callable, result: object) -> (object, Type):
+    """
+    Type checks and serializes a return value using cowait types.
+    """
+    # validate result
+    result_type = get_return_type(func)
+    result_type.validate(result, 'Return')
+
+    # serialize result
+    return result_type.serialize(result), result_type.describe()
+
+
+async def typed_call(func: callable, args: dict) -> object:
+    """ Performs a type-checked function call. """
+    args = typed_arguments(func, args)
+    result = func(**args)
+    return typed_return(func, result)
+
+
+async def typed_async_call(func: callable, args: dict) -> object:
+    """ Performs a type-checked asynchronous function call. """
+    targs = typed_arguments(func, args)
+    result = await func(**targs)
+    return typed_return(func, result)
+
+
+def guess_type(obj: object) -> Type:
+    """
+    Attempts to guess the cowait type of an object by checking if
+    its type has a registered cowait type mapping.
+
+    Raises a TypeError if obj is not a valid cowait type.
+    """
+    return convert_type(type(obj))
+
+
+def validate_type(obj: object, shape: Type = None) -> bool:
+    """
+    Validates the type of an object. If no type is provided, it will
+    be inferred from the value. Returns true if the object is a valid
+    cowait type.
+    """
+    if shape is None:
+        shape = guess_type(obj)
+
+    try:
+        shape.validate(obj)
+        return True
+    except ValueError:
+        return False
+
+
+def serialize(obj: object, shape: Type = None) -> object:
+    """ Best-effort serialization of an object """
+    if shape is None:
+        shape = guess_type(obj)
+
+    return shape.serialize(obj)

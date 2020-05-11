@@ -2,8 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
-from cowait.types import get_return_type, \
-    get_parameter_types, get_parameter_defaults
+from cowait.types import typed_arguments, typed_return
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -44,18 +43,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
-            # merge inputs with defaults
-            inputs = {
-                **get_parameter_defaults(task.run),
-                **taskdef.inputs,
-            }
-
-            # validate inputs
-            input_types = get_parameter_types(task.run)
-            input_types.validate(inputs, 'Inputs')
-
-            # deserialize inputs
-            inputs = input_types.deserialize(inputs)
+            # prepare & typecheck inputs
+            inputs = typed_arguments(task.run, taskdef.inputs)
 
             # set state to running
             await node.parent.send_run()
@@ -79,13 +68,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # after hook
             await task.after(inputs)
 
-            # validate result
-            return_type = get_return_type(task.run)
-            return_type.validate(result, 'Return')
-
-            # serialize result
-            result = return_type.serialize(result)
-            result_type = return_type.describe()
+            # prepare & typecheck result
+            result, result_type = typed_return(task.run, result)
 
             # submit result
             await node.parent.send_done(result, result_type)
