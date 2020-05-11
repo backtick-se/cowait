@@ -2,7 +2,8 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
-from cowait.types import get_input_types, get_input_defaults, get_return_type
+from cowait.types import get_return_type, \
+    get_parameter_types, get_parameter_defaults
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -45,12 +46,12 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
             # merge inputs with defaults
             inputs = {
-                **get_input_defaults(task),
+                **get_parameter_defaults(task.run),
                 **taskdef.inputs,
             }
 
             # validate inputs
-            input_types = get_input_types(task)
+            input_types = get_parameter_types(task.run)
             input_types.validate(inputs, 'Inputs')
 
             # deserialize inputs
@@ -73,7 +74,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             await task.after(inputs)
 
             # validate result
-            return_type = get_return_type(task)
+            return_type = get_return_type(task.run)
             return_type.validate(result, 'Return')
 
             # serialize result
