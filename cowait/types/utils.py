@@ -10,8 +10,18 @@ def convert_type_annotation(annot: object) -> Type:
     if annot == inspect._empty:
         # an empty type signature defaults to the Any type.
         return Any()
-    else:
-        return convert_type(annot)
+
+    return convert_type(annot)
+
+
+def get_input_defaults(task) -> dict:
+    """ Returns a dict of default input values for a Task """
+    sig = inspect.signature(task.run)
+    return {
+        key: parameter.default
+        for key, parameter in sig.parameters.items()
+        if parameter.default != inspect._empty
+    }
 
 
 def get_return_type(task) -> Type:

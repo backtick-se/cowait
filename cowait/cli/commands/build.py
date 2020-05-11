@@ -52,6 +52,3 @@ def build() -> TaskImage:
     except docker.errors.DockerException as e:
         printheader('error')
         print('Docker exception:', str(e))
-
-    finally:
-        printheader()

@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
-from cowait.types import get_input_types, get_return_type
+from cowait.types import get_input_types, get_input_defaults, get_return_type
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -43,12 +43,18 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
+            # merge inputs with defaults
+            inputs = {
+                **get_input_defaults(task),
+                **taskdef.inputs,
+            }
+
             # validate inputs
             input_types = get_input_types(task)
-            input_types.validate(taskdef.inputs, 'Inputs')
+            input_types.validate(inputs, 'Inputs')
 
             # deserialize inputs
-            inputs = input_types.deserialize(taskdef.inputs)
+            inputs = input_types.deserialize(inputs)
 
             # set state to running
             await node.parent.send_run()
