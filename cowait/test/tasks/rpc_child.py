@@ -6,12 +6,18 @@ class RpcChild(Task):
         self.called = False
 
     async def run(self):
-        await sleep(3)
+        print('waiting for call from parent...')
+        for i in range(0, 5):
+            if self.called:
+                break
+            await sleep(1)
+
         return {
             'called': self.called
         }
 
     @rpc
     async def echo(self, **params):
+        print('echo', params)
         self.called = True
         return params

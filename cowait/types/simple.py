@@ -12,6 +12,9 @@ class Any(Type):
     def validate(self, value: any, name: str) -> None:
         pass
 
+    def __repr__(self):
+        return 'cowait.types.Any()'
+
 
 @TypeAlias(int)
 class Int(Type):
@@ -27,6 +30,9 @@ class Int(Type):
 
     def deserialize(self, value: any) -> int:
         return int(value)
+
+    def __repr__(self):
+        return 'cowait.types.Int()'
 
 
 @TypeAlias(float)
@@ -44,6 +50,9 @@ class Float(Type):
     def deserialize(self, value: any) -> float:
         return float(value)
 
+    def __repr__(self):
+        return 'cowait.types.Float()'
+
 
 @TypeAlias(str)
 class String(Type):
@@ -59,6 +68,9 @@ class String(Type):
 
     def deserialize(self, value: any) -> str:
         return str(value)
+
+    def __repr__(self):
+        return 'cowait.types.String()'
 
 
 @TypeAlias(bool)
@@ -89,6 +101,9 @@ class Bool(Type):
         elif value == 'false':
             return False
 
+    def __repr__(self):
+        return 'cowait.types.Bool()'
+
 
 @TypeAlias(datetime)
 class DateTime(Type):
@@ -108,3 +123,6 @@ class DateTime(Type):
 
     def deserialize(self, value: str) -> datetime:
         return datetime.fromisoformat(value)
+
+    def __repr__(self):
+        return 'cowait.types.DateTime()'

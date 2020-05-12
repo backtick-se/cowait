@@ -179,13 +179,15 @@ class SparkCluster(Task):
             print(f'~~ scale({workers}): removing {abs(diff)} workers')
             await self.remove_workers(diff)
 
+    @rpc
+    def get_client(self) -> dict:
+        pass
+
     async def add_workers(self, count):
         for i in range(0, count):
             w = self.spawn(
                 name='cowait.tasks.spark.worker',
                 image='cowait/task-spark',
-                routes={},
-                ports={},
                 env={
                     'SPARK_WORKER_CORES': '2',
                 },
