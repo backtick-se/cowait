@@ -1,19 +1,25 @@
 import os
 from cowait.tasks import TaskDefinition
 from cowait.engine import ProviderError, TaskCreationError
+from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, get_context_cluster, printheader
+from ..utils import ExitTrap, printheader
 from .build import build as run_build
 from .push import push as run_push
 
 
 def test(
-    provider: str,
     push: bool,
+    cluster_name: str = None,
 ):
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
-        cluster = get_context_cluster(context, provider)
+
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
 
         if push:
             run_push()

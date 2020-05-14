@@ -1,14 +1,14 @@
 import os
 import os.path
 import yaml
-from ..const import CONTEXT_FILE_NAME, DEFAULT_PROVIDER
+from ..const import CONTEXT_FILE_NAME
 
 
 def new_context(
     name: str,
     image: str,
     base: str,
-    provider: str = DEFAULT_PROVIDER,
+    cluster_name: str = None,
     docker_network: str = None,
     kube_namespace: str = None,
 ):
@@ -33,9 +33,8 @@ def new_context(
         print('Base image:', base)
         context['base'] = base
 
-    context['cluster'] = {
-        'default': provider,
-    }
+    if cluster_name is not None:
+        context['cluster'] = cluster_name
 
     context_file = os.path.join(path, CONTEXT_FILE_NAME)
     if os.path.isfile(context_file):

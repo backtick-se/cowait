@@ -3,14 +3,15 @@ import sys
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
+from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, get_context_cluster, printheader
+from ..utils import ExitTrap, printheader
 from .build import build as build_cmd
 
 
 def run(
     task: str,
-    provider: str,
+    cluster_name: str,
     name: str = None,
     inputs: dict = {},
     env: dict = {},
@@ -23,8 +24,13 @@ def run(
     memory: str = '0',
 ):
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
-        cluster = get_context_cluster(context, provider)
+
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
 
         # figure out image name
         image, task = parse_task_image_name(task, None)
@@ -58,7 +64,7 @@ def run(
         # print execution info
         printheader('task')
         print('   task:      ', taskdef.id)
-        print('   provider:  ', provider)
+        print('   cluster:   ', cluster_name)
         if taskdef.upstream:
             print('   upstream:  ', taskdef.upstream)
         print('   image:     ', image)

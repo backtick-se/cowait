@@ -78,4 +78,4 @@ def printheader(title: str = None) -> None:
 def get_context_cluster(context, provider: str = None):
     type = context.coalesce(['provider'], provider, DEFAULT_PROVIDER)
     args = context.coalesce([type], None, {})
-    return get_cluster_provider(type, args)
+    return get_cluster_provider(type, **args)

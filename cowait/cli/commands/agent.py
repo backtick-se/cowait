@@ -7,7 +7,7 @@ from ..context import CowaitContext
 from ..utils import ExitTrap, get_context_cluster, printheader
 
 
-def agent(provider: str, detach: bool) -> None:
+def agent(provider: str, detach: bool, upstream: str = None) -> None:
     try:
         context = CowaitContext.open()
         cluster = get_context_cluster(context, provider)
@@ -19,6 +19,7 @@ def agent(provider: str, detach: bool) -> None:
             id='agent',
             name='cowait.tasks.agent',
             image=DEFAULT_BASE_IMAGE,
+            upstream=upstream,
             routes={
                 '/': 80,
             },

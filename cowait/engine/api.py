@@ -45,6 +45,9 @@ class ApiProvider(ClusterProvider):
 
     def logs(self, task):
         ws_url = self.args.get('ws_url')
+        if ws_url is None:
+            print('No websocket URL set - logs not available.')
+            return
 
         watcher = ApiLogsWatcher(task.id, ws_url)
         for log in watcher.watch():

@@ -95,6 +95,9 @@ class Agent(Task):
             },
         ))
 
+        # authorize id
+        self.node.http.auth.add_token(id)
+
         # register with subtask manager
         self.subtasks.watch(task)
 
