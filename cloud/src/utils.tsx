@@ -3,7 +3,14 @@ import query from 'query-string'
 export function updateToken() {
     const queries = query.parse(window.location.search)
     let token = queries.token
-    localStorage.setItem('token', token)
+
+    if (token) {
+        if (token instanceof Array) {
+            localStorage.setItem('token', token[0])
+        } else {
+            localStorage.setItem('token', token)
+        }
+    }
 }
 
 export function getToken() {

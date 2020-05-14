@@ -1,7 +1,7 @@
 import React from 'react'
 import { TaskStatusLabel } from './styled/Status'
 
-export const StatusIcons = {
+export const statusIcons: { [status: string]: string } = {
     'wait': 'fa fa-clock',
     'work': 'fa fa-cog fa-spin',
     'done': 'fa fa-check',
@@ -9,7 +9,7 @@ export const StatusIcons = {
     'stop': 'fa fa-stop',
 }
 
-export const StatusLabels = {
+export const statusLabels: { [status: string]: string } = {
     'wait': 'Wait',
     'work': 'Running',
     'done': 'Done',
@@ -17,11 +17,14 @@ export const StatusLabels = {
     'stop': 'Stop',
 }
 
+type Props = {
+    status: string
+}
 
-export function TaskStatus({ status }) {
+export const TaskStatus: React.FC<Props> = ({ status }) => {
     return <TaskStatusLabel status={status}>
-        <i className={StatusIcons[status]} />
-        <span>{StatusLabels[status]}</span>
+        <i className={statusIcons[status]} />
+        <span>{statusLabels[status]}</span>
     </TaskStatusLabel>
 }
 

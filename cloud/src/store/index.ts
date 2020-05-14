@@ -1,14 +1,24 @@
 import { 
     createStore as createReduxStore, 
-    applyMiddleware, 
-    combineReducers, 
+    applyMiddleware,
+    combineReducers
 } from 'redux'
 import { createLogger } from 'redux-logger'
 import tasks from './tasks'
 import socket from './socket'
+import { TaskState } from './tasks/types'
+import { SocketState } from './socket/types'
 
+type StoreConfig = {
+    logging: boolean
+}
 
-export function createStore({ logging }) {
+export interface RootState {
+    tasks: TaskState,
+    socket: SocketState
+}
+
+export const createStore = ({ logging }: StoreConfig) => {
     let middleware = [ ]
     if (logging) {
         middleware.push(createLogger())
@@ -17,7 +27,7 @@ export function createStore({ logging }) {
     return createReduxStore(
         combineReducers({
             tasks: tasks.reducer,
-            socket: socket.reducer,
+            socket: socket.reducer
         }),
         applyMiddleware(
             ...middleware
@@ -25,4 +35,4 @@ export function createStore({ logging }) {
     )
 }
 
-export default createStore  
+export default createStore

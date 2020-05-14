@@ -1,9 +1,11 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { ErrorOutput, ErrorBubblePadded } from './styled/Error'
 
+type Props = {
+    error: string | null
+}
 
-export function TaskError({ error }) {
+export const TaskError: React.FC<Props> = ({ error = null }) => {
     if (!error) {
         return null
     }
@@ -11,14 +13,6 @@ export function TaskError({ error }) {
         <h4>Error</h4>
         <ErrorOutput>{error}</ErrorOutput>
     </ErrorBubblePadded>
-}
-
-TaskError.propTypes = {
-    error: PropTypes.string,
-}
-
-TaskError.defaultProps = {
-    error: null,
 }
 
 export default TaskError

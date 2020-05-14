@@ -1,6 +1,8 @@
 import PipeClient from './PipeClient'
 import { createStore } from './store'
 import socket from './store/socket'
+import tasks from './store/tasks'
+import { Store } from 'redux'
 
 const DefaultStoreOptions = {
     logging: true,
@@ -8,7 +10,8 @@ const DefaultStoreOptions = {
 
 
 export class PipeClientStore extends PipeClient {
-    constructor(uri, storeOptions = DefaultStoreOptions) {
+    store: Store
+    constructor(uri: string, storeOptions = DefaultStoreOptions) {
         super(uri)
         const store = createStore(storeOptions)
 
@@ -16,16 +19,16 @@ export class PipeClientStore extends PipeClient {
             store.dispatch(socket.actions.connecting())
         })
         this.on('connect', () => {
-            store.dispatch({ type: 'clear' })
+            store.dispatch(tasks.actions.clear())
             store.dispatch(socket.actions.connected())
         })
         this.on('message', event => {
-            store.dispatch(event)
+            store.dispatch(tasks.actions.taskEvent(event))
         })
         this.on('error', error => {
             store.dispatch(socket.actions.error(error))
         })
-        this.on('close', event => {
+        this.on('close', _ => {
             store.dispatch(socket.actions.closed())
         })
 

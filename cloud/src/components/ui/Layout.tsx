@@ -1,6 +1,10 @@
 import styled from 'styled-components'
 
-export const Bubble = styled.div`
+type Props = {
+    shadow?: string
+}
+
+export const Bubble = styled.div<Props>`
     padding: 1rem;
     border-radius: 0.3rem;
     margin-bottom: 0.5rem;

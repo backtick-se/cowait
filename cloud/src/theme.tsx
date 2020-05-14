@@ -1,6 +1,19 @@
-import { createGlobalStyle } from 'styled-components'
+import { createGlobalStyle, DefaultTheme } from 'styled-components'
 
-export const theme = {
+export interface Theme extends DefaultTheme {
+    fonts: {
+        [fontType: string]: string
+    }
+    colors: {
+        text: string
+        background: string,
+        status: {
+            [status: string]: string
+        }
+    }
+}
+
+export const theme: Theme = {
     fonts: {
         normal: 'Oxygen',
         monospace: 'Nanum Gothic Coding',
@@ -20,7 +33,11 @@ export const theme = {
     },
 }
 
-export const GlobalStyle = createGlobalStyle`
+type Props = {
+    theme: typeof theme
+}
+
+export const GlobalStyle = createGlobalStyle<Props>`
     html {
         box-sizing: border-box;
         font-size: 16px;
