@@ -1,18 +1,16 @@
 import { action } from 'typesafe-actions'
 import { TaskActionTypes } from "./types"
-import { AnyAction } from 'redux';
+import { AnyAction } from 'redux'
 
-const convertEventToAction = (action: AnyAction): AnyAction => {
+const conformActionType = (action: AnyAction): AnyAction => {
   const prefix = '@@'
   const [namespace, event] = action.type.split('/')
 
-  const a = {
+  return {
     ...action,
     type: `${prefix}${namespace}/${event.toUpperCase()}`
   }
+}
 
-  console.log('action', a);
-  return a
-} 
 export const clear = () => action(TaskActionTypes.CLEAR)
-export const taskEvent = convertEventToAction
+export const taskEvent = conformActionType

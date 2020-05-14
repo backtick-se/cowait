@@ -1,19 +1,18 @@
 import PipeClient from './PipeClient'
-import { createStore } from './store'
+import { createStore, StoreConfig } from './store'
 import socket from './store/socket'
 import tasks from './store/tasks'
 import { Store } from 'redux'
 
-const DefaultStoreOptions = {
-    logging: true,
+const defaultStoreConfig: StoreConfig = {
+    logging: false // redux-logger
 }
-
 
 export class PipeClientStore extends PipeClient {
     store: Store
-    constructor(uri: string, storeOptions = DefaultStoreOptions) {
+    constructor(uri: string, storeConfig = defaultStoreConfig) {
         super(uri)
-        const store = createStore(storeOptions)
+        const store = createStore(storeConfig)
 
         this.on('connecting', () => {
             store.dispatch(socket.actions.connecting())

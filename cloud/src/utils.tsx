@@ -13,11 +13,11 @@ export function updateToken() {
     }
 }
 
-export function getToken() {
+export function getToken(): string | null {
     return localStorage.getItem('token')
 }
 
-export function getWsUrl() {
+export function getWsUrl(): string {
     // allow override with env
     if (process.env.REACT_APP_AGENT_URL) {
         return process.env.REACT_APP_AGENT_URL.replace('http','ws').replace('?token', 'ws?token')
