@@ -15,11 +15,17 @@ class ApiProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('api', args)
         self.url = args.get('url')
+        self.token = args.get('token', None)
 
     def rpc(self, method: str, **kwargs) -> dict:
         # todo: authentication
         url = f'{self.url}/rpc/{method}'
-        resp = requests.post(url, json=kwargs)
+        resp = requests.post(url, json=kwargs, headers={
+            'Cowait-Key': self.token,
+        })
+        if resp.status_code == 401:
+            raise RuntimeError('Authentication error. Invalid token?')
+
         msg = resp.json()
         if resp.status_code == 200:
             return msg
