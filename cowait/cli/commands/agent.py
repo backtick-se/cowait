@@ -3,14 +3,24 @@ from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
+from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, get_context_cluster, printheader
+from ..utils import ExitTrap, printheader
 
 
-def agent(provider: str, detach: bool, upstream: str = None) -> None:
+def agent(
+    cluster_name: str = None,
+    detach: bool = False,
+    upstream: str = None,
+) -> None:
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
-        cluster = get_context_cluster(context, provider)
+
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
 
         cluster.destroy('agent')
 
