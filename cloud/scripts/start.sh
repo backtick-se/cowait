@@ -14,12 +14,10 @@ fi
 task_definition=$(docker exec $agent bash -c 'echo "$TASK_DEFINITION"')
 
 # Find url and token values
-url=$((jq '.routes' | jq '.["/"]' | jq '.url') <<<$task_definition)
-token=$(jq '.meta.http_token' <<<$task_definition)
+url=$(jq -r '.routes["/"].url' <<< $task_definition)
+token=$(jq -r '.meta.http_token' <<<$task_definition)
 
-# Strip quotation marks
-url=$(sed -e 's/^"//' -e 's/"$//' <<<$url)
-token=$(sed -e 's/^"//' -e 's/"$//' <<<$token)
+# Construct agent URL
 agent_url="$url?token=$token"
 
 # Run
