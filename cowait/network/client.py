@@ -1,3 +1,5 @@
+import os
+import asyncio
 import aiohttp
 from cowait.utils import EventEmitter
 
@@ -11,7 +13,30 @@ class Client(EventEmitter):
     def connected(self) -> bool:
         return self.ws is not None
 
-    async def connect(self, url: str, token: str) -> None:
+    async def connect(
+        self,
+        url: str,
+        token: str,
+        max_retries: int = 5
+    ) -> None:
+        retries = 0
+        while retries < max_retries or max_retries == 0:
+            retries += 1
+            try:
+                await self._connect(url, token)
+            except aiohttp.ClientError as e:
+                print('Upstream connection failed:', str(e))
+                await asyncio.sleep(retries * 3)
+            finally:
+                self.ws = None
+
+        if retries >= max_retries and max_retries > 0:
+            # Reached maximum number of connection attempts
+            # Crash the client
+            print('Max upstream connection attempts reached')
+            os._exit(1)
+
+    async def _connect(self, url: str, token: str) -> None:
         headers = {
             'Authorization': f'Bearer {token}',
         }
@@ -23,12 +48,12 @@ class Client(EventEmitter):
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         event = msg.json()
                         await self.emit(**event, conn=self)
+
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
                         print('parent ws clean close')
+
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         print('parent ws client error:', ws.exception())
-
-        self.ws = None
 
     async def close(self):
         if self.connected:
