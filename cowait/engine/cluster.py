@@ -2,7 +2,6 @@ from __future__ import annotations
 import json
 from abc import abstractmethod
 from typing import Iterable
-from marshmallow import Schema, fields
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import EventEmitter
 from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
@@ -48,12 +47,10 @@ class ClusterProvider(EventEmitter):
 
     def serialize(self) -> dict:
         """ Serialize ClusterProvider into a dict """
-        return ClusterProviderSchema().dump(self)
-
-    @staticmethod
-    def deserialize(provider: dict) -> ClusterProvider:
-        """ Deserialize ClusterProvider from a dict """
-        return ClusterProviderSchema().load(provider)
+        return {
+            'type': self.type,
+            **self.args,
+        }
 
     def create_env(self, taskdef: TaskDefinition) -> dict:
         """
@@ -73,8 +70,3 @@ class ClusterProvider(EventEmitter):
 
     def find_agent(self):
         return None
-
-
-class ClusterProviderSchema(Schema):
-    type = fields.Str(required=True)
-    args = fields.Dict(missing={})

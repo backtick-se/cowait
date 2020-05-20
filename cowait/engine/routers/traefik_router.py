@@ -11,11 +11,15 @@ class TraefikRouter(Router):
         cluster.on('kill', self.on_kill)
 
     def on_prepare(self, taskdef):
+        domain = self.cluster.domain
+        if domain is None:
+            raise RuntimeError('No cluster domain configured')
+
         for path, port in taskdef.routes.items():
             taskdef.routes[path] = {
                 'port': port,
                 'path': path,
-                'url': f'http://{taskdef.id}.{self.cluster.domain}{path}',
+                'url': f'http://{taskdef.id}.{domain}{path}',
             }
         return taskdef
 
