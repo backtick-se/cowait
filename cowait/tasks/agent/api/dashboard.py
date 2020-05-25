@@ -1,7 +1,7 @@
 import os.path
 from aiohttp import web
 
-DASH_ROOT = 'cloud/build'
+DASH_ROOT = '/var/cowait/cloud/build'
 
 
 class Dashboard(object):

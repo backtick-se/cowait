@@ -7,11 +7,11 @@ TOKEN_LEN = 48
 class JupyterTask(ContainerTask):
     async def run(
         self,
-        workers: int = 0, worker_cores: int = 2, worker_memory: int = 2,
+        workers: int = 0, worker_cores: int = 0, worker_memory: int = 0,
     ):
         print('Creating jupyter notebook...')
         print(f'Default workers: {workers}')
-        print(f'Workers core: {worker_cores}')
+        print(f'Worker cores: {worker_cores}')
         print(f'Worker memory: {worker_memory}')
 
         await super().run(

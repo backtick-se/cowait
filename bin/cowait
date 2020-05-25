@@ -3,7 +3,7 @@ import json
 import click
 import cowait.cli.commands
 
-import pkg_resources 
+import pkg_resources
 version = pkg_resources.require("cowait")[0].version
 
 
@@ -31,24 +31,24 @@ def cli():
 @click.argument('name', type=str, required=False)
 @click.option('--image', type=str, required=False, help='image name')
 @click.option('--base', type=str, required=False, help='base image name')
-@click.option('--provider',
-              default='docker',
+@click.option('--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
-def new(name: str, image: str, provider: str):
+              help='cluster name')
+def new(name: str, image: str, cluster_name: str):
     cowait.cli.new_context(
         name,
         image,
-        provider,
+        cluster_name,
     )
 
 
 @cli.command(help='run a task')
 @click.argument('task', type=str)
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
+              help='cluster name')
 @click.option('--name',
               type=str,
               help='specific task name')
@@ -77,14 +77,14 @@ def new(name: str, image: str, provider: str):
               help='run in detached mode',
               default=False)
 def run(
-    task: str, provider: str, name: str,
+    task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool
 ):
     cowait.cli.run(
         task,
         name=name,
-        provider=provider,
+        cluster_name=cluster,
         inputs=option_dict(input),
         env=option_dict(env),
         ports={p: p for p in port},
@@ -96,16 +96,16 @@ def run(
 
 
 @cli.command(help='run task tests')
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
+              help='cluster name')
 @click.option('--push',
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
-def test(provider: str, push: bool):
-    cowait.cli.test(provider, push)
+def test(cluster: str, push: bool):
+    cowait.cli.test(push, cluster)
 
 
 @cli.command(help='build a task')
@@ -119,44 +119,47 @@ def push():
 
 
 @cli.command(help='destroy tasks')
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
-def rm(provider):
-    cowait.cli.destroy(provider)
+              help='cluster name')
+def rm(cluster):
+    cowait.cli.destroy(cluster)
 
 
 @cli.command(help='list tasks')
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
-def ps(provider):
-    cowait.cli.list_tasks(provider)
+              help='cluster name')
+def ps(cluster):
+    cowait.cli.list_tasks(cluster)
 
 
 @cli.command(help='kill task')
 @click.argument('task', type=str)
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
-def kill(task, provider):
-    cowait.cli.kill(task, provider)
+              help='cluster name')
+def kill(task, cluster):
+    cowait.cli.kill(task, cluster)
 
 
 @cli.command(help='deploy cowait agent')
-@click.option('-p', '--provider',
-              default='docker',
+@click.option('-c', '--cluster',
+              default=None,
               type=str,
-              help='cluster provider type')
+              help='cluster name')
 @click.option('-d', '--detach',
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
-def agent(provider: str, detach: bool):
-    cowait.cli.agent(provider, detach)
+@click.option('-u', '--upstream',
+              type=str, default=None,
+              help='custom upstream uri')
+def agent(cluster: str, detach: bool, upstream: str):
+    cowait.cli.agent(cluster, detach, upstream)
 
 
 if __name__ == '__main__':

@@ -1,18 +1,17 @@
-from ..const import DEFAULT_PROVIDER
+from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import get_context_cluster
-from cowait.engine import get_cluster_provider, ProviderError
+from cowait.engine import ProviderError
 
 
-def destroy(provider: str) -> None:
+def destroy(cluster_name: str = None) -> None:
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
 
-        # grab cluster provider
-        cluster = get_cluster_provider(
-            type=context.coalesce('cluster.type', provider, DEFAULT_PROVIDER),
-            args=context.get('cluster', {}),
-        )
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
 
         # kill all tasks
         cluster.destroy_all()
@@ -21,10 +20,15 @@ def destroy(provider: str) -> None:
         print('Provider error:', str(e))
 
 
-def list_tasks(provider: str) -> None:
+def list_tasks(cluster_name: str = None) -> None:
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
-        cluster = get_context_cluster(context, provider)
+
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
 
         tasks = cluster.list_all()
         for task in tasks:
@@ -34,10 +38,16 @@ def list_tasks(provider: str) -> None:
         print('Provider error:', str(e))
 
 
-def kill(task_id: str, provider: str):
+def kill(task_id: str, cluster_name: str = None):
     try:
+        config = CowaitConfig.load()
         context = CowaitContext.open()
-        cluster = get_context_cluster(context, provider)
+
+        # setup cluster provider
+        if cluster_name is None:
+            cluster_name = context.get('cluster', config.default_cluster)
+        cluster = config.get_cluster(cluster_name)
+
         cluster.destroy(task_id)
 
     except ProviderError as e:

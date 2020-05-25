@@ -51,7 +51,7 @@ class KubernetesProvider(ClusterProvider):
 
     @property
     def domain(self):
-        return self.args.get('domain', 'cluster.backtick.se')
+        return self.args.get('domain', None)
 
     @property
     def timeout(self):

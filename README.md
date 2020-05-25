@@ -106,12 +106,14 @@ $ cowait push
 
 Before you can run tasks on a kubernetes cluster, you need to apply some RBAC rules to allow pods to interact with other pods. A sample configuration is provided in `k8setup.yml`, which will allow pods owned by the default service account to create, list and destroy other pods.
 
+Tasks will run on your default configured cluster (the one returned by `$ kubectl config current-context`).
+
 **Running Tasks**
 
-Once the cluster has been configured, simply run a task with the kubernetes provider:
+Once the cluster has been configured, simply run a task with the kubernetes cluster provider:
 
 ```bash
-$ cowait run hello --provider kubernetes
+$ cowait run hello --cluster kubernetes
 ```
 
 ## Development

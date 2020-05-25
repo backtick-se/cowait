@@ -1,0 +1,6 @@
+version: 1
+cowait:
+    image: cowait/task-example-04
+
+    api:
+        url: http://localhost:3000/api/1/cluster/130bt9cdaz
