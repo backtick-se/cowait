@@ -1,0 +1,3 @@
+version: 1
+cowait:
+    image: cowait/task-example-08
