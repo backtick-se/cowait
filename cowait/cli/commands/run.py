@@ -13,6 +13,7 @@ def run(
     config: CowaitConfig,
     task: str,
     name: str = None,
+    cluster_name: str = None,
     inputs: dict = {},
     env: dict = {},
     ports: dict = {},

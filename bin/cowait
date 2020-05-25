@@ -1,9 +1,11 @@
 #!/usr/bin/env python -u
 # flake8: noqa: F811
+import yaml
 import json
 import click
 import pkg_resources
 import cowait.cli.commands
+from cowait.cli import CliError
 from cowait.cli.config import CowaitConfig
 
 
@@ -23,14 +25,9 @@ def option_dict(opts):
 
 @click.group()
 @click.version_option(pkg_resources.require("cowait")[0].version)
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
 @click.pass_context
-def cli(ctx, cluster: str = None):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
+def cli(ctx):
+    pass
 
 
 #
@@ -62,8 +59,13 @@ def new_context(name: str, image: str, base: str, cluster_name: str):
 
 @cli.command(help='run a task')
 @click.argument('task', type=str)
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.option('--name',
               type=str,
+              default=None,
               help='specific task name')
 @click.option('-i', '--input',
               type=(str, str),
@@ -89,17 +91,40 @@ def new_context(name: str, image: str, base: str, cluster_name: str):
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
+@click.option('-f', '--json', '--yml', '--yaml', 'file', 
+              help='yaml/json file with inputs', 
+              type=str, 
+              default=None)
 @click.pass_context
 def run(
-    ctx, task: str, name: str,
+    ctx, task: str, cluster: str, name: str,
     input, env, port, route,
-    upstream: str, build: bool, detach: bool
+    upstream: str, build: bool, detach: bool,
+    file: str,
 ):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
+
+    file_inputs = {}
+    if file is not None:
+        try:
+            with open(file, 'r') as f:
+                file_inputs = yaml.load(f, Loader=yaml.FullLoader)
+        except yaml.parser.ParserError as e:
+            raise CliError(f'Error in {file}: {e}')
+
+    if not isinstance(file_inputs, dict):
+        raise CliError('Error: Expected input file to contain a dictionary')
+
     cowait.cli.run(
+        ctx.obj,
         task,
         name=name,
         cluster_name=cluster,
-        inputs=option_dict(input),
+        inputs={
+            **file_inputs,
+            **option_dict(input),
+        },
         env=option_dict(env),
         ports={p: p for p in port},
         routes=option_dict(route),
@@ -110,35 +135,59 @@ def run(
 
 
 @cli.command(help='run task tests')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.option('--push',
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
 @click.pass_context
-def test(ctx, push: bool):
+def test(ctx, cluster: str, push: bool):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
     cowait.cli.test(ctx.obj, push)
 
 
 @cli.command(help='destroy tasks')
 @click.pass_context
-def rm(ctx, cluster):
+def rm(ctx, cluster: str):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
     cowait.cli.destroy(ctx.obj, cluster)
 
 
 @cli.command(help='list tasks')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.pass_context
-def ps(ctx):
+def ps(ctx, cluster: str):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
     cowait.cli.list_tasks(ctx.obj)
 
 
 @cli.command(help='kill task')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.argument('task', type=str)
 @click.pass_context
-def kill(ctx, task):
+def kill(ctx, cluster: str, task: str):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
     cowait.cli.kill(ctx.obj, task)
 
 
 @cli.command(help='deploy cowait agent')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.option('-d', '--detach',
               type=bool, is_flag=True,
               help='run in detached mode',
@@ -147,7 +196,9 @@ def kill(ctx, task):
               type=str, default=None,
               help='custom upstream uri')
 @click.pass_context
-def agent(ctx, detach: bool, upstream: str):
+def agent(ctx, cluster: str, detach: bool, upstream: str):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
     cowait.cli.agent(ctx.obj, detach, upstream)
 
 
@@ -224,4 +275,7 @@ def rm(ctx, name: str):
 
 if __name__ == '__main__':
     config = CowaitConfig.load()
-    cli(obj=config)
+    try:
+        cli(obj=config)
+    except CliError as e:
+        print(f'Error: {e}')

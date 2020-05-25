@@ -3,6 +3,7 @@ from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
+from ..errors import CliError
 from ..config import CowaitConfig
 from ..context import CowaitContext
 from ..utils import ExitTrap, printheader
@@ -17,6 +18,9 @@ def agent(
         context = CowaitContext.open()
         cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
+
+        if cluster.type == 'api':
+            raise CliError('Error: Cant deploy agent using an API cluster')
 
         cluster.destroy('agent')
 
@@ -54,13 +58,10 @@ def agent(
             for log in logs:
                 print(log, flush=True)
 
+        printheader()
+
     except ProviderError as e:
-        printheader('error')
-        print('Provider error:', str(e))
+        raise CliError(f'Provider error: {e}')
 
     except TaskCreationError as e:
-        printheader('error')
-        print('Error creating task:', str(e))
-
-    finally:
-        printheader()
+        raise CliError(f'Task creation error: {e}')

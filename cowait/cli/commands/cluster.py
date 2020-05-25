@@ -1,6 +1,9 @@
 from ..config import CowaitConfig
 
 
+ADDABLE_PROVIDERS = ['api']
+
+
 def cluster_get(config: CowaitConfig, name: str) -> None:
     if name not in config.clusters:
         print('Unknown cluster', name)
@@ -25,12 +28,17 @@ def cluster_add(config: CowaitConfig, name: str, type: str, **options) -> None:
         print(f'Error: Cluster {name} already exists')
         return 1
 
+    if type not in ADDABLE_PROVIDERS:
+        print(f'Error: Cant add cluster of type {type}')
+        return 1
+
     config.clusters[name] = {
         'type': type,
         **options,
     }
     config.save()
 
+    # dump added cluster
     cluster_get(config, name)
 
 
@@ -38,8 +46,17 @@ def cluster_rm(config: CowaitConfig, name: str) -> None:
     if name not in config.clusters:
         print(f'Error: Cluster {name} does not exist')
         return 1
+
     if name == config.default_cluster:
-        print(f'Error: Cant delete the default cluster')
+        print(f'Error: Cant remove the default cluster')
+        return 1
+
+    if name == 'docker':
+        print('Error: Cant remove the docker provider')
+        return 1
+
+    if name == 'kubernetes':
+        print('Error: Cant remove the kubernetes provider')
         return 1
 
     del config.clusters[name]
