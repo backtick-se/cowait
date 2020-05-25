@@ -8,6 +8,7 @@ class Client(EventEmitter):
     def __init__(self):
         super().__init__()
         self.ws = None
+        self.buffer = []
 
     @property
     def connected(self) -> bool:
@@ -37,13 +38,17 @@ class Client(EventEmitter):
             os._exit(1)
 
     async def _connect(self, url: str, token: str) -> None:
-        headers = {
-            'Authorization': f'Bearer {token}',
-        }
+        headers = {'Authorization': f'Bearer {token}'}
         async with aiohttp.ClientSession() as session:
             async with session.ws_connect(url, headers=headers) as ws:
                 self.ws = ws
 
+                # send buffered messages
+                for msg in self.buffer:
+                    self.send(msg)
+                self.buffer = []
+
+                # client loop
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         event = msg.json()
@@ -62,6 +67,8 @@ class Client(EventEmitter):
 
     async def send(self, msg: dict) -> None:
         if not self.connected:
-            raise RuntimeError('Not connected')
+            # buffer messages while disconnected
+            self.buffer.append(msg)
+            return
 
         await self.ws.send_json(msg)
