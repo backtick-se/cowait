@@ -1,7 +1,6 @@
 import os
 from signal import signal, SIGINT
-from .const import CONTEXT_FILE_NAME, DEFAULT_PROVIDER
-from cowait.engine import get_cluster_provider
+from .const import CONTEXT_FILE_NAME
 
 HEADER_WIDTH = 80
 
@@ -73,9 +72,3 @@ def printheader(title: str = None) -> None:
         print(f'--'.ljust(HEADER_WIDTH, '-'))
     else:
         print(f'-- {title} '.upper().ljust(HEADER_WIDTH, '-'))
-
-
-def get_context_cluster(context, provider: str = None):
-    type = context.coalesce(['provider'], provider, DEFAULT_PROVIDER)
-    args = context.coalesce([type], None, {})
-    return get_cluster_provider(type, **args)

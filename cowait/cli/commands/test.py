@@ -9,16 +9,12 @@ from .push import push as run_push
 
 
 def test(
+    config: CowaitConfig,
     push: bool,
-    cluster_name: str = None,
 ):
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         if push:

@@ -25,18 +25,25 @@ class CowaitConfig(object):
         return get_cluster_provider(**self.clusters[cluster_name])
 
     @staticmethod
-    def load():
-        cfgpath = get_config_path()
-        if not os.path.exists(cfgpath):
+    def load(path: str = None) -> None:
+        if path is None:
+            path = get_config_path()
+
+        if not os.path.exists(path):
             return CowaitConfig()
-        with open(cfgpath) as cfg:
+
+        with open(path) as cfg:
             return CowaitConfig(**yaml.load(cfg, Loader=yaml.FullLoader))
 
-    def save(self):
-        cfgpath = get_config_path()
-        data = {
-            'default_cluster': self.default_cluster,
-            'clusters': self.clusters,
-        }
-        with open(cfgpath, 'w') as cfg:
-            yaml.dump(data, cfg)
+    def save(self, path: str = None) -> None:
+        if path is None:
+            path = get_config_path()
+        with open(path, 'w') as cfg:
+            yaml.dump(
+                {
+                    'default_cluster': self.default_cluster,
+                    'clusters': self.clusters,
+                },
+                stream=cfg,
+                sort_keys=False,
+            )

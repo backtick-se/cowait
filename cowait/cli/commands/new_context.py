@@ -9,8 +9,6 @@ def new_context(
     image: str,
     base: str,
     cluster_name: str = None,
-    docker_network: str = None,
-    kube_namespace: str = None,
 ):
     path = os.getcwd()
 
@@ -33,6 +31,7 @@ def new_context(
         print('Base image:', base)
         context['base'] = base
 
+    # override default cluster
     if cluster_name is not None:
         context['cluster'] = cluster_name
 

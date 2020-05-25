@@ -9,17 +9,13 @@ from ..utils import ExitTrap, printheader
 
 
 def agent(
-    cluster_name: str = None,
+    config: CowaitConfig,
     detach: bool = False,
     upstream: str = None,
 ) -> None:
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         cluster.destroy('agent')

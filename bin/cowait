@@ -1,11 +1,10 @@
 #!/usr/bin/env python -u
+# flake8: noqa: F811
 import json
 import click
+import pkg_resources
 import cowait.cli.commands
 from cowait.cli.config import CowaitConfig
-
-import pkg_resources
-version = pkg_resources.require("cowait")[0].version
 
 
 def option_val(val):
@@ -23,10 +22,20 @@ def option_dict(opts):
 
 
 @click.group()
-@click.version_option(version, message="cowait version: {}".format(version))
+@click.version_option(pkg_resources.require("cowait")[0].version)
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.pass_context
-def cli(ctx):
-    pass
+def cli(ctx, cluster: str = None):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
+
+
+#
+# context commands
+#
 
 
 @cli.command(help='create a new context')
@@ -37,20 +46,22 @@ def cli(ctx):
               default=None,
               type=str,
               help='cluster name')
-def new(name: str, image: str, cluster_name: str):
+def new_context(name: str, image: str, base: str, cluster_name: str):
     cowait.cli.new_context(
-        name,
-        image,
-        cluster_name,
+        name=name,
+        image=image,
+        base=base,
+        cluster_name=cluster_name,
     )
+
+
+#
+# task commands
+#
 
 
 @cli.command(help='run a task')
 @click.argument('task', type=str)
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
 @click.option('--name',
               type=str,
               help='specific task name')
@@ -78,8 +89,9 @@ def new(name: str, image: str, cluster_name: str):
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
+@click.pass_context
 def run(
-    task: str, cluster: str, name: str,
+    ctx, task: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool
 ):
@@ -98,16 +110,50 @@ def run(
 
 
 @cli.command(help='run task tests')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
 @click.option('--push',
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
-def test(cluster: str, push: bool):
-    cowait.cli.test(push, cluster)
+@click.pass_context
+def test(ctx, push: bool):
+    cowait.cli.test(ctx.obj, push)
+
+
+@cli.command(help='destroy tasks')
+@click.pass_context
+def rm(ctx, cluster):
+    cowait.cli.destroy(ctx.obj, cluster)
+
+
+@cli.command(help='list tasks')
+@click.pass_context
+def ps(ctx):
+    cowait.cli.list_tasks(ctx.obj)
+
+
+@cli.command(help='kill task')
+@click.argument('task', type=str)
+@click.pass_context
+def kill(ctx, task):
+    cowait.cli.kill(ctx.obj, task)
+
+
+@cli.command(help='deploy cowait agent')
+@click.option('-d', '--detach',
+              type=bool, is_flag=True,
+              help='run in detached mode',
+              default=False)
+@click.option('-u', '--upstream',
+              type=str, default=None,
+              help='custom upstream uri')
+@click.pass_context
+def agent(ctx, detach: bool, upstream: str):
+    cowait.cli.agent(ctx.obj, detach, upstream)
+
+
+#
+# task image commands
+#
 
 
 @cli.command(help='build a task')
@@ -120,95 +166,56 @@ def push():
     cowait.cli.push()
 
 
-@cli.command(help='destroy tasks')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-def rm(cluster):
-    cowait.cli.destroy(cluster)
+#
+# cluster subcommand
+#
 
 
-@cli.command(help='list tasks')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-def ps(cluster):
-    cowait.cli.list_tasks(cluster)
-
-
-@cli.command(help='kill task')
-@click.argument('task', type=str)
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-def kill(task, cluster):
-    cowait.cli.kill(task, cluster)
-
-
-@cli.command(help='deploy cowait agent')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-@click.option('-d', '--detach',
-              type=bool, is_flag=True,
-              help='run in detached mode',
-              default=False)
-@click.option('-u', '--upstream',
-              type=str, default=None,
-              help='custom upstream uri')
-def agent(cluster: str, detach: bool, upstream: str):
-    cowait.cli.agent(cluster, detach, upstream)
-
-
-@cli.group()
+@cli.group(help='cluster management')
 @click.pass_context
 def cluster(ctx):
     pass
 
 
-@cluster.command()
+@cluster.command(help='describe cluster')
 @click.argument('name', type=str)
 @click.pass_context
 def get(ctx, name: str):
     cowait.cli.cluster_get(ctx.obj, name)
 
 
-@cluster.command()
+@cluster.command(help='list all clusters')
 @click.pass_context
 def ls(ctx):
     cowait.cli.cluster_ls(ctx.obj)
 
 
-@cluster.command()
+@cluster.command(help='default cluster name')
 @click.pass_context
 def default(ctx):
     cowait.cli.cluster_default(ctx.obj)
 
 
-@cluster.command()
+@cluster.command(help='set default cluster')
 @click.argument('name', type=str)
 @click.pass_context
 def set_default(ctx, name: str):
     cowait.cli.cluster_set_default(ctx.obj, name)
 
 
-@cluster.command()
+@cluster.command(help='add new cluster')
 @click.argument('name', type=str)
-@click.option('--type', type=str)
+@click.option('--type', type=str, help='cluster provider type')
 @click.option('-o', '--option',
               type=(str, str),
               multiple=True,
-              help='specify cluster option')
+              help='specify cluster provider option')
 @click.pass_context
-def add(ctx, name: str, type: str, option: dict):
-    cowait.cli.cluster_add(ctx.obj, name, type, **option_dict(option))
+def add(ctx, name: str, type: str, option: dict = {}):
+    cowait.cli.cluster_add(ctx.obj, name, type.lower(), **option_dict(option))
 
 
-@cluster.command()
+@cluster.command(help='remove cluster')
 @click.argument('name', type=str)
 @click.pass_context
 def rm(ctx, name: str):

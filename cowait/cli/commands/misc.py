@@ -3,14 +3,10 @@ from ..context import CowaitContext
 from cowait.engine import ProviderError
 
 
-def destroy(cluster_name: str = None) -> None:
+def destroy(config: CowaitConfig) -> None:
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         # kill all tasks
@@ -20,14 +16,10 @@ def destroy(cluster_name: str = None) -> None:
         print('Provider error:', str(e))
 
 
-def list_tasks(cluster_name: str = None) -> None:
+def list_tasks(config: CowaitConfig) -> None:
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         tasks = cluster.list_all()
@@ -38,14 +30,10 @@ def list_tasks(cluster_name: str = None) -> None:
         print('Provider error:', str(e))
 
 
-def kill(task_id: str, cluster_name: str = None):
+def kill(config: CowaitConfig, task_id: str):
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         cluster.destroy(task_id)
