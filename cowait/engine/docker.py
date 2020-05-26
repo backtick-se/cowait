@@ -3,8 +3,8 @@ import requests.exceptions
 from cowait.tasks import TaskDefinition, RemoteTask
 from .cluster import ClusterProvider
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
-from .routers import LocalPortRouter
 from .errors import ProviderError
+from .routers import create_router
 
 DEFAULT_NETWORK = 'cowait'
 
@@ -28,7 +28,7 @@ class DockerProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('docker', args)
         self.docker = docker.from_env()
-        self.router = LocalPortRouter(self)
+        self.router = create_router(self)
 
     @property
     def network(self):

@@ -6,8 +6,8 @@ from kubernetes import client, config, watch
 from cowait.tasks import TaskDefinition, RemoteTask
 from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider
-from .routers import TraefikRouter
 from .errors import TaskCreationError, ProviderError
+from .routers import create_router
 
 DEFAULT_NAMESPACE = 'default'
 
@@ -43,7 +43,7 @@ class KubernetesProvider(ClusterProvider):
         self.ext = client.ExtensionsV1beta1Api(self.client)
         self.custom = client.CustomObjectsApi(self.client)
 
-        self.router = TraefikRouter(self)
+        self.router = create_router(self)
 
     @property
     def namespace(self):
