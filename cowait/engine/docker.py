@@ -28,7 +28,7 @@ class DockerProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('docker', args)
         self.docker = docker.from_env()
-        self.router = create_router(self)
+        self.router = create_router(self, self.args.get('router', 'local'))
 
     @property
     def network(self):

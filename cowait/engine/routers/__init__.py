@@ -6,9 +6,9 @@ from .traefik_router import TraefikRouter
 from .traefik2_router import Traefik2Router
 
 
-def create_router(cluster):
-    kind = cluster.args.get('router', 'local').lower()
-
+def create_router(cluster, kind: str = 'none'):
+    if kind == 'none':
+        return Router(cluster)
     if kind == 'local':
         return LocalPortRouter(cluster)
     if kind == 'traefik':

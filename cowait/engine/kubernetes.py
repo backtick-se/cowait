@@ -43,7 +43,7 @@ class KubernetesProvider(ClusterProvider):
         self.ext = client.ExtensionsV1beta1Api(self.client)
         self.custom = client.CustomObjectsApi(self.client)
 
-        self.router = create_router(self)
+        self.router = create_router(self, self.args.get('router', 'none'))
 
     @property
     def namespace(self):
