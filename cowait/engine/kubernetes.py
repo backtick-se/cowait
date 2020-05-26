@@ -35,7 +35,7 @@ class KubernetesProvider(ClusterProvider):
         if ENV_TASK_CLUSTER in os.environ:
             config.load_incluster_config()
         else:
-            config.load_kube_config()
+            config.load_kube_config(context=self.args.get('context', None))
 
         configuration = client.Configuration()
         self.client = kubernetes.client.ApiClient(configuration)
