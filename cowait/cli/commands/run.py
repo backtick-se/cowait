@@ -10,9 +10,10 @@ from .build import build as build_cmd
 
 
 def run(
+    config: CowaitConfig,
     task: str,
-    cluster_name: str,
     name: str = None,
+    cluster_name: str = None,
     inputs: dict = {},
     env: dict = {},
     ports: dict = {},
@@ -24,12 +25,8 @@ def run(
     memory: str = '0',
 ):
     try:
-        config = CowaitConfig.load()
         context = CowaitContext.open()
-
-        # setup cluster provider
-        if cluster_name is None:
-            cluster_name = context.get('cluster', config.default_cluster)
+        cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
         # figure out image name

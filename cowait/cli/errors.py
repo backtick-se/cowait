@@ -1,0 +1,4 @@
+
+
+class CliError(RuntimeError):
+    pass
