@@ -122,10 +122,6 @@ class Traefik2Router(Router):
             pass
 
         try:
-            self.cluster.ext.delete_namespaced_object(
-                namespace=self.cluster.namespace,
-                name=task_id
-            )
             self.cluster.custom.delete_cluster_custom_object_0(
                 group=TRAEFIK2_API_GROUP,
                 version=TRAEFIK2_API_VERSION,
