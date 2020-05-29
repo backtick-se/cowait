@@ -1,31 +1,37 @@
 import React from 'react'
 import { ThemeProvider } from 'styled-components'
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
-import { theme, GlobalStyle } from '../theme'
+import { GlobalStyle, selectTheme, ThemeType } from '../theme'
+import Home from './home'
 import TaskView from './task/TaskView'
 import TaskListView from './task/TaskListView'
 import ErrorBoundary from './ui/ErrorBoundary'
+import { RootState } from '../store'
 
 import SocketOverlay from './ui/SocketOverlay'
+import { Layout } from './layout'
 
 
 export function App() {
+    const type = useSelector((state: RootState) => state.theme.active)
+    const theme = selectTheme(type)
+
     return <ThemeProvider theme={theme}>
         <Router>
             <GlobalStyle />
-            <ErrorBoundary>
-                <SocketOverlay>
-                    <Switch>
-                        <Route path="/task/:taskId">
-                            <TaskView />
-                        </Route>
-                        <Route path="/">
-                            <TaskListView />
-                        </Route>
-                    </Switch>
-                </SocketOverlay>
-            </ErrorBoundary>
+            <Layout>
+                <ErrorBoundary>
+                    <SocketOverlay>
+                        <Switch>
+                            <Route path="/task/:taskId" component={TaskView} />
+                            <Route path="/task" component={TaskListView} />
+                            <Route path="/" component={Home} />
+                        </Switch>
+                    </SocketOverlay>
+                </ErrorBoundary>
+            </Layout>
         </Router>
     </ThemeProvider>
 }

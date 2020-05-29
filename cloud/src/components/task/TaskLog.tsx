@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { Bubble } from '../ui'
+import { ContentBlock } from '../ui'
 import { LogOutput, LogContainer } from './styled/Log'
 import { RootState } from '../../store'
 
@@ -29,12 +29,12 @@ export const TaskLog: React.FC<Props> = ({ id, maxHeight }) => {
         return null
     }
 
-    return <Bubble shadow="none">
+    return <ContentBlock>
         <h4>Output Log</h4>
         <LogContainer ref={logRef} maxHeight={maxHeight}>
             <LogOutput>{log}</LogOutput>
         </LogContainer>
-    </Bubble>
+    </ContentBlock>
 }
 
 export default TaskLog

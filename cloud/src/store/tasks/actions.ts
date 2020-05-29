@@ -8,7 +8,7 @@ const conformActionType = (action: AnyAction): AnyAction => {
 
   return {
     ...action,
-    type: `${prefix}${namespace}/${event.toUpperCase()}`
+    type: `${prefix}${namespace}/${event ? event.toUpperCase() : event}`
   }
 }
 

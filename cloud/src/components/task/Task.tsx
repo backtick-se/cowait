@@ -6,7 +6,7 @@ import TaskResult from './TaskResult'
 import TaskLink from './TaskLink'
 import TaskInputs from './TaskInputs'
 import TaskSubTasks from './TaskSubTasks'
-import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper } from './styled/Task'
+import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper, TaskTitleContainer } from './styled/Task'
 import { Task as TaskInterface } from '../../store/tasks/types'
 
 type TaskProps = TaskInterface & {
@@ -18,10 +18,10 @@ export type TaskComponent = React.FC<TaskProps>
 export const Task: TaskComponent = ({ id, status, image, parent, result, error, sub_tasks, inputs, maxLogHeight }) => {
     return <TaskWrapper>
         <TaskHeader>
-            <h2>
+            <TaskTitleContainer>
                 <TaskHeaderLink to={`/task/${id}`}>{id}</TaskHeaderLink> 
                 <TaskStatus status={status} />
-            </h2>
+            </TaskTitleContainer>
             <TaskImage>{image}</TaskImage>
             {parent && <ParentWrapper>
                 <TaskLink id={parent}/>

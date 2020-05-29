@@ -1,17 +1,18 @@
 import React from 'react'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { githubGist } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import styled from 'styled-components'
+import RSH from 'react-syntax-highlighter'
+import { atelierSulphurpoolDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
-const style = {
-    padding: 0,
-}
+const SyntaxHighlighter = styled(RSH)`
+    background: transparent !important;
+`
 
 type Props = {
     language: string
 }
 
 export const Code: React.FC<Props> = ({ children, language }) => {
-    return <SyntaxHighlighter style={githubGist} customStyle={style} language={language}>
+    return <SyntaxHighlighter style={atelierSulphurpoolDark} language={language}>
         {children}
     </SyntaxHighlighter>
 }
