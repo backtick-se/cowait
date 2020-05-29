@@ -151,11 +151,15 @@ def test(ctx, cluster: str, push: bool):
 
 
 @cli.command(help='destroy tasks')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
 @click.pass_context
 def rm(ctx, cluster: str):
     if cluster is not None:
         ctx.obj.default_cluster = cluster
-    cowait.cli.destroy(ctx.obj, cluster)
+    cowait.cli.destroy(ctx.obj)
 
 
 @cli.command(help='list tasks')
