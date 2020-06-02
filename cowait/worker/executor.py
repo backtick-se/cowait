@@ -88,6 +88,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         await node.parent.send_fail(
             f'Caught exception in {taskdef.id}:\n'
             f'{e.error}')
+        raise e
 
     except Exception as e:
         # capture local errors

@@ -13,7 +13,13 @@ class UtilityTask(Task):
         # store taskdef for later comparison
         self.taskdef = taskdef
 
-    async def run(self, child: bool = False, **inputs):
+    async def run(
+        self,
+        child: bool = False,
+        error: bool = False,
+        child_error: bool = False,
+        **inputs
+    ):
         # dump task information to stdout
         print(json.dumps({
             'taskdef': self.taskdef.serialize(),
@@ -21,9 +27,14 @@ class UtilityTask(Task):
         }))
 
         # create a child
-        if child:
+        if child or child_error:
             print('spawn child')
-            await self.spawn('cowait.test.tasks.utility_task', inputs={'child': False})
+            await self.spawn(
+                'cowait.test.tasks.utility_task',
+                inputs={'error': child_error})
+
+        if error:
+            raise RuntimeError('Caused test error')
 
         # run forever
         if inputs.get('forever', False):
