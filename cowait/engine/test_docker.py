@@ -116,3 +116,36 @@ def test_docker_child_task():
 
     children = dp.find_child_containers(task.id)
     assert len(children) == 0
+
+
+def test_docker_task_error():
+    dp = DockerProvider()
+
+    task = dp.spawn(TaskDefinition(
+        name=TEST_TASK,
+        image=TEST_IMAGE,
+        inputs={'error': True},
+    ))
+
+    container = dp.docker.containers.get(task.container.id)
+    assert task.container == container
+
+    result = container.wait()
+    assert result['StatusCode'] != 0
+
+
+def test_docker_child_error():
+    dp = DockerProvider()
+
+    task = dp.spawn(TaskDefinition(
+        name=TEST_TASK,
+        image=TEST_IMAGE,
+        inputs={'child_error': True},
+    ))
+
+    container = dp.docker.containers.get(task.container.id)
+    assert task.container == container
+
+    # child error should cause the parent to fail
+    result = container.wait()
+    assert result['StatusCode'] != 0

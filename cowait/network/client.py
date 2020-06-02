@@ -45,7 +45,7 @@ class Client(EventEmitter):
 
                 # send buffered messages
                 for msg in self.buffer:
-                    self.send(msg)
+                    await self.send(msg)
                 self.buffer = []
 
                 # client loop

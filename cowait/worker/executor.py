@@ -70,6 +70,12 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # execute task
             result = await task.run(**inputs)
 
+            # wait for dangling tasks
+            orphans = filter(lambda child: not child.done, task.subtasks.values())
+            for orphan in orphans:
+                print('~~ waiting for orphaned task', orphan.id)
+                await orphan
+
             # after hook
             await task.after(inputs)
 
@@ -86,8 +92,9 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     except TaskError as e:
         # pass subtask errors upstream
         await node.parent.send_fail(
-            f'Caught exception in {taskdef.id}:\n'
+            f'Caught exception in subtask {taskdef.id}:\n'
             f'{e.error}')
+        raise e
 
     except Exception as e:
         # capture local errors

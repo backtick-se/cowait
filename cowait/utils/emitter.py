@@ -5,7 +5,7 @@ class EventEmitter(object):
 
     def on(self, type: str, callback: callable) -> None:
         try:
-            self.callbacks[type].append(callback)
+            self.callbacks[type].insert(0, callback)
         except KeyError:
             self.callbacks[type] = [callback]
 
