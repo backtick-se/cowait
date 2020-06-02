@@ -36,3 +36,14 @@ class Dict(Type):
             key: type.deserialize(value[key])
             for key, type in self.shape.items()
         }
+
+    def describe(self):
+        desc = {}
+        for key, type in self.shape.items():
+            type_desc = type.describe()
+            if type_desc is not None:
+                desc[key] = type_desc
+        return desc
+
+    def __getitem__(self, key):
+        return self.shape[key]

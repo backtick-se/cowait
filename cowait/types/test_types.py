@@ -1,5 +1,5 @@
 import pytest
-from .mapping import is_cowait_type, convert_type
+from .mapping import is_cowait_type, convert_type, get_type
 from .simple import Any, String, Int, Float, Bool
 from .dict import Dict
 from .list import List
@@ -181,3 +181,8 @@ def test_instantiate_with_default_params():
     obj = convert_type(TypeWithParam)
     assert isinstance(obj, TypeWithParam)
     assert obj.a == 1
+
+
+def test_get_type():
+    assert get_type('str') is String
+    assert get_type('int') is Int

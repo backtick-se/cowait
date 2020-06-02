@@ -5,12 +5,24 @@ from .type import Type
 
 
 _type_mapping = {}
+_name_mapping = {}
 
 
 def register_type(from_type: ClassVar, to_type: Type) -> None:
     """ Registers a type alias for the given from_type """
+    global _name_mapping
     global _type_mapping
+    if to_type.name is None:
+        to_type.name = f'{to_type.__module__}.{to_type.__name__}'
+    _name_mapping[to_type.name] = to_type
     _type_mapping[from_type] = to_type
+
+
+def get_type(name: str) -> Type:
+    global _name_mapping
+    if name in _name_mapping:
+        return _name_mapping[name]
+    raise TypeError(f'Unknown type {name}')
 
 
 def TypeAlias(alias: ClassVar):
