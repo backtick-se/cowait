@@ -28,7 +28,7 @@ class WorkerNode(object):
             if self.parent:
                 await self.parent.close()
 
-        await self.io.create_task(close())
+        self.io.create_task(close())
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """
