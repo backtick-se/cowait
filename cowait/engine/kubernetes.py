@@ -102,9 +102,6 @@ class KubernetesProvider(ClusterProvider):
                 ),
             )
 
-            # wait for pod to become ready
-            self.wait_until_ready(taskdef.id)
-
             # wrap & return task
             print('~~ created kubenetes pod', pod.metadata.name)
             task = KubernetesTask(self, taskdef, pod)
@@ -185,6 +182,9 @@ class KubernetesProvider(ClusterProvider):
                 raise TimeoutError(f'Could not find pod for {task_id}')
 
     def logs(self, task: KubernetesTask):
+        # wait for pod to become ready
+        self.wait_until_ready(task.id)
+
         try:
             w = watch.Watch()
             return w.stream(
