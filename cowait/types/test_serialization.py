@@ -30,6 +30,8 @@ class ComplexCustom(object):
 
 @TypeAlias(ComplexCustom)
 class ComplexCustomType(CustomType):
+    name = 'ComplexCustomType'
+
     def __init__(self):
         super().__init__(ComplexCustom, {
             'text': String(),
@@ -40,15 +42,18 @@ class ComplexCustomType(CustomType):
 def test_custom_type_serialization():
     obj = ComplexCustom(text='hej', number=3)
     type = ComplexCustomType()
+
     desc = type.describe()
-    assert 'text' in desc and desc['text'] == String.name
-    assert 'number' in desc and desc['number'] == Int.name
+    assert desc == 'ComplexCustomType'
 
     data = type.serialize(obj)
-    assert '@' in data and data['@'] == type.name
     assert 'text' in data and data['text'] == obj.text
     assert 'number' in data and data['number'] == obj.number
 
-    obj2 = type.deserialize(data)
+    # the custom type should be available from the type registry
+    # ensure deserialization yields a proper object with the expected values
+    type2 = type_from_description(type.name)
+    obj2 = type2.deserialize(data)
+    assert isinstance(obj2, ComplexCustom)
     assert obj2.text == obj.text
     assert obj2.number == obj.number

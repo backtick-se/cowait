@@ -46,15 +46,10 @@ def get_parameter_types(func: callable) -> Type:
 
 def type_from_description(desc: any) -> Type:
     if isinstance(desc, dict):
-        if '@' in desc:
-            CustomType = get_type(desc['@'])
-            del desc['@']
-            return CustomType(**desc)
-        else:
-            return Dict({
-                key: type_from_description(typedesc)
-                for key, typedesc in desc.items()
-            })
+        return Dict({
+            key: type_from_description(typedesc)
+            for key, typedesc in desc.items()
+        })
     elif isinstance(desc, list):
         if len(desc) == 0:
             return List()
