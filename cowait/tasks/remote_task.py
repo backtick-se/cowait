@@ -22,6 +22,10 @@ class RemoteTask(TaskDefinition):
     def __await__(self):
         return self.awaitable.__await__()
 
+    @property
+    def done(self):
+        return self.future.done()
+
     def destroy(self):
         self.cluster.destroy(self.id)
 
