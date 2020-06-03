@@ -142,3 +142,8 @@ def serialize(obj: object, shape: Type = None) -> object:
         shape = guess_type(obj)
 
     return shape.serialize(obj)
+
+
+def deserialize(obj: any, typedesc: any) -> object:
+    type = type_from_description(typedesc)
+    return type.deserialize(type)

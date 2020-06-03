@@ -4,7 +4,7 @@ from .rpc_child import RpcChild
 
 class RpcParent(Task):
     async def run(self):
-        child = self.spawn(RpcChild)
+        child = RpcChild()
         print('waiting for child init...')
         await child.wait_for_init()
 
