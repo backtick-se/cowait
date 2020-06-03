@@ -108,3 +108,16 @@ class DateTime(Type):
 
     def deserialize(self, value: str) -> datetime:
         return datetime.fromisoformat(value)
+
+
+@TypeAlias(None)
+class Void(Type):
+    def validate(self, value, name: str):
+        if value is not None:
+            raise ValueError(f'Expected {name} to be None')
+
+    def serialize(self, value):
+        return None
+
+    def deserialize(self, value):
+        return None

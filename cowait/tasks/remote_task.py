@@ -78,8 +78,10 @@ class RemoteTask(TaskDefinition):
 
     async def call(self, method, args={}):
         if self.status != WORK:
-            raise RuntimeError(
-                f'RPC is only available when status = WORK, was {self.status}')
+            await self.wait_for_init()
+            # raise RuntimeError(
+            #     f'RPC is only available when status = WORK, was {self.status}. '
+            #     f'Attempted to call {method}')
 
         return await self.conn.rpc.call(method, args)
 

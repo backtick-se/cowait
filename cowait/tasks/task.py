@@ -9,22 +9,25 @@ CURRENT_TASK = None
 
 
 class Task(TaskDefinition):
-    """
-    Task base class.
-    """
-
     def __init__(
         self,
-        taskdef,
-        cluster,
-        node,
+        **inputs,
     ):
-        kwargs = taskdef.serialize()
+        """
+        Creates a new instance of the task. Pass inputs as keyword arguments.
+        """
+        # we are using **inputs keyword arguments so that the documentation will be
+        # more helpful when invoking subtasks.
+        kwargs = inputs['taskdef'].serialize()
         super().__init__(**kwargs)
-        self.node = node
-        self.cluster = cluster
+        self.node = inputs['node']
+        self.cluster = inputs['cluster']
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
+
+        # the base task constructor only takes 3 arguments.
+        if len(inputs) != 3:
+            raise RuntimeError('Invalid task constructor call')
 
     def __new__(cls, *args, **inputs):
         global CURRENT_TASK

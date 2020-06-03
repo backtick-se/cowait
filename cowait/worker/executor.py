@@ -1,7 +1,7 @@
 import asyncio
 import traceback
 from cowait.engine import ClusterProvider
-from cowait.tasks import TaskDefinition, TaskError
+from cowait.tasks import Task, TaskDefinition, TaskError
 from cowait.types import typed_arguments, typed_return, get_return_type
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
@@ -35,7 +35,11 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         with node.capture_logs():
             # instantiate
             TaskClass = load_task_class(taskdef.name)
-            task = TaskClass(taskdef, cluster, node)
+            task = TaskClass(
+                taskdef=taskdef,
+                cluster=cluster,
+                node=node,
+            )
 
             # initialize task
             task.init()
@@ -46,27 +50,24 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # prepare & typecheck inputs
             inputs = typed_arguments(task.run, taskdef.inputs)
 
-            # set state to running
-            await node.parent.send_run()
-
             # before hook
             inputs = await task.before(inputs)
             if inputs is None:
                 raise ValueError(
                     'Task.before() returned None, '
-                    'did you forget to return inputs?')
+                    'did you forget to return the inputs?')
+
+            # set state to running
+            await node.parent.send_run()
 
             # execute task
             result = await task.run(**inputs)
 
-            # wait for dangling tasks
-            orphans = filter(lambda child: not child.done, task.subtasks.values())
-            for orphan in orphans:
-                print('~~ waiting for orphaned task', orphan.id)
-                await orphan
-
             # after hook
             await task.after(inputs)
+
+            # wait for dangling tasks
+            await handle_orphans(task)
 
             # prepare & typecheck result
             result = typed_return(task.run, result)
@@ -95,3 +96,16 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
         # ensure event loop has a chance to run
         await asyncio.sleep(0.5)
+
+
+async def handle_orphans(task: Task, mode: str = 'kill') -> None:
+    orphans = filter(lambda child: not child.done, task.subtasks.values())
+    for orphan in orphans:
+        if mode == 'wait':
+            print('~~ waiting for orphaned task', orphan.id)
+            await orphan
+        elif mode == 'kill':
+            print('~~ killing orphaned task', orphan.id)
+            orphan.destroy()
+        else:
+            raise RuntimeError(f'Unknown orphan mode {mode}')

@@ -90,7 +90,6 @@ def typed_return(func: callable, result: object) -> object:
     """
     # validate result
     result_type = get_return_type(func)
-    result_type.validate(result, 'Return')
 
     # serialize result
     return result_type.serialize(result)
@@ -146,4 +145,4 @@ def serialize(obj: object, shape: Type = None) -> object:
 
 def deserialize(obj: any, typedesc: any) -> object:
     type = type_from_description(typedesc)
-    return type.deserialize(type)
+    return type.deserialize(obj)

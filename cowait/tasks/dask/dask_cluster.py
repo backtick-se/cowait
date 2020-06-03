@@ -1,6 +1,6 @@
 import asyncio
-from pipeline.tasks import Task, sleep, rpc
-from pipeline.tasks.messages import TASK_LOG
+from cowait.tasks import Task, sleep, rpc
+from cowait.tasks.messages import TASK_LOG
 from concurrent.futures import Future
 from dask.distributed import Client as DaskClient
 
@@ -12,7 +12,7 @@ class DaskCluster(Task):
     def init(self):
         self.scheduler = None
         self.workers = []
-        self.dask_cluster = {}
+        self.running = False
 
         # subscribe to logs
         self.node.children.on(TASK_LOG, self.on_log)
@@ -29,17 +29,18 @@ class DaskCluster(Task):
                 worker.ready.set_result(worker)
 
     async def before(self, inputs: dict) -> dict:
-        await self.create_cluster()
-
-        self.dask = DaskClient(address=self.dask_cluster['scheduler'])
-
-        print('~~ starting dask session')
-        inputs['dask'] = self.dask
-
+        await self.create_cluster(**inputs)
         return inputs
 
+    async def run(self, workers: int = 5):
+        print('~~ dask cluster running')
+        self.running = True
+        while self.running:
+            await sleep(1)
+        return 'ok'
+
     async def after(self, inputs: dict):
-        self.dask.close()
+        await self.dask.close()
 
         print('~~ destroying dask cluster')
         self.scheduler.destroy()
@@ -49,43 +50,41 @@ class DaskCluster(Task):
 
         await super().after(inputs)
 
-    async def create_cluster(self, num_workers=2) -> None:
+    async def create_cluster(self, workers=1) -> None:
         print(f'~~ creating dask cluster...')
-        print(f'~~   num_workers = {num_workers}')
+        print(f'~~   workers = {workers}')
 
         # create dask scheduler
         self.scheduler = self.spawn(
-            name='pipeline.tasks.shell',
+            name='cowait.tasks.shell',
             command='dask-scheduler',
-            image='backtickse/task',
+            image=self.image,
             routes={
                 # '/': 8787,
             },
         )
         self.scheduler.ready = Future()
-        scheduler_uri = f'tcp://{self.scheduler.ip}:8786'
+        self.scheduler_uri = f'tcp://{self.scheduler.ip}:8786'
 
         await sleep(1)
-        self.dask_cluster = {
-            'scheduler': scheduler_uri,
-        }
 
         # create workers
         self.workers = []
-        await self.add_workers(num_workers)
+        await self.add_workers(workers)
 
         print('~~ waiting for cluster nodes')
         await self.wait_for_nodes()
 
         print('~~ dask cluster ready')
+        self.dask = DaskClient(address=self.scheduler_uri)
 
     async def add_workers(self, count):
-        command = 'dask-worker ' + self.dask_cluster['scheduler']
+        command = f'dask-worker {self.scheduler_uri}'
         for i in range(0, count):
             w = self.spawn(
-                name='pipeline.tasks.shell',
-                image='backtickse/task',
-                command=command,
+                name='cowait.tasks.shell',
+                image=self.image,
+                command=command
             )
             w.ready = Future()
             self.workers.append(w)
@@ -103,21 +102,6 @@ class DaskCluster(Task):
         await asyncio.gather(
             asyncio.wrap_future(self.scheduler.ready),
             *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
-        )
-
-    def spawn(
-        self,
-        name: str,
-        image: str = None,
-        env: dict = {},
-        **inputs,
-    ) -> Task:
-        return super().spawn(
-            name=name,
-            image=image,
-            env=env,
-            **inputs,
-            cluster=self.dask_cluster,
         )
 
     @rpc
@@ -142,3 +126,13 @@ class DaskCluster(Task):
             # scale down
             print(f'~~ scale({workers}): removing {abs(diff)} workers')
             await self.remove_workers(diff)
+
+    @rpc
+    async def get_client(self) -> DaskClient:
+        """ Returns a Dask client for this cluster """
+        return self.dask
+
+    @rpc
+    async def teardown(self) -> None:
+        print('rpc destroy')
+        self.running = False
