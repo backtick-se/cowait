@@ -5,6 +5,9 @@ from .mapping import TypeAlias
 @TypeAlias(any)
 class Any(Type):
     """ Any type. Disables typechecking. """
+
+    name: str = 'any'
+
     def validate(self, value: any, name: str) -> None:
         pass
 
@@ -12,6 +15,9 @@ class Any(Type):
 @TypeAlias(int)
 class Int(Type):
     """ Integer, or anything that can be cast to an integer """
+
+    name: str = 'int'
+
     def validate(self, value: int, name: str) -> None:
         try:
             int(value)
@@ -25,6 +31,8 @@ class Int(Type):
 @TypeAlias(float)
 class Float(Type):
     """ Floating point, or anything that can be cast to a float """
+
+    name: str = 'float'
 
     def validate(self, value: float, name: str) -> None:
         try:
@@ -40,6 +48,8 @@ class Float(Type):
 class String(Type):
     """ String """
 
+    name: str = 'str'
+
     def validate(self, value: str, name: str) -> None:
         try:
             str(value)
@@ -53,6 +63,8 @@ class String(Type):
 @TypeAlias(bool)
 class Bool(Type):
     """ Boolean """
+
+    name: str = 'bool'
 
     def validate(self, value: bool, name: str) -> None:
         if isinstance(value, bool):

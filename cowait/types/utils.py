@@ -1,8 +1,9 @@
 import inspect
 from .type import Type
 from .simple import Any
+from .list import List
 from .dict import Dict
-from .mapping import convert_type
+from .mapping import get_type, convert_type
 
 
 def convert_type_annotation(annot: object) -> Type:
@@ -41,3 +42,24 @@ def get_parameter_types(func: callable) -> Type:
         for key, parameter in sig.parameters.items()
         if parameter.kind == inspect._POSITIONAL_OR_KEYWORD
     })
+
+
+def type_from_description(desc: any) -> Type:
+    if isinstance(desc, dict):
+        return Dict({
+            key: type_from_description(typedesc)
+            for key, typedesc in desc.items()
+        })
+    elif isinstance(desc, list):
+        if len(desc) == 0:
+            return List()
+        elif len(desc) == 1:
+            list_type = type_from_description(desc[0])
+            return List(list_type)
+        else:
+            raise TypeError('List typedef should contain a single item')
+    elif isinstance(desc, str):
+        # it should be a type name!
+        return get_type(desc)()
+    else:
+        raise TypeError('Invalid type description')

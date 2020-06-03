@@ -25,3 +25,9 @@ class List(Type):
 
     def deserialize(self, value: list) -> list:
         return [self.elementType.deserialize(item) for item in value]
+
+    def describe(self):
+        item_desc = self.elementType.describe()
+        if item_desc is not None:
+            return [item_desc]
+        return []

@@ -1,7 +1,6 @@
 from .dict import Dict
 from .simple import Any, Int
-from .utils import get_return_type, \
-    get_parameter_types, get_parameter_defaults
+from .utils import get_return_type, get_parameter_types, get_parameter_defaults
 
 
 def test_get_parameter_defaults():
