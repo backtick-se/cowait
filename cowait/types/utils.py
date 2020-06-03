@@ -84,7 +84,7 @@ def typed_arguments(func: callable, args: dict) -> dict:
     return parameter_types.deserialize(args)
 
 
-def typed_return(func: callable, result: object) -> (object, Type):
+def typed_return(func: callable, result: object) -> object:
     """
     Type checks and serializes a return value using cowait types.
     """
@@ -93,7 +93,7 @@ def typed_return(func: callable, result: object) -> (object, Type):
     result_type.validate(result, 'Return')
 
     # serialize result
-    return result_type.serialize(result), result_type.describe()
+    return result_type.serialize(result)
 
 
 async def typed_call(func: callable, args: dict) -> object:

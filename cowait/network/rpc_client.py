@@ -1,5 +1,5 @@
 import asyncio
-import cowait.types
+from cowait.types import type_from_description
 from concurrent.futures import Future
 from cowait.tasks.components.rpc import RpcError, \
     RPC_CALL, RPC_ERROR, RPC_RESULT
@@ -50,11 +50,12 @@ class RpcClient(object):
         return False
 
     def _rpc_result(self, nonce, result, result_type, **msg):
-        print('rpc result of type', result_type)
-        future = self.calls[nonce]
-        type = eval(result_type)
+        print('rpc result of type:', result_type)
+        print('rpc result:', result)
+        type = type_from_description(result_type)
         result = type.deserialize(result)
 
+        future = self.calls[nonce]
         if not future.done():
             future.set_result(result)
         del self.calls[nonce]

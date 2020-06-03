@@ -5,7 +5,7 @@ class RpcChild(Task):
     def init(self):
         self.called = False
 
-    async def run(self):
+    async def run(self) -> dict:
         print('waiting for call from parent...')
         for i in range(0, 5):
             if self.called:
@@ -17,7 +17,7 @@ class RpcChild(Task):
         }
 
     @rpc
-    async def echo(self, **params):
+    async def echo(self, **params) -> dict:
         print('echo', params)
         self.called = True
         return params

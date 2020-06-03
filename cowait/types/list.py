@@ -24,10 +24,10 @@ class List(Type):
         return [self.item.serialize(item) for item in value]
 
     def deserialize(self, value: list) -> list:
-        return [self.elementType.deserialize(item) for item in value]
+        return [self.item.deserialize(item) for item in value]
 
     def describe(self):
-        item_desc = self.elementType.describe()
+        item_desc = self.item.describe()
         if item_desc is not None:
             return [item_desc]
         return []

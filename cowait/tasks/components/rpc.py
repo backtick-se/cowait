@@ -44,7 +44,7 @@ class RpcComponent():
                 'method': method,
                 'args': args,
                 'result': result,
-                'result_type': result_type.__repr__(),
+                'result_type': result_type.describe(),
             })
 
         except Exception as e:
@@ -61,7 +61,7 @@ class RpcComponent():
         try:
             args = await req.json()
             method = req.match_info['method']
-            result = await self.task.rpc.call(method, args)
+            result = await self.call(method, args)
             return web.json_response(result)
         except Exception as e:
             print('HTTP RPC Error:')

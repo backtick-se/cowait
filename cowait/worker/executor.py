@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import TaskDefinition, TaskError
-from cowait.types import typed_arguments, typed_return
+from cowait.types import typed_arguments, typed_return, get_return_type
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -69,10 +69,11 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             await task.after(inputs)
 
             # prepare & typecheck result
-            result, result_type = typed_return(task.run, result)
+            result = typed_return(task.run, result)
+            result_type = get_return_type(task.run)
 
             # submit result
-            await node.parent.send_done(result, result_type)
+            await node.parent.send_done(result, result_type.describe())
 
     except TaskError as e:
         # pass subtask errors upstream
