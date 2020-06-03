@@ -20,7 +20,8 @@ class Type(ABC):
         """ Deserializes a JSON representation of a value """
         return value
 
-    def describe(self):
+    def describe(self) -> any:
+        """ Creates a JSON-serializable type description for this type """
         if self.name is None:
             raise TypeError('Unnamed type')
         return self.name

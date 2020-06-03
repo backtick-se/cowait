@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncio
 from concurrent.futures import Future
+from cowait.types import type_from_description
 from .errors import TaskError
 from .definition import TaskDefinition
 from .status import WAIT, WORK, FAIL, DONE
@@ -23,13 +24,13 @@ class RemoteTask(TaskDefinition):
         return self.awaitable.__await__()
 
     @property
-    def done(self):
+    def done(self) -> bool:
         return self.future.done()
 
-    def destroy(self):
+    def destroy(self) -> None:
         self.cluster.destroy(self.id)
 
-    def set_status(self, status):
+    def set_status(self, status: str) -> None:
         # sanity checks
         if self.status == FAIL and status == DONE:
             raise RuntimeError('Cant complete a failed task')
@@ -40,19 +41,23 @@ class RemoteTask(TaskDefinition):
         # update status
         self.status = status
 
-    def set_error(self, error):
+    def set_error(self, error: str) -> None:
         self.set_status(FAIL)
         self.error = error
         if not self.future.done():
             self.future.set_exception(TaskError(error))
 
-    def set_result(self, result):
+    def set_result(self, result: any, result_type: any = 'any') -> None:
+        # unpack type & deserialize result
+        result_type = type_from_description(result_type)
+        result = result_type.deserialize(result)
+
         self.set_status(DONE)
         self.result = result
         if not self.future.done():
             self.future.set_result(result)
 
-    async def wait_for_init(self, timeout=30):
+    async def wait_for_init(self, timeout=30) -> None:
         if self.status != WAIT:
             raise RuntimeError(f'Cant await task with status {self.status}')
 

@@ -8,4 +8,5 @@ from .simple import Any, String, Int, Float, Bool
 from .mapping import TypeAlias
 
 from .utils import get_return_type, \
-    get_parameter_types, get_parameter_defaults
+    get_parameter_types, get_parameter_defaults, \
+    type_from_description

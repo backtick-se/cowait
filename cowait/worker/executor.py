@@ -85,9 +85,10 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
             # serialize result
             result = return_type.serialize(result)
+            result_type = return_type.describe()
 
             # submit result
-            await node.parent.send_done(result)
+            await node.parent.send_done(result, result_type)
 
     except TaskError as e:
         # pass subtask errors upstream

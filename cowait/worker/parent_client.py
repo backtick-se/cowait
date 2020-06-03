@@ -53,15 +53,16 @@ class ParentClient(Client):
         await self.msg(TASK_STATUS, status=STOP, id=id)
         await self.msg(TASK_RETURN, result={}, id=id)
 
-    async def send_done(self, result: Any) -> None:
+    async def send_done(self, result: Any, result_type: str = 'any') -> None:
         """
         Send status update: Done, and return a result.
 
         Arguments:
             result (any): Any serializable data to return to the upstream task.
+            result_type (str): Result type description
         """
         await self.msg(TASK_STATUS, status=DONE)
-        await self.msg(TASK_RETURN, result=result)
+        await self.msg(TASK_RETURN, result=result, result_type=result_type)
 
     async def send_fail(self, error: str) -> None:
         """

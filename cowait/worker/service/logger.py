@@ -39,7 +39,6 @@ class FlowLogger(ParentClient):
         print('~~', id, 'changed status to', status)
 
     async def on_fail(self, id, error, **msg):
-        print('-- TASK FAILED: ---------------------------------------')
         print('~~', id, 'failed with error:')
         print(error.strip())
 
