@@ -12,7 +12,7 @@ export const TaskStatusLabel = styled.label<Props>`
     /* border: 1px solid ${p => p.theme.colors.status[p.status]}; */
     font-size: 0.5em;
     border-radius: ${p => p.theme.borderRadius};
-    background: ${p => hex2Rgba(p.theme.colors.status[p.status], 0.2)};
+    background: ${p => hex2Rgba(p.theme.colors.status[p.status || 'work'], 0.2)};
     margin-right: 1rem;
     
     span {
