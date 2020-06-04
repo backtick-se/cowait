@@ -3,6 +3,8 @@ from cowait.tasks import Task, sleep, rpc
 from cowait.tasks.messages import TASK_LOG
 from concurrent.futures import Future
 from dask.distributed import Client as DaskClient
+from .worker import DaskWorker
+from .types import *  # flake8: noqa: F401
 
 MSG_LEADER = 'Scheduler at:'
 MSG_REGISTER = 'Registered to:'
@@ -79,13 +81,8 @@ class DaskCluster(Task):
         self.dask = DaskClient(address=self.scheduler_uri)
 
     async def add_workers(self, count):
-        command = f'dask-worker {self.scheduler_uri}'
         for i in range(0, count):
-            w = self.spawn(
-                name='cowait.tasks.shell',
-                image=self.image,
-                command=command
-            )
+            w = DaskWorker(scheduler=self.scheduler_uri)
             w.ready = Future()
             self.workers.append(w)
 
