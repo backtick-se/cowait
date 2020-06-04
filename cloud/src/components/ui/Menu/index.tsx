@@ -6,7 +6,7 @@ import { Menu, Logo, MenuItem } from './styled'
 export default (() =>
   <Menu>
     <Logo>
-      <img src="cw_temp_logo2.png" />
+      <img src="cw_logo.png" />
     </Logo>
     <MenuItem to={"/"}>
       <FontAwesomeIcon icon="home" />
