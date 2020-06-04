@@ -67,15 +67,8 @@ def type_from_description(desc: any) -> Type:
 
 def typed_arguments(func: callable, args: dict) -> dict:
     """
-    Checks types against function signature, merges the passed args dict
-    with any defaults, and deserializes using cowait types.
+    Checks argument types against function signature and deserializes using cowait types.
     """
-    # merge arguments with defaults
-    args = {
-        **get_parameter_defaults(func),
-        **args,
-    }
-
     # validate args
     parameter_types = get_parameter_types(func)
     parameter_types.validate(args, 'Arguments')
@@ -97,6 +90,10 @@ def typed_return(func: callable, result: object) -> object:
 
 async def typed_call(func: callable, args: dict) -> object:
     """ Performs a type-checked function call. """
+    args = {
+        **get_parameter_defaults(func),
+        **args,
+    }
     args = typed_arguments(func, args)
     result = func(**args)
     return typed_return(func, result)
@@ -104,6 +101,10 @@ async def typed_call(func: callable, args: dict) -> object:
 
 async def typed_async_call(func: callable, args: dict) -> object:
     """ Performs a type-checked asynchronous function call. """
+    args = {
+        **get_parameter_defaults(func),
+        **args,
+    }
     targs = typed_arguments(func, args)
     result = await func(**targs)
     return typed_return(func, result)

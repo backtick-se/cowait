@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import Task, TaskDefinition, TaskError
-from cowait.types import typed_arguments, typed_return, get_return_type
+from cowait.types import typed_arguments, typed_return, get_return_type, get_parameter_defaults
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -47,8 +47,11 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
-            # prepare & typecheck inputs
-            inputs = typed_arguments(task.run, taskdef.inputs)
+            # prepare arguments
+            inputs = {
+                **get_parameter_defaults(task.run),
+                **taskdef.inputs,
+            }
 
             # before hook
             inputs = await task.before(inputs)
@@ -56,6 +59,9 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
                 raise ValueError(
                     'Task.before() returned None, '
                     'did you forget to return the inputs?')
+
+            # typecheck arguments
+            inputs = typed_arguments(task.run, inputs)
 
             # set state to running
             await node.parent.send_run()
