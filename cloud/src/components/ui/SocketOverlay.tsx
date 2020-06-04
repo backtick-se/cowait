@@ -23,7 +23,7 @@ const LoadingContainer = styled.div`
 const LoadingIcon = styled.div`
     width: 100%;
     text-align: center;
-    color: #fff;
+    color: ${p => p.theme.colors.text.primary}
 
     i {
         font-size: 5rem;

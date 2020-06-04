@@ -1,6 +1,6 @@
 import { ThemeState, ThemeActionTypes } from './types'
 import { Reducer } from 'redux'
-import { loadFromLocalStorage } from '../../utils'
+import { loadFromLocalStorage, saveToLocalStorage } from '../../utils'
 import { ThemeType } from '../../theme'
 
 
@@ -14,6 +14,7 @@ const initialState: ThemeState = {
 const reducer: Reducer<ThemeState> = (state = initialState, action) => {
     switch(action.type) {
     case ThemeActionTypes.UPDATE:
+        saveToLocalStorage(LOCAL_STORAGE_KEY, action.payload)
         return {
             ...state,
             active: action.payload

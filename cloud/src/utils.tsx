@@ -6,15 +6,15 @@ export function updateToken() {
 
     if (token) {
         if (token instanceof Array) {
-            localStorage.setItem('token', token[0])
+            saveToLocalStorage('token', token[0])
         } else {
-            localStorage.setItem('token', token)
+            saveToLocalStorage('token', token)
         }
     }
 }
 
 export function getToken(): string | null {
-    return localStorage.getItem('token')
+    return loadFromLocalStorage('token')
 }
 
 export function getWsUrl(): string {
@@ -37,7 +37,7 @@ export function getWsUrl(): string {
  * @param {number} alpha - Alpha as a decimal.
  * @returns {string} RGBA CSS color value.
  */
-export function hex2Rgba(hex: string, alpha: number): string {
+export const hex2Rgba = (hex: string, alpha: number): string => {
     const fullHex = hex.length < 6 ? hex + hex[hex.length - 1].repeat(6 - hex.length) : hex
 
     const r = parseInt(fullHex.substring(1, 3), 16)
@@ -75,4 +75,31 @@ export const saveToLocalStorage = (key: string, value: any): void => {
     } catch {
         // ignore write errors
     }
-}; 
+};
+
+export type PathFragment = {
+    path: string,
+    name: string
+}
+
+/**
+ * Split full path into incrementing traversable fragments
+ * e.g. '/task/123/details' => ['/task', '/task/123', '/task/123/details']
+ * @param {string} path - Full location path
+ * @returns {PathFragment[]} - Traversable fragments, each going one level deeper
+ */
+export const traversablePaths = (path: string): PathFragment[] => {
+    if (path === '/') {
+        return [{
+            name: 'HOME',
+            path: path
+        }]
+    }
+
+    return path.split('/').slice(1).reduce<PathFragment[]>((acc, next) => {
+        return acc.concat({
+            name: next.toUpperCase(),
+            path: `${acc.length ? acc[acc.length - 1].path : acc}/${next}`
+        })
+    }, [])
+}

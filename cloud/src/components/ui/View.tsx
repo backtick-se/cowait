@@ -8,7 +8,7 @@ export const Bubble = styled.div<{ shadow?: string }>`
     margin-bottom: 0.5rem;
 
     background-color: ${p => p.theme.colors.background.secondary};
-    color: #222;
+    color: ${p => p.theme.colors.text.primary};
 
     h4 {
         font-size: 0.9rem;
