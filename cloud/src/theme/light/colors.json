@@ -6,13 +6,13 @@
   "purple": "#5800ff",
   "white": "#ffffff",
   "grayscale0": "#F6F6F6",
-  "grayscale1": "#B3B6B6",
-  "grayscale2": "#959899",
-  "grayscale3": "#777A7C",
-  "grayscale4": "#585B5F",
-  "grayscale5": "#3A3C41",
-  "grayscale6": "#1C1C24",
-  "grayscale7": "#1A1820",
-  "grayscale8": "#18151B",
-  "grayscale9": "#151117"
+  "grayscale1": "#EAEAEA",
+  "grayscale2": "#B3B6B6",
+  "grayscale3": "#959899",
+  "grayscale4": "#777A7C",
+  "grayscale5": "#585B5F",
+  "grayscale6": "#3A3C41",
+  "grayscale7": "#1C1C24",
+  "grayscale8": "#1A1820",
+  "grayscale9": "#18151B"
 }

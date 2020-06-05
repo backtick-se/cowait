@@ -5,7 +5,7 @@ import { ColorTheme } from '..'
 
 export const theme: ColorTheme = {
     colors: {
-        border: colors.grayscale0,
+        border: colors.grayscale1,
         text: {
             primary: colors.grayscale6,
             secondary: colors.grayscale4,

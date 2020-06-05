@@ -5,7 +5,7 @@ import { Bubble, FlexBox } from '../../ui'
 export const TaskHeader = styled.div`
     padding-bottom: 1rem;
     border-bottom: 0.5px solid ${p => p.theme.colors.border};
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 `
 
 export const TaskHeaderLink = styled(Link)`
