@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
-import { Bubble } from '../../ui'
-
+import { Bubble, FlexBox } from '../../ui'
 
 export const TaskHeader = styled.div`
     padding-bottom: 1rem;
@@ -30,8 +29,13 @@ export const TaskWrapper = styled(Bubble)`
     padding: 1rem 1.5rem;
 `
 
-export const ParentWrapper = styled.div`
-    padding: 0.5rem 0;
+export const ParentWrapper = styled(FlexBox)`
+    padding-top: 0.5rem;
+    align-items: center;
+
+    > svg {
+        margin-right: 0.5rem;
+    }
 `
 
 export const TaskTitleContainer = styled.div`

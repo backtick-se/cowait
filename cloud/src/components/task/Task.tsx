@@ -9,6 +9,8 @@ import TaskSubTasks from './TaskSubTasks'
 import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper, TaskTitleContainer } from './styled/Task'
 import { Task as TaskInterface } from '../../store/tasks/types'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
 type TaskProps = TaskInterface & {
     maxLogHeight?: number
 }
@@ -24,6 +26,7 @@ export const Task: TaskComponent = ({ id, status, image, parent, result, error, 
             </TaskTitleContainer>
             <TaskImage>{image}</TaskImage>
             {parent && <ParentWrapper>
+                <FontAwesomeIcon icon="level-up-alt" />
                 <TaskLink id={parent}/>
             </ParentWrapper>}
         </TaskHeader>
