@@ -1,13 +1,14 @@
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Menu, Logo, MenuItem } from './styled'
+import { Menu, LogoContainer, MenuItem } from './styled'
+import Logo from '../Logo'
 
 
 export default (() =>
   <Menu>
-    <Logo>
-      <img src="cw_logo.png" />
-    </Logo>
+    <LogoContainer>
+      <Logo />
+    </LogoContainer>
     <MenuItem to={"/"}>
       <FontAwesomeIcon icon="home" />
     </MenuItem>

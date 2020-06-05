@@ -25,7 +25,7 @@ export const MenuItem = styled(Link)`
   }
 `
 
-export const Logo = styled.div`
+export const LogoContainer = styled.div`
   padding: 1rem;
   display: flex;
   align-items: center;
