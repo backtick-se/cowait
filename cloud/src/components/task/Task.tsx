@@ -6,10 +6,11 @@ import TaskResult from './TaskResult'
 import TaskLink from './TaskLink'
 import TaskInputs from './TaskInputs'
 import TaskSubTasks from './TaskSubTasks'
-import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper, TaskTitleContainer } from './styled/Task'
+import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper, TaskTitleWrapper, TaskCreatedAt, TaskTitle } from './styled/Task'
 import { Task as TaskInterface } from '../../store/tasks/types'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { formatDate } from '../../utils'
 
 type TaskProps = TaskInterface & {
     maxLogHeight?: number
@@ -17,13 +18,16 @@ type TaskProps = TaskInterface & {
 
 export type TaskComponent = React.FC<TaskProps>
 
-export const Task: TaskComponent = ({ id, status, image, parent, result, error, sub_tasks, inputs, maxLogHeight }) => {
+export const Task: TaskComponent = ({ id, status, image, parent, result, error, sub_tasks, inputs, maxLogHeight, created_at }) => {
     return <TaskWrapper>
         <TaskHeader>
-            <TaskTitleContainer>
-                <TaskHeaderLink to={`/task/${id}`}>{id}</TaskHeaderLink> 
-                <TaskStatus status={status} />
-            </TaskTitleContainer>
+            <TaskTitleWrapper>
+                <TaskTitle>
+                    <TaskHeaderLink to={`/task/${id}`}>{id}</TaskHeaderLink> 
+                    <TaskStatus status={status} />
+                </TaskTitle>
+                <TaskCreatedAt>{formatDate(created_at)}</TaskCreatedAt>
+            </TaskTitleWrapper>
             <TaskImage>{image}</TaskImage>
             {parent && <ParentWrapper>
                 <FontAwesomeIcon icon="level-up-alt" />

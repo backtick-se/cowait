@@ -8,6 +8,7 @@ export const Navbar = styled.nav`
   display: flex;
   font-size: 0.8rem;
   justify-content: space-between;
+  align-items: center;
 
   a {
     font-family: ${p => p.theme.fonts.header};

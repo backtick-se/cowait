@@ -30,10 +30,8 @@ export const Content = styled.div`
     padding: 1rem;
 `
 
-export const View: React.FC<{ title: string }> = ({ title, children }) => {
-    return <div>
-        <Content>
-            {children}
-        </Content>
-    </div>
+export const View: React.FC = ({ children }) => {
+    return <Content>
+        {children}
+    </Content>
 }

@@ -5,6 +5,7 @@ type Props = {
   alignItems?: string | null,
   justifyContent?: string | null
   background?: string | null
+  flex?: string | null
 }
 
 export const FlexBox = styled.div<Props>`
@@ -13,4 +14,5 @@ export const FlexBox = styled.div<Props>`
   align-items: ${p => p.alignItems || ''};
   justify-content: ${p => p.justifyContent || ''};
   background: ${p => p.background || ''};
+  flex: ${p => p.flex || ''};
 `;

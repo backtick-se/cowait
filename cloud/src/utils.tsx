@@ -103,3 +103,13 @@ export const traversablePaths = (path: string): PathFragment[] => {
         })
     }, [])
 }
+
+/**
+ * Formats ISO 8601 date to locale string
+ * e.g. 2020-06-08T00:24:31.482409 -> 08/06/2020, 00:24:31
+ * @param {string} dateString -  
+ * @returns {string} - Formatted date
+ */
+export const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleString()
+}

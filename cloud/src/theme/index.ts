@@ -34,7 +34,7 @@ export interface Theme extends ColorTheme, DefaultTheme {
 }
 
 const defaultTheme = {
-    borderRadius: '0.3rem',
+    borderRadius: '0.2rem',
     fonts: {
         normal: 'Heebo',
         header: 'Heebo',

@@ -12,7 +12,7 @@ type Props = {
 export const TaskItem: React.FC<Props> = ({ id, render = Task, ...props }) => {
     const task = useSelector((state: RootState) => state.tasks.items[id])
     if (!task) {
-        return <p>loading</p>
+        return null
     }
 
     const RenderElement = render

@@ -21,6 +21,10 @@ import {
   faFillDrip,
 } from '@fortawesome/free-solid-svg-icons'
 
+import {
+  faGithubSquare
+} from '@fortawesome/free-brands-svg-icons'
+
 library.add(
   faHome,
   faListAlt,
@@ -38,5 +42,6 @@ library.add(
   faExclamationTriangle,
   faSortAmountDown,
   faLevelUpAlt,
-  faFillDrip
+  faFillDrip,
+  faGithubSquare
 )
