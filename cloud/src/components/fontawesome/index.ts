@@ -18,6 +18,7 @@ import {
   faExclamationTriangle,
   faSortAmountDown,
   faLevelUpAlt,
+  faFillDrip,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -36,5 +37,6 @@ library.add(
   faSignOutAlt,
   faExclamationTriangle,
   faSortAmountDown,
-  faLevelUpAlt
+  faLevelUpAlt,
+  faFillDrip
 )

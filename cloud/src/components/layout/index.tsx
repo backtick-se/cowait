@@ -9,7 +9,9 @@ export const Layout: React.FC = ({ children }) => {
     <Menu />
     <VerticalWrapper>
       <Navbar />
-      <ContentWrapper>{children}</ContentWrapper>
+      <ContentWrapper>
+        {children}
+      </ContentWrapper>
     </VerticalWrapper>
   </HorizontalWrapper>
 }

@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { FlexBox } from '../FlexBox'
 
 
 export const ThemeIcon = styled.a<{ active: boolean, color: string }>`
@@ -8,7 +9,7 @@ export const ThemeIcon = styled.a<{ active: boolean, color: string }>`
   height: 1rem;
   border-radius: 1rem;
   margin: 0 0.2em;
-  border: ${p => `1px solid ${p.active ? p.theme.colors.text.primary : p.color}`};
+  border: ${p => `1px solid ${p.active ? p.color : p.color}`};
 
   &:last-child {
     margin-right: 0;
@@ -17,4 +18,8 @@ export const ThemeIcon = styled.a<{ active: boolean, color: string }>`
   &:hover {
     border-color: ${p => p.theme.colors.link.primary};
   }
+`
+
+export const ThemePicker = styled(FlexBox)`
+  padding: 0.25rem 0.5rem;
 `

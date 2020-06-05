@@ -9,8 +9,6 @@ import TaskView from './task/TaskView'
 import TaskListView from './task/TaskListView'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { RootState } from '../store'
-
-import SocketOverlay from './ui/SocketOverlay'
 import { Layout } from './layout'
 
 
@@ -23,13 +21,11 @@ export function App() {
             <GlobalStyle />
             <Layout>
                 <ErrorBoundary>
-                    <SocketOverlay>
-                        <Switch>
-                            <Route path="/task/:taskId" component={TaskView} />
-                            <Route path="/task" component={TaskListView} />
-                            <Route path="/" component={Home} />
-                        </Switch>
-                    </SocketOverlay>
+                    <Switch>
+                        <Route path="/task/:taskId" component={TaskView} />
+                        <Route path="/task" component={TaskListView} />
+                        <Route path="/" component={Home} />
+                    </Switch>
                 </ErrorBoundary>
             </Layout>
         </Router>

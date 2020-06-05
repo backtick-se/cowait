@@ -1,19 +1,21 @@
 import React from 'react'
+
 import { availableThemes, ThemeType } from '../../../theme'
-import { FlexBox } from '../../ui'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../../../store'
 import theme from '../../../store/theme'
-import { ThemeIcon } from './styled'
+import { ThemeIcon, ThemePicker } from './styled'
+import { FlexBox } from '../FlexBox'
+
 
 const ThemeButton: React.FC<{ name: string, active: boolean, color: string }> = ({ name, ...rest }) => {
   const dispatch = useDispatch()
-  
+
   const onClick = (_: any) => {
     dispatch(theme.actions.updateTheme(name as ThemeType))
   }
 
-  return <ThemeIcon onClick={onClick} {...rest}/>
+  return <ThemeIcon onClick={onClick} {...rest} />
 }
 
 export default (() => {
@@ -29,5 +31,7 @@ export default (() => {
     />
   )
 
-  return <FlexBox alignItems="center">{buttons}</FlexBox>
+  return <ThemePicker>
+    {buttons}
+  </ThemePicker>
 }) as React.FC

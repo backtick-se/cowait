@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 
 
-export const Navbar = styled.div`
+export const Navbar = styled.nav`
   background: ${p => p.theme.colors.background.secondary};
   color: ${p => p.theme.colors.text.primary};
   padding: 1rem;
