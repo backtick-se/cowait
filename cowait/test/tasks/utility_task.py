@@ -9,7 +9,11 @@ class UtilityTask(Task):
     """
 
     def __init__(self, taskdef, cluster, node):
-        super().__init__(taskdef, cluster, node)
+        super().__init__(
+            taskdef=taskdef,
+            cluster=cluster,
+            node=node,
+        )
         # store taskdef for later comparison
         self.taskdef = taskdef
 

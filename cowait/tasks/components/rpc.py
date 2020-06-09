@@ -1,6 +1,7 @@
 import inspect
 import traceback
 from aiohttp import web
+from cowait.types import typed_async_call, get_return_type
 
 RPC_CALL = 'rpc/call'
 RPC_ERROR = 'rpc/error'
@@ -19,23 +20,31 @@ class RpcComponent():
         # register http handler
         task.node.http.add_post('/rpc/{method}', self.http_rpc_handler)
 
-    async def call(self, method, args):
+    def get_method(self, method: str) -> callable:
         if method not in self.methods:
             raise RpcError(f'No such method {method}')
 
-        rpc_func = self.methods[method]
-        result = await rpc_func(**args)
-        return {} if result is None else result
+        return self.methods[method]
+
+    async def call(self, method, args):
+        rpc_func = self.get_method(method)
+        result = await typed_async_call(rpc_func, args)
+        return result
 
     async def on_rpc(self, conn, method, args, nonce):
         try:
-            result = await self.call(method, args)
+            rpc_func = self.get_method(method)
+
+            result = await typed_async_call(rpc_func, args)
+            result_type = get_return_type(rpc_func)
+
             await conn.send({
                 'type': RPC_RESULT,
                 'nonce': nonce,
                 'method': method,
                 'args': args,
                 'result': result,
+                'result_type': result_type.describe(),
             })
 
         except Exception as e:
@@ -52,7 +61,7 @@ class RpcComponent():
         try:
             args = await req.json()
             method = req.match_info['method']
-            result = await self.task.rpc.call(method, args)
+            result = await self.call(method, args)
             return web.json_response(result)
         except Exception as e:
             print('HTTP RPC Error:')

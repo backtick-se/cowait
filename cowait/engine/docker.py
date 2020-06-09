@@ -145,6 +145,11 @@ class DockerProvider(ClusterProvider):
 
             try:
                 container.remove(force=True)
+            except docker.errors.APIError as e:
+                if 'already in progress' in str(e):
+                    pass
+                else:
+                    raise e
             except docker.errors.NotFound:
                 pass
 

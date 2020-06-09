@@ -19,7 +19,7 @@ def test_deserialize_dict_type():
 def test_deserialize_list_type():
     desc = type_from_description(['str'])
     assert isinstance(desc, List)
-    assert isinstance(desc.elementType, String)
+    assert isinstance(desc.item, String)
 
 
 class ComplexCustom(object):

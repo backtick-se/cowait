@@ -1,7 +1,16 @@
 import asyncio
+from cowait.types import deserialize
 from concurrent.futures import Future
 from cowait.tasks.components.rpc import RpcError, \
     RPC_CALL, RPC_ERROR, RPC_RESULT
+
+
+class RpcCall(Future):
+    def __init__(self, method, args, nonce):
+        super().__init__()
+        self.method = method
+        self.args = args
+        self.nonce = nonce
 
 
 class RpcClient(object):
@@ -14,7 +23,7 @@ class RpcClient(object):
         nonce = self.nonce
         self.nonce += 1
 
-        self.calls[nonce] = Future()
+        self.calls[nonce] = RpcCall(method, args, nonce)
         await self.ws.send_json({
             'type':   RPC_CALL,
             'method': method,
@@ -40,7 +49,8 @@ class RpcClient(object):
 
         return False
 
-    def _rpc_result(self, nonce, result, **msg):
+    def _rpc_result(self, nonce, result, result_type, **msg):
+        result = deserialize(result, result_type)
         future = self.calls[nonce]
         if not future.done():
             future.set_result(result)

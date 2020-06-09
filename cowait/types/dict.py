@@ -1,4 +1,5 @@
 from .type import Type
+from .simple import Any
 from .mapping import is_cowait_type, convert_type, TypeAlias
 
 
@@ -26,15 +27,17 @@ class Dict(Type):
             type.validate(value[key], f'{name}[{key}]')
 
     def serialize(self, value: dict) -> dict:
+        any = Any()
         return {
-            key: type.serialize(value[key])
-            for key, type in self.shape.items()
+            key: self.shape.get(key, any).serialize(value)
+            for key, value in value.items()
         }
 
     def deserialize(self, value: dict) -> dict:
+        any = Any()
         return {
-            key: type.deserialize(value[key])
-            for key, type in self.shape.items()
+            key: self.shape.get(key, any).deserialize(value)
+            for key, value in value.items()
         }
 
     def describe(self):

@@ -50,9 +50,9 @@ class TaskManager(dict):
             task = self[id]
             task.set_status(status)
 
-    async def on_child_return(self, conn, id: str, result: Any, **msg: dict):
+    async def on_child_return(self, conn, id: str, result: Any, result_type: any, **msg: dict):
         task = self[id]
-        task.set_result(result)
+        task.set_result(result, result_type)
 
     async def on_child_fail(self, conn, id: str, error: str, **msg: dict):
         task = self[id]

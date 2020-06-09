@@ -1,5 +1,6 @@
 from .type import Type
 from .mapping import TypeAlias
+from datetime import datetime
 
 
 @TypeAlias(any)
@@ -87,3 +88,36 @@ class Bool(Type):
             return True
         elif value == 'false':
             return False
+
+
+@TypeAlias(datetime)
+class DateTime(Type):
+    """ Python datetime object serialized as an ISO8601 string """
+
+    def validate(self, value: str, name: str) -> None:
+        if isinstance(value, datetime):
+            return
+
+        if not isinstance(value, str):
+            raise ValueError('Expected ISO8601 datetime')
+
+        datetime.fromisoformat(value)
+
+    def serialize(self, value: datetime) -> str:
+        return value.isoformat()
+
+    def deserialize(self, value: str) -> datetime:
+        return datetime.fromisoformat(value)
+
+
+@TypeAlias(None)
+class Void(Type):
+    def validate(self, value, name: str):
+        if value is not None:
+            raise ValueError(f'Expected {name} to be None')
+
+    def serialize(self, value):
+        return None
+
+    def deserialize(self, value):
+        return None

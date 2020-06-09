@@ -7,27 +7,27 @@ from .mapping import is_cowait_type, convert_type, TypeAlias
 class List(Type):
     """ List type """
 
-    def __init__(self, elementType: Type = Any()):
-        if not is_cowait_type(elementType):
+    def __init__(self, item: Type = Any()):
+        if not is_cowait_type(item):
             raise ValueError('Element type is not a cowait Type')
 
-        self.elementType = convert_type(elementType)
+        self.item = convert_type(item)
 
     def validate(self, value: list, name: str) -> None:
         if not isinstance(value, list):
             raise ValueError(f'{name} is not a list')
 
         for i, item in enumerate(value):
-            self.elementType.validate(item, f'{name}[{i}]')
+            self.item.validate(item, f'{name}[{i}]')
 
     def serialize(self, value: list) -> list:
-        return [self.elementType.serialize(item) for item in value]
+        return [self.item.serialize(item) for item in value]
 
     def deserialize(self, value: list) -> list:
-        return [self.elementType.deserialize(item) for item in value]
+        return [self.item.deserialize(item) for item in value]
 
     def describe(self):
-        item_desc = self.elementType.describe()
+        item_desc = self.item.describe()
         if item_desc is not None:
             return [item_desc]
         return []

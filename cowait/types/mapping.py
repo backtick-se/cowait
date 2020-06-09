@@ -16,6 +16,7 @@ def register_type(from_type: ClassVar, to_type: Type) -> None:
         to_type.name = f'{to_type.__module__}.{to_type.__name__}'
     _name_mapping[to_type.name] = to_type
     _type_mapping[from_type] = to_type
+    _name_mapping[f'{to_type.__module__}.{to_type.__name__}'] = to_type
 
 
 def get_type(name: str) -> Type:

@@ -1,9 +1,8 @@
 import asyncio
 import traceback
 from cowait.engine import ClusterProvider
-from cowait.tasks import TaskDefinition, TaskError
-from cowait.types import get_return_type, \
-    get_parameter_types, get_parameter_defaults
+from cowait.tasks import Task, TaskDefinition, TaskError
+from cowait.types import typed_arguments, typed_return, get_return_type, get_parameter_defaults
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -36,7 +35,11 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         with node.capture_logs():
             # instantiate
             TaskClass = load_task_class(taskdef.name)
-            task = TaskClass(taskdef, cluster, node)
+            task = TaskClass(
+                taskdef=taskdef,
+                cluster=cluster,
+                node=node,
+            )
 
             # initialize task
             task.init()
@@ -44,50 +47,40 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
-            # merge inputs with defaults
+            # prepare arguments
             inputs = {
                 **get_parameter_defaults(task.run),
                 **taskdef.inputs,
             }
-
-            # validate inputs
-            input_types = get_parameter_types(task.run)
-            input_types.validate(inputs, 'Inputs')
-
-            # deserialize inputs
-            inputs = input_types.deserialize(inputs)
-
-            # set state to running
-            await node.parent.send_run()
 
             # before hook
             inputs = await task.before(inputs)
             if inputs is None:
                 raise ValueError(
                     'Task.before() returned None, '
-                    'did you forget to return inputs?')
+                    'did you forget to return the inputs?')
+
+            # typecheck arguments
+            inputs = typed_arguments(task.run, inputs)
+
+            # set state to running
+            await node.parent.send_run()
 
             # execute task
             result = await task.run(**inputs)
 
-            # wait for dangling tasks
-            orphans = filter(lambda child: not child.done, task.subtasks.values())
-            for orphan in orphans:
-                print('~~ waiting for orphaned task', orphan.id)
-                await orphan
-
             # after hook
             await task.after(inputs)
 
-            # validate result
-            return_type = get_return_type(task.run)
-            return_type.validate(result, 'Return')
+            # wait for dangling tasks
+            await handle_orphans(task)
 
-            # serialize result
-            result = return_type.serialize(result)
+            # prepare & typecheck result
+            result = typed_return(task.run, result)
+            result_type = get_return_type(task.run)
 
             # submit result
-            await node.parent.send_done(result)
+            await node.parent.send_done(result, result_type.describe())
 
     except TaskError as e:
         # pass subtask errors upstream
@@ -109,3 +102,16 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
         # ensure event loop has a chance to run
         await asyncio.sleep(0.5)
+
+
+async def handle_orphans(task: Task, mode: str = 'kill') -> None:
+    orphans = filter(lambda child: not child.done, task.subtasks.values())
+    for orphan in orphans:
+        if mode == 'wait':
+            print('~~ waiting for orphaned task', orphan.id)
+            await orphan
+        elif mode == 'kill':
+            print('~~ killing orphaned task', orphan.id)
+            orphan.destroy()
+        else:
+            raise RuntimeError(f'Unknown orphan mode {mode}')
