@@ -1,6 +1,6 @@
 FROM cowait/task
 
-RUN apt-get install -y wget default-jre-headless
+RUN apt-get update && apt-get install -y wget default-jre-headless
 
 # hopefully always true on debian stretch
 ENV JAVA_HOME=/usr/lib/jvm/default-java
