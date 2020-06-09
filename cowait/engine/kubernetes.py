@@ -148,8 +148,9 @@ class KubernetesProvider(ClusterProvider):
     def wait(self, task: KubernetesTask) -> None:
         raise NotImplementedError()
 
-    def wait_until_ready(self, task_id: str, poll_interval: float = 0.5):
-        timeout = self.timeout
+    def wait_until_ready(self, task_id: str, poll_interval: float = 0.5, timeout: float = None):
+        if timeout is None:
+            timeout = self.timeout
         while True:
             time.sleep(poll_interval)
             pod = self.get_task_pod(task_id)
@@ -175,7 +176,7 @@ class KubernetesProvider(ClusterProvider):
 
                 # we are go
                 if state.running is not None:
-                    break
+                    return pod
 
             timeout -= poll_interval
             if timeout <= 0:

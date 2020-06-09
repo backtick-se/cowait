@@ -60,18 +60,23 @@ class RemoteTask(TaskDefinition):
     async def wait_for_init(self, timeout=30) -> None:
         if self.status != WAIT:
             raise RuntimeError(f'Cant await task with status {self.status}')
+        await self.wait_for_status(WORK, timeout)
 
+    async def wait_for_done(self, timeout=30) -> None:
+        await self.wait_for_status(DONE, timeout)
+
+    async def wait_for_status(self, status: str, timeout=30) -> None:
         slept = 0
         interval = 0.2
         while True:
-            if self.status == WORK:
+            if self.status == status:
                 return
             if self.status == FAIL:
                 raise RuntimeError(
                     f'Awaited task failed with error: {self.error}')
 
             if slept > timeout:
-                raise TimeoutError('Task took to long to initialize')
+                raise TimeoutError(f'Task took to long to reach status {status}')
 
             await asyncio.sleep(interval)
             slept += interval
