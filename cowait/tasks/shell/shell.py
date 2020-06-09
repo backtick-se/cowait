@@ -1,16 +1,23 @@
-import os
 import asyncio
 from cowait.tasks import Task, rpc
+from cowait.types import Dict, Int
+
+ShellResult = Dict({
+    'code': Int(),
+})
 
 
 class ShellTask(Task):
-    async def run(self, command, **inputs):
+    async def run(
+        self, command: str,
+        env: dict = {},
+    ) -> ShellResult:
         # run shell command
         self.process = await asyncio.create_subprocess_shell(
             command,
             stderr=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            env=os.environ,  # inherit environment
+            env=env,
         )
 
         # setup stream readers
