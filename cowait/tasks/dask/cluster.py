@@ -4,7 +4,8 @@ from cowait.tasks.messages import TASK_LOG
 from concurrent.futures import Future
 from dask.distributed import Client as DaskClient
 from .worker import DaskWorker
-from .types import *  # flake8: noqa: F401
+from .scheduler import DaskScheduler
+from .types import DaskClientType  # noqa: F401
 
 MSG_LEADER = 'Scheduler at:'
 MSG_REGISTER = 'Registered to:'
@@ -57,10 +58,7 @@ class DaskCluster(Task):
         print(f'~~   workers = {workers}')
 
         # create dask scheduler
-        self.scheduler = self.spawn(
-            name='cowait.tasks.shell',
-            command='dask-scheduler',
-            image=self.image,
+        self.scheduler = DaskScheduler(
             routes={
                 # '/': 8787,
             },
