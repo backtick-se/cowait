@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../../../store'
 import theme from '../../../store/theme'
 import { ThemeIcon, ThemePicker } from './styled'
-import { FlexBox } from '../FlexBox'
 
 
 const ThemeButton: React.FC<{ name: string, active: boolean, color: string }> = ({ name, ...rest }) => {

@@ -11,7 +11,7 @@ import { TaskState } from './tasks/types'
 import { SocketState } from './socket/types'
 import { ThemeState } from './theme/types'
 
-type StoreConfig = {
+export type StoreConfig = {
     logging: boolean
 }
 

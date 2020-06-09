@@ -3,7 +3,7 @@ import { ThemeProvider } from 'styled-components'
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-import { GlobalStyle, selectTheme, ThemeType } from '../theme'
+import { GlobalStyle, selectTheme } from '../theme'
 import Home from './home'
 import TaskView from './task/TaskView'
 import TaskListView from './task/TaskListView'

@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-import logo from './logo.svg'
 
 type Props = {
   fill?: string | null
