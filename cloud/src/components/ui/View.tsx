@@ -15,7 +15,11 @@ const HeaderLink = styled(Link)`
     }
 `
 
-export function View({ title, children }) {
+type Props = {
+    title: string
+}
+
+export const View: React.FC<Props> = ({ title, children }) => {
     return <div>
         <Header>
             <h1>

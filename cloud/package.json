@@ -6,6 +6,16 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.27",
     "@fortawesome/free-solid-svg-icons": "^5.12.1",
     "@fortawesome/react-fontawesome": "^0.1.8",
+    "@types/jest": "^25.2.1",
+    "@types/lodash": "^4.14.150",
+    "@types/node": "^13.13.5",
+    "@types/query-string": "^6.3.0",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-redux": "^7.1.8",
+    "@types/react-router-dom": "^5.1.5",
+    "@types/react-syntax-highlighter": "^11.0.4",
+    "@types/redux-logger": "^3.0.7",
     "lodash": "^4.17.15",
     "pg-promise": "^9.3.6",
     "query-string": "^6.11.1",
@@ -14,12 +24,17 @@
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.1.2",
-    "react-syntax-highlighter": "^11.0.2",
+    "react-syntax-highlighter": "^12.2.1",
     "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "serve": "^11.3.0",
-    "styled-components": "^4.4.1"
+    "styled-components": "^4.4.1",
+    "tsee": "^1.3.0",
+    "typesafe-actions": "^5.1.0",
+    "typescript": "^3.8.3",
+    "utility-types": "^3.10.0"
   },
   "scripts": {
     "start": "./scripts/start.sh",
@@ -41,5 +56,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/styled-components": "^5.1.0"
   }
 }

@@ -3,14 +3,21 @@ import query from 'query-string'
 export function updateToken() {
     const queries = query.parse(window.location.search)
     let token = queries.token
-    localStorage.setItem('token', token)
+
+    if (token) {
+        if (token instanceof Array) {
+            localStorage.setItem('token', token[0])
+        } else {
+            localStorage.setItem('token', token)
+        }
+    }
 }
 
-export function getToken() {
+export function getToken(): string | null {
     return localStorage.getItem('token')
 }
 
-export function getWsUrl() {
+export function getWsUrl(): string {
     // allow override with env
     if (process.env.REACT_APP_AGENT_URL) {
         return process.env.REACT_APP_AGENT_URL.replace('http','ws').replace('?token', 'ws?token')

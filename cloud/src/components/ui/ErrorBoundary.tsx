@@ -1,13 +1,19 @@
-import React from 'react'
+import React, { ErrorInfo } from 'react'
 import styled from 'styled-components'
 import { ErrorBubble } from '.'
 
 const ErrorContainer = styled.div`
     padding: 2em;
 `
+type State = {
+    hasError: boolean,
+    error: Error | null
+}
 
-class ErrorBoundary extends React.Component {
-    constructor(props) {
+type Props = {}
+
+class ErrorBoundary extends React.Component<Props, State> {
+    constructor(props: Props) {
         super(props)
         this.state = { 
             hasError: false,
@@ -15,14 +21,14 @@ class ErrorBoundary extends React.Component {
         }
     }
 
-    static getDerivedStateFromError(error) {
+    static getDerivedStateFromError(error: Error) {
         return { 
             hasError: true,
             error,
         }
     }
 
-    componentDidCatch(error, errorInfo) {
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     }
 
     render() {
@@ -32,7 +38,7 @@ class ErrorBoundary extends React.Component {
                 <ErrorBubble>
                     <h4>Error</h4>
                     <pre>
-                        {error.toString()}
+                        {error!.toString()}
                     </pre>
                 </ErrorBubble>
             </ErrorContainer>

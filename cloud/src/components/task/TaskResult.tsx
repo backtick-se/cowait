@@ -1,8 +1,11 @@
 import React from 'react'
 import { Bubble, Code } from '../ui'
 
+type Props = {
+    result?: object
+}
 
-export function TaskResult({ result }) {
+export const TaskResult: React.FC<Props> = ({ result }) => {
     if (!result) {
         return null
     }

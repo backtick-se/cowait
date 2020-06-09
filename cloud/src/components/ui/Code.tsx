@@ -6,12 +6,12 @@ const style = {
     padding: 0,
 }
 
-export function Code({ children, language }) {
+type Props = {
+    language: string
+}
+
+export const Code: React.FC<Props> = ({ children, language }) => {
     return <SyntaxHighlighter style={githubGist} customStyle={style} language={language}>
         {children}
     </SyntaxHighlighter>
-}
-
-Code.defaultProps = {
-
 }

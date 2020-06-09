@@ -1,7 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import { connect } from 'react-redux'
-import socket from '../../store/socket'
+import { useSelector } from  'react-redux'
+import { RootState } from '../../store'
+import { SOCKET_CONNECTED } from '../../store/socket/reducer'
 
 const LoadingContainer = styled.div`
     width: 100%;
@@ -33,14 +34,15 @@ const LoadingIcon = styled.div`
     }
 `
 
+const SocketOverlay: React.FC = ({ children }) =>  {
+    const status = useSelector((state: RootState) => state.socket.status)
 
-function SocketOverlay({ children, status }) {
-    if (status === socket.actions.SOCKET_CONNECTED) {
-        return children
+    if (status === SOCKET_CONNECTED) {
+    return <>{children}</>
     }
 
     return <React.Fragment>
-        {children}
+        <>{children}</>
         <LoadingContainer>
             <LoadingIcon>
                 <i className="fa fas fa-asterisk fa-spin" />
@@ -50,7 +52,4 @@ function SocketOverlay({ children, status }) {
     </React.Fragment> 
 }
 
-const mapStateToProps = state => ({
-    ...state.socket,
-})
-export default connect(mapStateToProps)(SocketOverlay)
+export default SocketOverlay

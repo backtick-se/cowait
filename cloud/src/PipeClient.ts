@@ -1,14 +1,19 @@
-import EventEmitter from 'events'
+import { EventEmitter } from 'tsee'
 
 const DefaultConnectInterval = 1000
 
 
 export class PipeClient extends EventEmitter {
-    constructor(uri) {
+    uri: string
+    ws?: WebSocket
+    reconnectInterval: number
+    _reconnectTimeout: number
+
+    constructor(uri: string) {
         super()
         this.uri = uri
-        this.ws = false
         this.reconnectInterval = DefaultConnectInterval
+        this._reconnectTimeout = 0
     }
 
     connect = () => {
@@ -51,10 +56,10 @@ export class PipeClient extends EventEmitter {
         if (this.ws) {
             this.ws.close()
         }
-        this.ws = false
+        this.ws = undefined
     }
 
-    send = msg => {
+    send = (msg: object) => {
         if (!this.ws) {
             throw new Error('Not connected')
         }

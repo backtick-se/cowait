@@ -1,8 +1,11 @@
 import React from 'react'
 import { Bubble, Code } from '../ui'
 
+type Props = {
+    inputs: object | null
+}
 
-export function TaskInputs({ inputs }) {
+export const TaskInputs: React.FC<Props> = ({ inputs }) => {
     if (!inputs) {
         return null
     }

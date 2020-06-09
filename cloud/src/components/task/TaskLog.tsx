@@ -3,11 +3,16 @@ import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { Bubble } from '../ui'
 import { LogOutput, LogContainer } from './styled/Log'
+import { RootState } from '../../store'
 
+type Props = {
+    id: string,
+    maxHeight?: number
+}
 
-export function TaskLog({ id, maxHeight }) {
-    const logRef = useRef(null)
-    const log = useSelector(state => state.tasks.logs[id])
+export const TaskLog: React.FC<Props> = ({ id, maxHeight }) => {
+    const logRef = useRef<HTMLInputElement>(null)
+    const log = useSelector((state: RootState) => state.tasks.logs[id])
 
     // scroll to bottom of the log whenever it changes
     const scrollToBottom = () => {

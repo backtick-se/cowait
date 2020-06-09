@@ -1,22 +1,16 @@
 import _ from 'lodash'
+import { TaskState, TaskActionTypes } from './types'
+import { Reducer } from 'redux'
 
-const DefaultState = {
-    order: [ ],
-    items: { },
-    logs: { },
+const initialState: TaskState = {
+    order: [],
+    items: {},
+    logs: {}
 }
-
-// task messages
-const TASK_INIT = 'task/init'
-const TASK_STATUS = 'task/status'
-const TASK_RETURN = 'task/return'
-const TASK_FAIL = 'task/fail'
-const TASK_LOG = 'task/log'
-
 
 // Prepend an item to a set. If replace is true and the item already exists,
 // it will be moved to the front. Otherwise, the set is returned without change.
-function setPrepend(list, item, replace = true) {
+function setPrepend(list: string[], item: string, replace: boolean = true) {
     const idx = _.indexOf(list, item)
     if (idx > 0) {
         if (replace) {
@@ -33,13 +27,9 @@ function setPrepend(list, item, replace = true) {
 }
 
 
-export function tasks(state, action) {
-    if (typeof(state) == 'undefined') {
-        return DefaultState
-    }
-
+const reducer: Reducer<TaskState> = (state = initialState, action) => {
     switch(action.type) {
-    case TASK_INIT: {
+    case TaskActionTypes.INIT: {
         const { task } = action
         if (!task.parent) {
             return {
@@ -49,7 +39,7 @@ export function tasks(state, action) {
                     ...state.items,
                     [task.id]: {
                         ...task,
-                        children: [ ],
+                        sub_tasks: [ ],
                     },
                 },
                 logs: {
@@ -66,11 +56,11 @@ export function tasks(state, action) {
                     ...state.items,
                     [task.id]: {
                         ...task,
-                        children: [ ],
+                        sub_tasks: [ ],
                     },
                     [task.parent]: {
                         ...parent,
-                        children: [ ...parent.children, task.id ],
+                        sub_tasks: [ ...parent.sub_tasks, task.id ],
                     },
                 },
                 logs: {
@@ -81,7 +71,7 @@ export function tasks(state, action) {
         }
     }
 
-    case TASK_STATUS: {
+    case TaskActionTypes.STATUS: {
         const { id, status } = action
         const item = state.items[id]
         if (!item) {
@@ -104,7 +94,7 @@ export function tasks(state, action) {
         }
     }
 
-    case TASK_LOG: {
+    case TaskActionTypes.LOG: {
         const { id, data } = action
         return {
             ...state,
@@ -115,7 +105,7 @@ export function tasks(state, action) {
         }
     }
 
-    case TASK_RETURN: {
+    case TaskActionTypes.RETURN: {
         const { id, result } = action
         return {
             ...state,
@@ -129,7 +119,7 @@ export function tasks(state, action) {
         }
     }
 
-    case TASK_FAIL: {
+    case TaskActionTypes.FAIL: {
         const { id, error } = action
         return {
             ...state,
@@ -143,8 +133,8 @@ export function tasks(state, action) {
         }
     }
 
-    case 'clear': {
-        return DefaultState
+    case TaskActionTypes.CLEAR: {
+        return initialState
     }
         
     default:
@@ -152,4 +142,4 @@ export function tasks(state, action) {
     }
 }
 
-export default tasks
+export default reducer

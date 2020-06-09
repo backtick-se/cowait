@@ -1,14 +1,18 @@
 
 import styled from 'styled-components'
 
+type Props = {
+    minHeight?: number,
+    maxHeight?: number
+}
 
-export const LogOutput = styled.pre`
+export const LogOutput = styled.pre<Props>`
     font-family: ${p => p.theme.fonts.monospace};
     color: white;
     line-height: 1.25em;
 `
 
-export const LogContainer = styled.div`
+export const LogContainer = styled.div<Props>`
     padding: 0.5rem;
     background-color: #222;
     border-radius: 0.3rem;
