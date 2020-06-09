@@ -7,7 +7,8 @@ export const HorizontalWrapper = styled.div`
 `
 
 export const ContentWrapper = styled.div`
-  overflow-y: scroll;
+  flex-grow: 1;
+  overflow-y: auto;
 
   -ms-overflow-style: none;
   &::-webkit-scrollbar {
