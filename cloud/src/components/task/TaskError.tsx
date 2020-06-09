@@ -1,5 +1,6 @@
 import React from 'react'
-import { ErrorOutput, ErrorBubblePadded } from './styled/Error'
+import { ErrorOutput } from './styled/Error'
+import { ContentBlock } from '../ui'
 
 type Props = {
     error: string | null
@@ -9,10 +10,11 @@ export const TaskError: React.FC<Props> = ({ error = null }) => {
     if (!error) {
         return null
     }
-    return <ErrorBubblePadded>
+    console.log(error);
+    return <ContentBlock>
         <h4>Error</h4>
         <ErrorOutput>{error}</ErrorOutput>
-    </ErrorBubblePadded>
+    </ContentBlock>
 }
 
 export default TaskError

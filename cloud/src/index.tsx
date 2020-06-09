@@ -5,6 +5,8 @@ import App from './components/App'
 import PipeClientStore from './PipeClientStore'
 import { getWsUrl, updateToken } from './utils'
 
+// import fa icon lib
+import './components/fontawesome'
 
 // update token from url
 updateToken()

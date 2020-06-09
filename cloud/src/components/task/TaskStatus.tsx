@@ -1,20 +1,22 @@
 import React from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { IconName } from '@fortawesome/fontawesome-svg-core';
 import { TaskStatusLabel } from './styled/Status'
 
 export const statusIcons: { [status: string]: string } = {
-    'wait': 'fa fa-clock',
-    'work': 'fa fa-cog fa-spin',
-    'done': 'fa fa-check',
-    'fail': 'fa fa-times',
-    'stop': 'fa fa-stop',
+    'wait': 'clock',
+    'work': 'cog',
+    'done': 'check',
+    'fail': 'times',
+    'stop': 'stop',
 }
 
 export const statusLabels: { [status: string]: string } = {
-    'wait': 'Wait',
+    'wait': 'Waiting',
     'work': 'Running',
     'done': 'Done',
-    'fail': 'Fail',
-    'stop': 'Stop',
+    'fail': 'Failed',
+    'stop': 'Stopped',
 }
 
 type Props = {
@@ -23,7 +25,7 @@ type Props = {
 
 export const TaskStatus: React.FC<Props> = ({ status }) => {
     return <TaskStatusLabel status={status}>
-        <i className={statusIcons[status]} />
+        <FontAwesomeIcon icon={statusIcons[status] as IconName} spin={status === ('work' || 'wait')}/>
         <span>{statusLabels[status]}</span>
     </TaskStatusLabel>
 }

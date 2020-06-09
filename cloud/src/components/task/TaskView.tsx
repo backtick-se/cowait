@@ -7,7 +7,7 @@ import TaskItem from './TaskItem'
 export function TaskView() {
     let { taskId } = useParams()
 
-    return <View title={taskId}>
+    return <View>
         <TaskItem id={taskId} maxLogHeight={40} />
     </View>
 }

@@ -5,6 +5,7 @@ import { LinkWrapper } from './styled/Link'
 import TaskStatus from './TaskStatus'
 import { RootState } from '../../store'
 
+
 type Props = {
     id: string
 }

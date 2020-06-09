@@ -2,11 +2,8 @@ import styled from 'styled-components'
 import { ErrorBubble } from '../../ui'
 
 
-export const ErrorOutput = styled.pre`
+export const ErrorOutput = styled(ErrorBubble)`
     font-family: ${p => p.theme.fonts.monospace};
     line-height: 1.5em;
-`
-
-export const ErrorBubblePadded = styled(ErrorBubble)`
-    margin: 0 1rem;
+    white-space: break-spaces;
 `

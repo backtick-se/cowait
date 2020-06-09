@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bubble } from '../ui'
+import { ContentBlock } from '../ui'
 import TaskLink from './TaskLink'
 
 type Props = {
@@ -7,14 +7,14 @@ type Props = {
 }
 
 export const TaskSubTasks: React.FC<Props> = ({ sub_tasks }) => {
-    if (sub_tasks.length) {
+    if (!sub_tasks.length) {
         return null
     }
 
-    return <Bubble shadow="none">
+    return <ContentBlock>
         <h4>Children</h4>
-        { sub_tasks.map((id: string) => <TaskLink id={id} />) }
-    </Bubble>
+        { sub_tasks.map((id, idx) => <TaskLink id={id} key={idx}/>) }
+    </ContentBlock>
 }
 
 export default TaskSubTasks

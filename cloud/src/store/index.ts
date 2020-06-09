@@ -3,12 +3,13 @@ import {
     applyMiddleware,
     combineReducers
 } from 'redux'
-import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
 import { createLogger } from 'redux-logger'
 import tasks from './tasks'
 import socket from './socket'
+import theme from './theme'
 import { TaskState } from './tasks/types'
 import { SocketState } from './socket/types'
+import { ThemeState } from './theme/types'
 
 export type StoreConfig = {
     logging: boolean
@@ -16,7 +17,8 @@ export type StoreConfig = {
 
 export interface RootState {
     tasks: TaskState,
-    socket: SocketState
+    socket: SocketState,
+    theme: ThemeState
 }
 
 export const createStore = ({ logging }: StoreConfig) => {
@@ -24,13 +26,16 @@ export const createStore = ({ logging }: StoreConfig) => {
     if (logging) {
         middleware.push(createLogger())
     }
-    
+
     return createReduxStore(
         combineReducers({
             tasks: tasks.reducer,
-            socket: socket.reducer
+            socket: socket.reducer,
+            theme: theme.reducer
         }),
-        composeWithDevTools(applyMiddleware(...middleware))
+        applyMiddleware(
+            ...middleware
+        )
     )
 }
 
