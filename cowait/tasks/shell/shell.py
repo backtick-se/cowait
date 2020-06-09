@@ -1,3 +1,4 @@
+import os
 import asyncio
 from cowait.tasks import Task, rpc
 from cowait.types import Dict, Int
@@ -17,7 +18,10 @@ class ShellTask(Task):
             command,
             stderr=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            env=env,
+            env={
+                **os.environ,
+                **env,
+            }
         )
 
         # setup stream readers
