@@ -1,7 +1,6 @@
 import os  # stinky, dont read envs here
 import asyncio
 from concurrent.futures import Future
-from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from cowait.tasks import Task, sleep, rpc
 from cowait.tasks.messages import TASK_LOG
@@ -48,6 +47,7 @@ class SparkCluster(Task):
         self.workers = []
         self.spark_cluster = {}
         self.running = True
+        self.app_name = self.id
 
         # subscribe to logs
         self.node.children.on(TASK_LOG, self.on_log)
@@ -63,20 +63,26 @@ class SparkCluster(Task):
                 print(f'~~ spark worker {worker.id} ready')
                 worker.ready.set_result(worker)
 
-        return True
+        return False
 
     async def before(self, inputs: dict) -> dict:
         # create cluster
-        await self.setup_cluster()
+        await self.setup_cluster(
+            workers=inputs.get('workers'),
+        )
         return inputs
 
-    async def run(self):
+    async def run(self, app_name: str = None, workers: int = 2):
+        if app_name is not None:
+            self.app_name = app_name
+
         if '/' in self.master.routes:
-            print('spark dashboard available at:')
+            print('Spark WebUI available at:')
             print(self.master.routes['/']['url'])
-        
+
         while self.running:
             await sleep(1)
+
         return {}
 
     async def after(self, inputs: dict):
@@ -87,15 +93,13 @@ class SparkCluster(Task):
 
         await super().after(inputs)
 
-    async def setup_cluster(self, num_workers=2, **config) -> None:
+    async def setup_cluster(self, workers=2, **config) -> None:
         print(f'~~ creating spark cluster...')
-        print(f'~~   num_workers = {num_workers}')
+        print(f'~~   workers = {workers}')
 
         # create spark master
         self.master = SparkMaster(
-            routes={
-                # '/': 8080,
-            },
+            routes={'/': 8080},
         )
         self.master.ready = Future()
         self.master_uri = f'spark://{self.master.ip}:7077'
@@ -104,7 +108,7 @@ class SparkCluster(Task):
 
         # create spark workers
         self.workers = []
-        await self.add_workers(num_workers)
+        await self.add_workers(workers)
 
         print('~~ waiting for cluster nodes')
         await self.wait_for_nodes()
@@ -135,21 +139,21 @@ class SparkCluster(Task):
             await self.remove_workers(diff)
 
     @rpc
-    async def get_session(self) -> SparkSession:
+    async def get_config(self) -> SparkConf:
         conf = SparkConf() \
-            .setAppName(self.id) \
+            .setAppName(self.app_name) \
             .setMaster(self.master_uri)
         for option, value in SPARK_DEFAULTS.items():
             conf.set(option, value)
-        return SparkSession.builder \
-            .config(conf=conf) \
-            .getOrCreate()
+        return conf
 
     async def add_workers(self, count):
         for i in range(0, count):
             w = SparkWorker(
                 master=self.master_uri,
                 cores=2,
+                routes={},
+                ports={},
             )
             w.ready = Future()
             self.workers.append(w)
@@ -168,3 +172,7 @@ class SparkCluster(Task):
             asyncio.wrap_future(self.master.ready),
             *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
         )
+
+    @rpc
+    async def teardown(self) -> None:
+        self.running = False

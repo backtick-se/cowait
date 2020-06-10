@@ -60,7 +60,7 @@ class DaskCluster(Task):
         # create dask scheduler
         self.scheduler = DaskScheduler(
             routes={
-                # '/': 8787,
+                '/': 8787,
             },
         )
         self.scheduler.ready = Future()
@@ -123,11 +123,14 @@ class DaskCluster(Task):
             await self.remove_workers(diff)
 
     @rpc
+    async def get_scheduler_uri(self) -> str:
+        return self.scheduler_uri
+
+    @rpc
     async def get_client(self) -> DaskClient:
         """ Returns a Dask client for this cluster """
         return self.dask
 
     @rpc
     async def teardown(self) -> None:
-        print('rpc destroy')
         self.running = False

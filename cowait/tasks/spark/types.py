@@ -1,35 +1,26 @@
-from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from cowait.network import get_local_ip
 from cowait.types import Type, TypeAlias
 
 
-@TypeAlias(SparkSession)
-class SparkSessionType(Type):
-    name: str = 'SparkSession'
+@TypeAlias(SparkConf)
+class SparkConfType(Type):
+    name: str = 'SparkConf'
 
-    def validate(self, session: SparkSession, name: str) -> None:
-        if not isinstance(session, dict):
-            raise ValueError(f'{name} is not a SparkSession')
+    def validate(self, conf: SparkConf, name: str) -> None:
+        if not isinstance(conf, dict):
+            raise ValueError(f'{name} is not a SparkConf')
 
-        # todo: ensure required fields exist
-
-    def serialize(self, session: SparkSession):
+    def serialize(self, conf: SparkConf):
         # serialize spark configuration
-        conf = session.sparkContext.getConf()
-        return {
-            key: value for key, value in conf.getAll()
-        }
+        return {key: value for key, value in conf.getAll()}
 
-    def deserialize(self, session: dict):
-        print('deserialize session', session)
+    def deserialize(self, config: dict):
         conf = SparkConf()
-        for option, value in session.items():
+        for option, value in config.items():
             conf.set(option, value)
 
         # set driver host to our local ip
         conf.set('spark.driver.host', get_local_ip())
 
-        return SparkSession.builder \
-            .config(conf=conf) \
-            .getOrCreate()
+        return conf
