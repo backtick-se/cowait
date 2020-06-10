@@ -1,11 +1,12 @@
 import os  # stinky, dont read envs here
 import asyncio
 from concurrent.futures import Future
-from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
-from cowait.network import get_local_ip
 from cowait.tasks import Task, sleep, rpc
 from cowait.tasks.messages import TASK_LOG
+from .master import SparkMaster
+from .worker import SparkWorker
+
 
 MSG_LEADER = 'I have been elected leader!'
 MSG_REGISTER = 'Successfully registered with master'
@@ -40,20 +41,13 @@ SPARK_DEFAULTS = {
 }
 
 
-def conf_from_cluster(app_name, master, config):
-    sc = SparkConf() \
-        .setAppName(app_name) \
-        .setMaster(master)
-    for option, value in config.items():
-        sc.set(option, value)
-    return sc
-
-
 class SparkCluster(Task):
     def init(self):
         self.master = None
         self.workers = []
         self.spark_cluster = {}
+        self.running = True
+        self.app_name = self.id
 
         # subscribe to logs
         self.node.children.on(TASK_LOG, self.on_log)
@@ -69,31 +63,27 @@ class SparkCluster(Task):
                 print(f'~~ spark worker {worker.id} ready')
                 worker.ready.set_result(worker)
 
-        return True
+        return False
 
     async def before(self, inputs: dict) -> dict:
         # create cluster
-        await self.setup_cluster()
-
-        # create spark context
-        # perhaps this should be optional?
-        # in case no spark code is run in the flow itself
-        if True:
-            conf = conf_from_cluster(**self.spark_cluster)
-            conf.set('spark.driver.host', get_local_ip())
-
-            print('~~ starting spark session')
-            self.spark = SparkSession.builder \
-                .config(conf=conf) \
-                .getOrCreate()
-
-            print('~~ spark session ready')
-            inputs['spark'] = self.spark
-
-        print('spark dashboard available at:')
-        print(self.master.routes['/']['url'])
-
+        await self.setup_cluster(
+            workers=inputs.get('workers'),
+        )
         return inputs
+
+    async def run(self, app_name: str = None, workers: int = 2):
+        if app_name is not None:
+            self.app_name = app_name
+
+        if '/' in self.master.routes:
+            print('Spark WebUI available at:')
+            print(self.master.routes['/']['url'])
+
+        while self.running:
+            await sleep(1)
+
+        return {}
 
     async def after(self, inputs: dict):
         print('~~ destroying spark cluster')
@@ -103,58 +93,27 @@ class SparkCluster(Task):
 
         await super().after(inputs)
 
-    def spawn(
-        self,
-        name: str,
-        image: str = None,
-        env: dict = {},
-        **inputs,
-    ) -> Task:
-        return super().spawn(
-            name=name,
-            image=image,
-            env=env,
-            **inputs,
-            spark=self.spark_cluster,
-        )
-
-    async def setup_cluster(self, num_workers=2, **config) -> None:
+    async def setup_cluster(self, workers=2, **config) -> None:
         print(f'~~ creating spark cluster...')
-        print(f'~~   num_workers = {num_workers}')
+        print(f'~~   workers = {workers}')
 
         # create spark master
-        self.master = self.spawn(
-            name='cowait.tasks.spark.master',
-            image='cowait/task-spark',
-            routes={
-                '/': 8080,
-            },
+        self.master = SparkMaster(
+            routes={'/': 8080},
         )
         self.master.ready = Future()
-        master_uri = f'spark://{self.master.ip}:7077'
+        self.master_uri = f'spark://{self.master.ip}:7077'
 
         await sleep(1)
-        self.spark_cluster = {
-            'app_name': self.id,
-            'master': master_uri,
-            'config': {
-                **SPARK_DEFAULTS,
-                **config,
-            },
-        }
 
         # create spark workers
         self.workers = []
-        await self.add_workers(num_workers)
+        await self.add_workers(workers)
 
         print('~~ waiting for cluster nodes')
         await self.wait_for_nodes()
 
         print('~~ spark cluster ready')
-
-    async def run(self, **inputs):
-        while True:
-            await asyncio.sleep(1)
 
     @rpc
     async def get_workers(self):
@@ -180,18 +139,21 @@ class SparkCluster(Task):
             await self.remove_workers(diff)
 
     @rpc
-    def get_client(self) -> dict:
-        pass
+    async def get_config(self) -> SparkConf:
+        conf = SparkConf() \
+            .setAppName(self.app_name) \
+            .setMaster(self.master_uri)
+        for option, value in SPARK_DEFAULTS.items():
+            conf.set(option, value)
+        return conf
 
     async def add_workers(self, count):
         for i in range(0, count):
-            w = self.spawn(
-                name='cowait.tasks.spark.worker',
-                image='cowait/task-spark',
-                env={
-                    'SPARK_WORKER_CORES': '2',
-                },
-                master=self.spark_cluster['master'],
+            w = SparkWorker(
+                master=self.master_uri,
+                cores=2,
+                routes={},
+                ports={},
             )
             w.ready = Future()
             self.workers.append(w)
@@ -210,3 +172,7 @@ class SparkCluster(Task):
             asyncio.wrap_future(self.master.ready),
             *map(lambda w: asyncio.wrap_future(w.ready), self.workers),
         )
+
+    @rpc
+    async def teardown(self) -> None:
+        self.running = False
