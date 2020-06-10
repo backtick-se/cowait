@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 from marshmallow import Schema, fields, post_load
 from ..utils import uuid
 
@@ -78,13 +78,11 @@ class TaskDefinition(object):
         self.owner = owner
 
         if created_at is None:
-            self.created_at = datetime.now()
+            self.created_at = datetime.now(timezone.utc)
         elif isinstance(created_at, datetime):
             self.created_at = created_at
         elif isinstance(created_at, str):
-            self.created_at = datetime.strptime(
-                created_at,
-                "%Y-%m-%dT%H:%M:%S.%f")
+            self.created_at = datetime.fromisoformat(created_at)
         else:
             print('created_at', created_at)
             raise TypeError('Expected created_at to be None or datetime')
@@ -114,8 +112,12 @@ class TaskDefinitionSchema(Schema):
     routes = fields.Dict(missing={})
     cpu = fields.Str(missing='0')
     memory = fields.Str(missing='0')
-    owner = fields.String(missing='')
-    created_at = fields.DateTime('iso', default=lambda: datetime.now())
+    owner = fields.Str(missing='')
+    status = fields.Str(allow_none=True)
+    error = fields.Str(allow_none=True)
+    result = fields.Raw(allow_none=True)
+    log = fields.Str(allow_none=True)
+    created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
 
     @post_load
     def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:
