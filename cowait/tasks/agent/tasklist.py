@@ -1,7 +1,6 @@
-import json
 from cowait.network import Conn
-from cowait.tasks.messages import \
-    TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
+from cowait.tasks import TaskDefinition
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
 
 
 class TaskList(dict):
@@ -15,28 +14,22 @@ class TaskList(dict):
         task.node.children.on(TASK_LOG, self.on_log)
 
     async def on_init(self, conn: Conn, id: str, task: dict, **msg):
-        print('~~ create', task['id'], 'from', task['image'], task['inputs'])
-        self[id] = task
+        self[id] = TaskDefinition.deserialize(task)
 
     async def on_status(self, conn: Conn, id, status, **msg):
-        print('~~', id, 'changed status to', status)
         if id in self:
-            self[id]['status'] = status
+            self[id].status = status
 
     async def on_fail(self, conn: Conn, id, error, **msg):
-        print('~~', id, 'failed with error:')
-        print(error.strip())
         if id in self:
-            self[id]['error'] = error
+            self[id].error = error
 
     async def on_return(self, conn: Conn, id, result, **msg):
-        print('~~', id, 'returned:')
-        print(json.dumps(result, indent=2))
         if id in self:
-            self[id]['result'] = result
+            self[id].result = result
 
     async def on_log(self, conn: Conn, id, file, data, **msg):
         if id in self:
-            if 'log' not in self[id]:
-                self[id]['log'] = ''
-            self[id]['log'] += data
+            if not hasattr(self[id], 'log'):
+                self[id].log = ''
+            self[id].log += data
