@@ -71,8 +71,10 @@ class SparkCluster(Task):
         return inputs
 
     async def run(self):
-        print('spark dashboard available at:')
-        print(self.master.routes['/']['url'])
+        if '/' in self.master.routes:
+            print('spark dashboard available at:')
+            print(self.master.routes['/']['url'])
+        
         while self.running:
             await sleep(1)
         return {}
@@ -92,7 +94,7 @@ class SparkCluster(Task):
         # create spark master
         self.master = SparkMaster(
             routes={
-                '/': 8080,
+                # '/': 8080,
             },
         )
         self.master.ready = Future()
@@ -133,7 +135,7 @@ class SparkCluster(Task):
             await self.remove_workers(diff)
 
     @rpc
-    def get_client(self) -> dict:
+    async def get_session(self) -> SparkSession:
         conf = SparkConf() \
             .setAppName(self.id) \
             .setMaster(self.master_uri)
@@ -147,7 +149,7 @@ class SparkCluster(Task):
         for i in range(0, count):
             w = SparkWorker(
                 master=self.master_uri,
-                worker_cores=2,
+                cores=2,
             )
             w.ready = Future()
             self.workers.append(w)

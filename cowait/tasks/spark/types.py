@@ -16,9 +16,13 @@ class SparkSessionType(Type):
 
     def serialize(self, session: SparkSession):
         # serialize spark configuration
-        return session.getConf().getAll()
+        conf = session.sparkContext.getConf()
+        return {
+            key: value for key, value in conf.getAll()
+        }
 
     def deserialize(self, session: dict):
+        print('deserialize session', session)
         conf = SparkConf()
         for option, value in session.items():
             conf.set(option, value)

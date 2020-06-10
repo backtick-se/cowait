@@ -10,6 +10,6 @@ class SparkWorker(ShellTask):
                 master,
             ]),
             env={
-                'SPARK_WORKER_CORES': cores,
+                'SPARK_WORKER_CORES': str(cores),
             },
         )
