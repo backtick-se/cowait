@@ -77,11 +77,12 @@ class RemoteTask(TaskDefinition):
             slept += interval
 
     async def call(self, method, args={}):
-        if self.status != WORK:
+        if self.status == WAIT:
             await self.wait_for_init()
-            # raise RuntimeError(
-            #     f'RPC is only available when status = WORK, was {self.status}. '
-            #     f'Attempted to call {method}')
+        elif self.status != WORK:
+            raise RuntimeError(
+                f'RPC is only available when status = WORK, was {self.status}. '
+                f'Attempted to call {method}')
 
         return await self.conn.rpc.call(method, args)
 
@@ -90,6 +91,8 @@ class RemoteTask(TaskDefinition):
         await self.call('stop')
 
     def __getattr__(self, method):
-        async def magic_rpc(**kwargs):
+        async def magic_rpc(*args, **kwargs):
+            if len(args) > 0:
+                raise TypeError('Positional arguments are not supported for RPC methods')
             return await self.call(method, kwargs)
         return magic_rpc
