@@ -19,3 +19,17 @@ jobs:
       
     - name: Build & publish task image
       run: bash ./build.sh --push
+
+  publish_pypi:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install required packages
+      run: pip3 install setuptools wheel twine
+
+    - name: Build & publish python package
+      run: bash ./publish.sh
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
