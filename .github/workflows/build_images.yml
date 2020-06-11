@@ -1,0 +1,16 @@
+name: Build Images
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Build & publish task image
+      run: bash build.sh
