@@ -120,7 +120,6 @@ def run(
         ctx.obj,
         task,
         name=name,
-        cluster_name=cluster,
         inputs={
             **file_inputs,
             **option_dict(input),
