@@ -93,8 +93,7 @@ class TaskDefinition(object):
         elif isinstance(created_at, str):
             self.created_at = datetime.fromisoformat(created_at)
         else:
-            print('created_at', created_at)
-            raise TypeError('Expected created_at to be None or datetime')
+            raise TypeError(f'Expected created_at to be None or datetime, got {created_at}')
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
