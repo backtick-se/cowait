@@ -34,9 +34,11 @@ export const TaskWrapper = styled(Bubble)`
 export const ParentWrapper = styled(FlexBox)`
     padding-top: 0.5rem;
     align-items: center;
+    font-size: 0.7em;
 
     > svg {
-        margin-right: 0.5rem;
+        font-size: 0.9em;
+        margin-right: 0.5em;
     }
 `
 

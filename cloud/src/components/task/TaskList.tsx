@@ -6,6 +6,7 @@ import { FlexBox } from '../ui/FlexBox'
 import TaskItem from './TaskItem'
 import { RootState } from '../../store'
 import { Task } from '../../store/tasks/types'
+import { TaskListEmptyItem } from './styled/List'
 
 
 const TaskListWrapper = styled(FlexBox)`
@@ -15,17 +16,6 @@ const TaskListWrapper = styled(FlexBox)`
     h2 {
         margin-bottom: 1rem;
     }
-`
-
-const EmptyTaskListItem = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: ${p => p.theme.colors.text.secondary};
-    font-size: 0.8rem;
-    background: ${p => p.theme.colors.background.secondary};
-    border-radius: ${p => p.theme.borderRadius};
-    padding: 0.5rem;
 `
 
 type Props = {
@@ -45,7 +35,7 @@ export const TaskList: React.FC<Props> = ({ render, title, predicate }) => {
     return <TaskListWrapper>
         {title ? <h2>{title}</h2> : ''}
         <ul>
-            { !taskIds.length && <EmptyTaskListItem>Empty list</EmptyTaskListItem>}
+            { !taskIds.length && <TaskListEmptyItem>Empty list</TaskListEmptyItem>}
             { taskIds.map(id => <TaskItem id={id} key={id} render={render} />) }
         </ul>
     </TaskListWrapper>

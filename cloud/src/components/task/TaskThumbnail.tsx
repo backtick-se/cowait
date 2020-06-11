@@ -10,7 +10,7 @@ import { formatDate } from '../../utils'
 const ThumbnailWrapper = styled(FlexBox)`
   background: ${p => p.theme.colors.background.secondary};
   flex-direction: column;
-  padding: 0.8rem;
+  padding: 0.5rem 0.8rem;
   margin-bottom: 1rem;
   border-radius: ${p => p.theme.borderRadius};
 `
