@@ -43,10 +43,8 @@ def test_create_docker_task():
     assert task.container == container
 
     # make sure container is properly labeled
-    assert container.labels == {
-        LABEL_TASK_ID: task.id,
-        LABEL_PARENT_ID: 'parent',
-    }
+    assert container.labels[LABEL_TASK_ID] == task.id 
+    assert container.labels[LABEL_PARENT_ID] == 'parent'
 
     # wait for container to execute
     result = container.wait()

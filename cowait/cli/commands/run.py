@@ -1,5 +1,5 @@
-import os
 import sys
+import getpass
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
@@ -53,7 +53,7 @@ def run(
             routes=routes,
             upstream=context.coalesce('upstream', upstream, agent),
             parent=None,  # root task
-            owner=os.getlogin(),
+            owner=getpass.getuser(),
             cpu=cpu,
             memory=memory,
         )
