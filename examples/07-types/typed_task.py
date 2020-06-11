@@ -13,8 +13,8 @@ class TypedTask(Task):
         text: str = 'hi',
         number: int = 5,
         **inputs
-    ) -> dict:
+    ) -> TypedResult:
         return {
             'text': text,
-            'number': number,
+            'number': number
         }
