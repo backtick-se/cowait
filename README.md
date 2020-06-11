@@ -1,6 +1,6 @@
 # cowait
 
-[![Actions Status](https://github.com/backtick-se/cowait/workflows/Run%20Tests/badge.svg)](https://github.com/backtick-se/cowait/actions)
+[![Actions Status](https://github.com/backtick-se/cowait/workflows/Tests/badge.svg)](https://github.com/backtick-se/cowait/actions)
 [![PyPI version](https://img.shields.io/pypi/v/cowait.svg)](https://pypi.org/project/cowait/)
 [![](https://img.shields.io/static/v1?label=docs&message=gitbook&color=blue)](http://docs.cowait.io/)
 [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](http://cowait.io/)
