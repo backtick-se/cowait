@@ -1,5 +1,6 @@
 import docker
 import requests.exceptions
+from docker.types import Mount
 from cowait.tasks import TaskDefinition, RemoteTask
 from .cluster import ClusterProvider
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
@@ -48,14 +49,7 @@ class DockerProvider(ClusterProvider):
                 network=self.network,
                 ports=self.create_ports(taskdef),
                 environment=self.create_env(taskdef),
-                volumes={
-                    # this is the secret sauce that allows us to create new
-                    # tasks as sibling containers
-                    '/var/run/docker.sock': {
-                        'bind': '/var/run/docker.sock',
-                        'mode': 'ro',
-                    },
-                },
+                mounts=self.create_mounts(taskdef.volumes),
                 labels={
                     LABEL_TASK_ID: taskdef.id,
                     LABEL_PARENT_ID: taskdef.parent,
@@ -215,3 +209,59 @@ class DockerProvider(ClusterProvider):
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
+
+    def create_mounts(self, volumes: dict) -> list:
+        mounts = [
+            # this is the secret sauce that allows us to create new
+            # tasks as sibling containers
+            create_bind_mount('/var/run/docker.sock', {
+                'src': '/var/run/docker.sock',
+                'mode': 'ro',
+            })
+        ]
+
+        for target, volume in volumes.items():
+            if 'bind' in volume:
+                mounts.append(create_bind_mount(target, volume['bind']))
+            elif 'tmpfs' in volume:
+                mounts.append(create_tmpfs_mount(target, volume['tmpfs']))
+            else:
+                print(f'!! unsupported volume: {target}')
+
+        return mounts
+
+
+def create_bind_mount(target: str, bind) -> Mount:
+    mode = 'rw'
+    src = None
+    if isinstance(bind, str):
+        src = bind
+    elif isinstance(bind, dict):
+        src = bind.get('src')
+        mode = bind.get('mode', 'rw')
+    else:
+        raise TypeError(f'Invalid bind volume definition {target}')
+
+    return Mount(
+        type='bind',
+        target=target,
+        source=src,
+        read_only=mode != 'rw',
+    )
+
+
+def create_tmpfs_mount(target: str, tmpfs) -> Mount:
+    size = 0
+    mode = 0
+    if isinstance(tmpfs, dict):
+        size = tmpfs.get('size')
+        mode = tmpfs.get('mode', 1777)
+    else:
+        raise TypeError(f'Invalid tmpfs volume definition {target}')
+
+    return Mount(
+        type='tmpfs',
+        target=target,
+        tmpfs_size=size,
+        tmpfs_mode=mode,
+    )
