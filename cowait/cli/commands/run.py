@@ -13,7 +13,6 @@ def run(
     config: CowaitConfig,
     task: str,
     name: str = None,
-    cluster_name: str = None,
     inputs: dict = {},
     env: dict = {},
     ports: dict = {},
@@ -30,11 +29,24 @@ def run(
         cluster = config.get_cluster(cluster_name)
 
         # figure out image name
+        remote_image = True
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
                 build_cmd()
             image = context.get_image_name()
+            remote_image = False
+
+        volumes = context.get('volumes', {})
+        if not isinstance(volumes, dict):
+            raise TaskCreationError('Invalid volume configuration')
+        if not remote_image:
+            volumes['/var/task'] = {
+                'bind': {
+                    'src': context.root_path,
+                    'mode': 'rw',
+                },
+            }
 
         # default to agent as upstream
         agent = cluster.find_agent()
@@ -51,11 +63,12 @@ def run(
             },
             ports=ports,
             routes=routes,
-            upstream=context.coalesce('upstream', upstream, agent),
             parent=None,  # root task
+            upstream=context.coalesce('upstream', upstream, agent),
             owner=getpass.getuser(),
-            cpu=cpu,
+            volumes=volumes,
             memory=memory,
+            cpu=cpu,
         )
 
         # print execution info
@@ -67,6 +80,7 @@ def run(
         print('   image:     ', image)
         print('   inputs:    ', inputs)
         print('   env:       ', env)
+        print('   volumes:   ', volumes)
 
         # submit task to cluster
         task = cluster.spawn(taskdef)

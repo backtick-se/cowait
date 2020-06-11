@@ -28,6 +28,12 @@ class TaskDefinition(object):
         meta (dict): Freeform metadata
         env (dict): Environment variables
         ports (dict): Port forwards
+        routes (dict): HTTP Ingresses
+        volumes (dict): List of volumes
+        cpu (str): CPU allocation
+        memory (str): Memory allocation
+        owner (str): Owner name
+        created_at (DateTime): Creation date
     """
 
     def __init__(
@@ -42,6 +48,7 @@ class TaskDefinition(object):
         env:       dict = {},
         ports:     dict = {},
         routes:    dict = {},
+        volumes:   dict = {},
         cpu:       str = '0',
         memory:    str = '0',
         owner:     str = '',
@@ -57,11 +64,12 @@ class TaskDefinition(object):
             meta (dict): Freeform metadata
             env (dict): Environment variables
             ports (dict): Port forwards
-            routes (dict)
-            cpu (str)
-            memory (str)
-            owner (str)
-            created_at (DateTime)
+            routes (dict): HTTP Ingresses
+            volumes (dict): List of volumes
+            cpu (str): CPU allocation
+            memory (str): Memory allocation
+            owner (str): Owner name
+            created_at (DateTime): Creation date
         """
         self.id = generate_task_id(name) if not id else id
         self.name = name
@@ -76,6 +84,7 @@ class TaskDefinition(object):
         self.cpu = cpu
         self.memory = memory
         self.owner = owner
+        self.volumes = volumes
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -84,8 +93,7 @@ class TaskDefinition(object):
         elif isinstance(created_at, str):
             self.created_at = datetime.fromisoformat(created_at)
         else:
-            print('created_at', created_at)
-            raise TypeError('Expected created_at to be None or datetime')
+            raise TypeError(f'Expected created_at to be None or datetime, got {created_at}')
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
@@ -118,6 +126,11 @@ class TaskDefinitionSchema(Schema):
     result = fields.Raw(allow_none=True)
     log = fields.Str(allow_none=True)
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
+    volumes = fields.Mapping(
+        keys=fields.Str(),
+        values=fields.Mapping(),
+        missing={}
+    )
 
     @post_load
     def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:
