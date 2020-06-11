@@ -211,7 +211,9 @@ class KubernetesProvider(ClusterProvider):
                 namespace=self.namespace,
                 label_selector=LABEL_TASK_ID,
             )
-            return map(lambda pod: pod.metadata.name, res.items)
+            running = filter(lambda pod: pod.status.phase == 'Running', res.items)
+            ids = map(lambda pod: pod.metadata.name, running)
+            return ids
 
         except urllib3.exceptions.MaxRetryError:
             raise ProviderError('Kubernetes engine unavailable')
