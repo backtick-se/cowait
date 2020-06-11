@@ -145,7 +145,7 @@ class KubernetesProvider(ClusterProvider):
         except urllib3.exceptions.MaxRetryError:
             raise ProviderError('Kubernetes engine unavailable')
 
-    def wait(self, task: KubernetesTask) -> None:
+    def wait(self, task: KubernetesTask) -> bool:
         raise NotImplementedError()
 
     def wait_until_ready(self, task_id: str, poll_interval: float = 0.5):
