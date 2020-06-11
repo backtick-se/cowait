@@ -32,8 +32,8 @@ class ClusterProvider(EventEmitter):
         raise NotImplementedError()
 
     @abstractmethod
-    def wait(self, task: RemoteTask) -> None:
-        """ Wait for task to exit """
+    def wait(self, task: RemoteTask) -> bool:
+        """ Wait for task to exit. Returns True on clean exit. """
         raise NotImplementedError()
 
     @abstractmethod

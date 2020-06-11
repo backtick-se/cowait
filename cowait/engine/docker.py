@@ -177,9 +177,10 @@ class DockerProvider(ClusterProvider):
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 
-    def wait(self, task: DockerTask):
-        """ Wait for a task to finish """
-        raise NotImplementedError()
+    def wait(self, task: DockerTask) -> bool:
+        """ Wait for a task to finish. Returns True on clean exit """
+        result = task.container.wait()
+        return result['StatusCode'] == 0
 
     def ensure_network(self):
         try:

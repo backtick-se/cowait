@@ -79,7 +79,7 @@ def run(
             print()
             printheader('interrupt')
             cluster.destroy(task.id)
-            sys.exit(0)
+            sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs

@@ -3,16 +3,22 @@ cd "${0%/*}" || exit
 set -e
 
 # build
-if [ "$1" == "--build" ]; then
+if [[ $* == *--build* ]]; then
     bash ./build.sh
 fi
 
-# -e TASK_CLUSTER="{\"type\":\"docker\"}" \
-# -e TASK_DEFINITION="{\"id\":\"test\",\"name\":\"cowait.test\",\"image\":\"cowait/task\",\"inputs\":{\"folder\":\"./\"}}" \
-
-# run tests
+# run package tests
 docker run \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --workdir /var/cowait \
     cowait/task \
     python -m pytest
+
+# run example tests
+if [[ $* == *--examples* ]]; then
+    docker run \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v $(pwd)/examples:/var/task \
+        cowait/task \
+        bash ./test_examples.sh
+fi

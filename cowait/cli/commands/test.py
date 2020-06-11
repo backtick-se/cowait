@@ -1,4 +1,4 @@
-import os
+import sys
 from cowait.tasks import TaskDefinition
 from cowait.engine import ProviderError, TaskCreationError
 from ..config import CowaitConfig
@@ -32,7 +32,7 @@ def test(
             print()
             printheader('interrupt')
             cluster.destroy(task.id)
-            os._exit(1)
+            sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs
@@ -41,13 +41,19 @@ def test(
             for log in logs:
                 print(log, flush=True)
 
+        # grab task result
+        passing = cluster.wait(task)
+        sys.exit(0 if passing else 1)
+
     except TaskCreationError as e:
         printheader('error')
         print('Error creating task:', str(e))
+        sys.exit(1)
 
     except ProviderError as e:
         printheader('error')
         print('Provider error:', str(e))
+        sys.exit(1)
 
     finally:
         printheader()
