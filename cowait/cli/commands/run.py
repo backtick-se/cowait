@@ -56,6 +56,7 @@ def run(
             owner=os.getlogin(),
             cpu=cpu,
             memory=memory,
+            volumes=config.volumes
         )
 
         # print execution info

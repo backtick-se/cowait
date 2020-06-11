@@ -39,6 +39,8 @@ class DockerProvider(ClusterProvider):
             self.ensure_network()
 
             self.emit_sync('prepare', taskdef=taskdef)
+            
+            print(taskdef.volumes)
 
             container = self.docker.containers.run(
                 detach=True,
@@ -55,6 +57,7 @@ class DockerProvider(ClusterProvider):
                         'bind': '/var/run/docker.sock',
                         'mode': 'ro',
                     },
+                    **taskdef.volumes
                 },
                 labels={
                     LABEL_TASK_ID: taskdef.id,

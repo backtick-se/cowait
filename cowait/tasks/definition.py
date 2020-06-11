@@ -28,6 +28,7 @@ class TaskDefinition(object):
         meta (dict): Freeform metadata
         env (dict): Environment variables
         ports (dict): Port forwards
+        volumes (dict): Volume mounts
     """
 
     def __init__(
@@ -46,6 +47,7 @@ class TaskDefinition(object):
         memory:    str = '0',
         owner:     str = '',
         created_at: datetime = None,
+        volumes:   dict = {},
     ):
         """
         Arguments:
@@ -57,6 +59,7 @@ class TaskDefinition(object):
             meta (dict): Freeform metadata
             env (dict): Environment variables
             ports (dict): Port forwards
+            volumes (dict): volume mounts
             routes (dict)
             cpu (str)
             memory (str)
@@ -76,6 +79,7 @@ class TaskDefinition(object):
         self.cpu = cpu
         self.memory = memory
         self.owner = owner
+        self.volumes = volumes
 
         if created_at is None:
             self.created_at = datetime.now()
@@ -112,6 +116,7 @@ class TaskDefinitionSchema(Schema):
     env = fields.Dict(missing={})
     ports = fields.Dict(missing={})
     routes = fields.Dict(missing={})
+    volumes = fields.Dict(missing={})
     cpu = fields.Str(missing='0')
     memory = fields.Str(missing='0')
     owner = fields.String(missing='')

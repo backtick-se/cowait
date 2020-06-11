@@ -12,6 +12,7 @@ def test_taskdef_serialization():
         'inputs':     {},
         'ports':      {},
         'routes':     {},
+        'volumes':    {},
         'upstream':   None,
         'created_at': '2020-02-02T20:00:02+00:00',
         'cpu':        '0',
