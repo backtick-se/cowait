@@ -3,14 +3,19 @@ name: Build Images
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  run_tests:
+  build_images:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: azure/docker-login@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
     - name: Build & publish task image
-      run: bash build.sh
+      run: bash ./build.sh --push
