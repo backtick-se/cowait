@@ -35,6 +35,9 @@ class Int(Type):
     def deserialize(self, value: any) -> int:
         return int(value)
 
+    def serialize(self, value: any) -> int:
+        return int(value)
+
 
 @TypeAlias(float)
 class Float(Type):
