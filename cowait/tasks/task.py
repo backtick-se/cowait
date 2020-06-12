@@ -3,6 +3,7 @@ from typing import Any
 from cowait.network import get_local_connstr
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
+from .parent_task import ParentTask
 
 
 CURRENT_TASK = None
@@ -22,6 +23,7 @@ class Task(TaskDefinition):
         super().__init__(**kwargs)
         self.node = inputs['node']
         self.cluster = inputs['cluster']
+        self.parent = ParentTask(self.node)
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
 
