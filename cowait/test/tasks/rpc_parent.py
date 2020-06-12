@@ -1,8 +1,11 @@
-from cowait.tasks import Task
+from cowait.tasks import Task, rpc
 from .rpc_child import RpcChild
 
 
 class RpcParent(Task):
+    def init(self):
+        self.called = False
+
     async def run(self):
         child = RpcChild()
         print('waiting for child init...')
@@ -15,3 +18,11 @@ class RpcParent(Task):
         print('all done')
         task_result = await child
         assert task_result['called']
+
+        # expect to receive rpc call from child
+        assert self.called
+
+    @rpc
+    async def set_called(self) -> int:
+        self.called = True
+        return 1337

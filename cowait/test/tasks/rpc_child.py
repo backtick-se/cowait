@@ -12,6 +12,9 @@ class RpcChild(Task):
                 break
             await sleep(1)
 
+        # call parent
+        await self.parent.set_called()
+
         return {
             'called': self.called
         }
