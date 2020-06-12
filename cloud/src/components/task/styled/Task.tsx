@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import { Bubble, FlexBox } from '../../ui'
 
 export const TaskHeader = styled.div`
-    padding-bottom: 1rem;
-    border-bottom: 0.5px solid ${p => p.theme.colors.border};
-    margin-bottom: 1.5rem;
     font-size: 1.5rem;
+    margin-bottom: 1rem;
 `
 
 export const TaskHeaderLink = styled(Link)`
@@ -27,24 +25,15 @@ export const TaskImage = styled.label`
 `
 
 export const TaskWrapper = styled(Bubble)`
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     padding: 1rem 1.5rem;
-`
-
-export const ParentWrapper = styled(FlexBox)`
-    padding-top: 0.5rem;
-    align-items: center;
-    font-size: 0.7em;
-
-    > svg {
-        font-size: 0.9em;
-        margin-right: 0.5em;
-    }
 `
 
 export const TaskCreatedAt = styled.span`
     color: ${p => p.theme.colors.text.secondary};
     font-size: 0.7em;
+    flex: 1;
+    text-align: right;
 `
 
 export const TaskTitle = styled.div`
@@ -52,9 +41,13 @@ export const TaskTitle = styled.div`
     align-items: center;
 `
 
-export const TaskTitleWrapper = styled.div`
-    display: flex;
+export const TaskTitleWrapper = styled(FlexBox)`
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
+    flex: 1;
+`
+
+export const TaskActions = styled(FlexBox)`
+
 `

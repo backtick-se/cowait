@@ -1,7 +1,7 @@
 import { ThemeState, ThemeActionTypes } from './types'
 import { Reducer } from 'redux'
 import { loadFromLocalStorage, saveToLocalStorage } from '../../utils'
-import { ThemeType } from '../../theme'
+import { ThemeType } from '../../theme/types'
 
 
 export const UPDATE_THEME = 'update_theme'

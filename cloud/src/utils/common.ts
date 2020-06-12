@@ -1,5 +1,6 @@
 import query from 'query-string'
 
+
 export function updateToken() {
     const queries = query.parse(window.location.search)
     let token = queries.token
@@ -30,6 +31,19 @@ export function getWsUrl(): string {
     let wsProto = window.window.location.protocol === 'https:' ? 'wss' : 'ws'
     return `${wsProto}://${window.location.host}/ws?token=${token}`
 }
+
+export const constructApiUri = (path: string = ''): string => {
+    // grab token
+    const token = getToken()
+
+    // allow override with env
+    const uri = process.env.REACT_APP_AGENT_URL ?
+        process.env.REACT_APP_AGENT_URL :
+        `${window.location.protocol}://${window.location.host}?token=${token}`
+
+    const [url, params] = uri.split('?')
+    return `${url}${path}?${params}`
+}   
 
 /**
  * Converts a CSS hex color value to RGBA.

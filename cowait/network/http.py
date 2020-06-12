@@ -1,4 +1,5 @@
 from aiohttp import web
+from aiohttp_middlewares import cors_middleware
 from .auth_middleware import AuthMiddleware
 
 
@@ -9,7 +10,10 @@ class HttpServer():
 
         # create http app
         self.app = web.Application(
-            middlewares=[self.auth.middleware],
+            middlewares=[
+                self.auth.middleware,
+                cors_middleware(allow_all=True)
+            ],
         )
 
         # route shortcuts

@@ -12,7 +12,7 @@ import './components/fontawesome'
 updateToken()
 
 // connect websocket client
-const client = new PipeClientStore(getWsUrl())
+export const client = new PipeClientStore(getWsUrl())
 client.connect()
 
 // render page

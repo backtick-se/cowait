@@ -1,6 +1,6 @@
 import { darken } from 'polished'
 import colors from './colors.json'
-import { ColorTheme } from '..'
+import { ColorTheme } from '../types'
 
 
 export const theme: ColorTheme = {
@@ -15,13 +15,17 @@ export const theme: ColorTheme = {
             primary: darken(0.05, colors.purple),
             hover: colors.purple
         },
+        button: {
+            background: colors.purple,
+            color: colors.grayscale0
+        },
         menu: {
             primary: colors.grayscale0,
             hover: colors.purple
         },
         background: {
-            primary: colors.darkGreen,
-            secondary: colors.darkestGreen,
+            primary: colors.darkestGreen,
+            secondary: colors.darkGreen,
             terminal: colors.darkestGreen
         },
 

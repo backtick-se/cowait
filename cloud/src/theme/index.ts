@@ -1,37 +1,6 @@
-import { createGlobalStyle, DefaultTheme } from 'styled-components'
+import { createGlobalStyle } from 'styled-components'
+import { Theme, ThemeType } from './types'
 
-
-export enum ThemeType {
-    Dark = 'Dark',
-    Light = 'Light'
-}
-
-export interface ColorTheme {
-    colors: {
-        border: string,
-        text: {
-            [type: string]: string
-        },
-        link: {
-            [type: string]: string
-        },
-        menu: {
-            [type: string]: string
-        }
-        background: {
-            [type: string]: string
-        },
-        status: {
-            [status: string]: string
-        }
-    }
-}
-
-export interface Theme extends ColorTheme, DefaultTheme {
-    fonts: {
-        [fontType: string]: string
-    }
-}
 
 const defaultTheme = {
     borderRadius: '0.2rem',

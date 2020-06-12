@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { hex2Rgba } from '../../../utils'
 import { SocketStatus } from '../../../store/socket/types'
 import { SOCKET_CONNECTED } from '../../../store/socket/reducer'
-import { Theme } from '../../../theme'
+import { Theme } from '../../../theme/types'
 
 const statusColor = ({ status, theme }: { status?: SocketStatus, theme: Theme}) =>
   status === SOCKET_CONNECTED ?

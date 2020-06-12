@@ -28,7 +28,7 @@ const reducer: Reducer<SocketState> = (state = initialState, action) => {
         return {
             ...state,
             status: SOCKET_ERROR,
-            error: action.error,
+            error: action.payload,
         }
     default:
         return state
