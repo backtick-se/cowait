@@ -2,12 +2,14 @@ import os
 import asyncio
 import aiohttp
 from cowait.utils import EventEmitter
+from .rpc_client import RpcClient
 
 
 class Client(EventEmitter):
     def __init__(self):
         super().__init__()
         self.ws = None
+        self.rpc = None
         self.buffer = []
 
     @property
@@ -42,6 +44,7 @@ class Client(EventEmitter):
         async with aiohttp.ClientSession() as session:
             async with session.ws_connect(url, headers=headers) as ws:
                 self.ws = ws
+                self.rpc = RpcClient(ws)
 
                 # send buffered messages
                 for msg in self.buffer:
@@ -52,6 +55,10 @@ class Client(EventEmitter):
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         event = msg.json()
+
+                        if self.rpc.intercept_event(**event):
+                            continue
+
                         await self.emit(**event, conn=self)
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
