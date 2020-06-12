@@ -7,6 +7,9 @@ if [ -z "$PYPI_TOKEN" ]; then
     exit 1
 fi
 
+echo "Cleaning dist/ directory"
+rm -rf ./dist/*
+
 echo "Building package..."
 python3 setup.py sdist bdist_wheel
 
