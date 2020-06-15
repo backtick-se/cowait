@@ -95,12 +95,20 @@ def new_context(name: str, image: str, base: str, cluster_name: str):
               help='yaml/json file with inputs', 
               type=str, 
               default=None)
+@click.option('--task-path',
+              default=None,
+              type=str,
+              help='path to task')
+@click.option('--image-runtime-path',
+              default=None,
+              type=str,
+              help='specifies what path the image should be built and run in')
 @click.pass_context
 def run(
     ctx, task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
-    file: str,
+    file: str, task_path: str, image_runtime_path : str,
 ):
     if cluster is not None:
         ctx.obj.default_cluster = cluster
@@ -130,6 +138,8 @@ def run(
         upstream=upstream,
         build=build,
         detach=detach,
+        task_path=task_path,
+        image_runtime_path=image_runtime_path
     )
 
 
@@ -211,8 +221,16 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
 
 
 @cli.command(help='build a task')
-def build():
-    cowait.cli.build()
+@click.option('--task-path',
+              default=None,
+              type=str,
+              help='path to task')
+@click.option('--image-runtime-path',
+              default=None,
+              type=str,
+              help='specifies what path the image should be built in')
+def build(task_path : str, image_runtime_path : str):
+    cowait.cli.build(task_path=task_path, image_runtime_path=image_runtime_path)
 
 
 @cli.command(help='push a task to the registry')

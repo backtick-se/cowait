@@ -72,3 +72,22 @@ def printheader(title: str = None) -> None:
         print(f'--'.ljust(HEADER_WIDTH, '-'))
     else:
         print(f'-- {title} '.upper().ljust(HEADER_WIDTH, '-'))
+
+def parse_path(path: str) -> str:
+    """Parses path, validates it, and joins it with cwd
+
+    Args:
+        path (str): path to be parsed.
+
+    Returns:
+        str: output path, joined with cwd
+    """    
+
+    if(path != None):
+        if(os.path.isdir(path)):
+            path = os.path.join(os.getcwd(), path.strip("/"))
+        else:
+            print('not a valid path:', path)
+            path = None
+
+    return path

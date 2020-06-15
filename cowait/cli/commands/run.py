@@ -5,7 +5,7 @@ from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
 from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, printheader
+from ..utils import ExitTrap, printheader, parse_path
 from .build import build as build_cmd
 
 
@@ -22,9 +22,12 @@ def run(
     detach: bool = False,
     cpu: str = '0',
     memory: str = '0',
+    task_path: str = None,
+    image_runtime_path: str = None,
 ):
     try:
-        context = CowaitContext.open()
+
+        context = CowaitContext.open(path = parse_path(task_path), image_runtime_path = parse_path(image_runtime_path))        
         cluster_name = context.get('cluster', config.default_cluster)
         cluster = config.get_cluster(cluster_name)
 
@@ -33,7 +36,7 @@ def run(
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
-                build_cmd()
+                build_cmd(task_path=task_path, image_runtime_path=image_runtime_path)
             image = context.get_image_name()
             remote_image = False
 
@@ -43,11 +46,11 @@ def run(
         if not remote_image:
             volumes['/var/task'] = {
                 'bind': {
-                    'src': context.root_path,
+                    'src': context.image_runtime_path,
                     'mode': 'rw',
                 },
             }
-
+        
         # default to agent as upstream
         agent = cluster.find_agent()
 

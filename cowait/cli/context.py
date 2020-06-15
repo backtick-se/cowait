@@ -9,9 +9,10 @@ client = docker.from_env()
 
 
 class CowaitContext(object):
-    def __init__(self, root_path: str, definition: dict):
+    def __init__(self, root_path: str, definition: dict, image_runtime_path : str=None):
         self.root_path = root_path
         self.definition = definition
+        self.image_runtime_path = image_runtime_path if image_runtime_path != None else root_path
 
     def __getitem__(self, key: str) -> any:
         return self.get(key, required=True)
@@ -55,6 +56,15 @@ class CowaitContext(object):
             return None
         return self.relpath(abs_path)
 
+    def file_rel_image_runtime_path(self, file_name: str) -> str:
+        """
+        Finds a file in relation to root_path and returns the relative path to image_runtime_path
+        """
+        abs_path = self.file(file_name)
+        if not abs_path:
+            return None
+        return os.path.relpath(abs_path, self.image_runtime_path)
+
     def relpath(self, context_path: str):
         """
         Returns a path relative to the context root
@@ -79,7 +89,7 @@ class CowaitContext(object):
         return self.get('image', os.path.basename(self.root_path))
 
     @staticmethod
-    def open(path: str = None):
+    def open(path: str = None, image_runtime_path : str = None):
         if path is None:
             path = os.getcwd()
 
@@ -94,6 +104,7 @@ class CowaitContext(object):
             return CowaitContext(
                 root_path=os.path.abspath(path),
                 definition={},
+                image_runtime_path=image_runtime_path,
             )
 
         # load context yaml definition
@@ -110,4 +121,5 @@ class CowaitContext(object):
         return CowaitContext(
             root_path=root_path,
             definition=context,
+            image_runtime_path=image_runtime_path,
         )

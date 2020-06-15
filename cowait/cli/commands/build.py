@@ -1,22 +1,24 @@
 import os.path
+import sys
 import docker.errors
 import docker.credentials.errors
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from ..task_image import TaskImage
 from ..context import CowaitContext
-from ..utils import printheader
+from ..utils import printheader, parse_path
 
 
-def build() -> TaskImage:
+def build(task_path: str = None, image_runtime_path: str = None) -> TaskImage:
     try:
-        context = CowaitContext.open()
+        context = CowaitContext.open(parse_path(task_path), parse_path(image_runtime_path))    
         image = TaskImage.open(context)
         print('context path:', context.root_path)
+        print('context image_runtime_path:', context.image_runtime_path)
         print('image:', image.name)
 
         # find task-specific requirements.txt
         # if it exists, it will be copied to the container, and installed
-        requirements = context.file_rel('requirements.txt')
+        requirements = context.file_rel_image_runtime_path('requirements.txt')
         if requirements:
             print('found custom requirements.txt')
 

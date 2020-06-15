@@ -15,25 +15,28 @@ class TaskImage(object):
 
     def build(self, base, requirements: str = None):
         """ Build task image """
-
+        
         # create temporary dockerfile
-        df_path = os.path.join(self.context.root_path, '__dockerfile__')
+        df_path = os.path.join(self.context.image_runtime_path, '__dockerfile__')
         with open(df_path, 'w') as df:
             # extend base image
             print(f'FROM {base}', file=df)
-
+            
             # install task-specific requirements
-            requirements = self.context.file_rel('requirements.txt')
             if requirements:
                 print(f'COPY ./{requirements} ./requirements.txt', file=df)
                 print('RUN pip install -r ./requirements.txt', file=df)
-
+                       
             # copy source code
             print('COPY . .', file=df)
-
+            
+            #if we have different image runtime paths and root paths, we need to set the workdir to root_path
+            if(self.context.image_runtime_path != None) and (self.context.image_runtime_path != self.context.root_path):
+                print(f'WORKDIR {os.path.relpath(self.context.root_path, self.context.image_runtime_path)}', file=df)
+            
         # build image
         self.image, logs = self.build_image(
-            path=self.context.root_path,
+            path=self.context.image_runtime_path,
             dockerfile=df_path,
         )
 
