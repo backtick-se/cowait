@@ -10,6 +10,7 @@ from .errors import TaskCreationError, ProviderError
 from .routers import create_router
 
 DEFAULT_NAMESPACE = 'default'
+DEFAULT_SERVICE_ACCOUNT = 'default'
 
 
 class KubernetesTask(RemoteTask):
@@ -48,6 +49,10 @@ class KubernetesProvider(ClusterProvider):
     @property
     def namespace(self):
         return self.args.get('namespace', DEFAULT_NAMESPACE)
+
+    @property
+    def service_account(self):
+        return self.args.get('service_account', DEFAULT_SERVICE_ACCOUNT)
 
     @property
     def domain(self):
@@ -101,6 +106,7 @@ class KubernetesProvider(ClusterProvider):
                         image_pull_secrets=self.get_pull_secrets(),
 
                         containers=[container],
+                        service_account_name=self.service_account,
                     ),
                 ),
             )
