@@ -16,6 +16,10 @@ class CowaitContext(object):
     def __getitem__(self, key: str) -> any:
         return self.get(key, required=True)
 
+    @property
+    def workdir(self) -> str:
+        return self.get('workdir', '.')
+
     def get(self, key: str, default: any = None, required: bool = True):
         path = None
         if isinstance(key, str):
@@ -41,7 +45,7 @@ class CowaitContext(object):
         """
         Find a file within the task context and return its full path
         """
-        path = os.path.join(self.root_path, file_name)
+        path = os.path.join(self.root_path, self.workdir, file_name)
         if not os.path.isfile(path):
             return None
         return path

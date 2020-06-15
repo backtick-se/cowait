@@ -47,5 +47,5 @@ def test_get_files():
     # context files
     path_abs = context.file('Dockerfile')
     path_rel = context.file_rel('Dockerfile')
-    assert path_abs == os.path.join(context.root_path, 'Dockerfile')
+    assert path_abs == os.path.join(context.root_path, context.get('workdir', '.'), 'Dockerfile')
     assert path_rel == 'Dockerfile'
