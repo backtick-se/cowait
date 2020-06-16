@@ -11,7 +11,6 @@ def task(func):
 
     class FuncTask(Task):
         async def run(self, **inputs):
-            print(inputs)
             return await func(**inputs)
 
     # copy name & module
