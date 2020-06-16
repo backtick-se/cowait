@@ -47,9 +47,15 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # start http server
             node.io.create_task(node.http.serve())
 
+            # unpack wrapped function if defined.
+            # allows typechecking of functional tasks
+            taskfunc = task.run
+            if hasattr(TaskClass, '__wraps__'):
+                taskfunc = TaskClass.__wraps__
+
             # prepare arguments
             inputs = {
-                **get_parameter_defaults(task.run),
+                **get_parameter_defaults(taskfunc),
                 **taskdef.inputs,
             }
 
@@ -61,7 +67,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
                     'did you forget to return the inputs?')
 
             # typecheck arguments
-            inputs = typed_arguments(task.run, inputs)
+            inputs = typed_arguments(taskfunc, inputs)
 
             # set state to running
             await node.parent.send_run()
@@ -76,8 +82,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             await handle_orphans(task)
 
             # prepare & typecheck result
-            result = typed_return(task.run, result)
-            result_type = get_return_type(task.run)
+            result = typed_return(taskfunc, result)
+            result_type = get_return_type(taskfunc)
 
             # submit result
             await node.parent.send_done(result, result_type.describe())

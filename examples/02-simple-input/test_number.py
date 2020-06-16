@@ -3,8 +3,8 @@ from number import Number
 
 
 @task_test
-async def test_number(task_test):
-  input = 42
-  result = await task_test.spawn(Number, first=input)
+async def test_number():
+    input = 42
+    result = await Number(first=input)
 
-  assert result == input
+    assert result == input

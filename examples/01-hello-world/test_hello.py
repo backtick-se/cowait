@@ -3,7 +3,6 @@ from hello import Hello
 
 
 @task_test
-async def test_hello(task_test):
-  result = await task_test.spawn(Hello)
-
-  assert result == None
+async def test_hello():
+    result = await Hello()
+    assert result is None
