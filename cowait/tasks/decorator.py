@@ -10,10 +10,13 @@ def task(func):
             f'found {func.__name__}')
 
     class FuncTask(Task):
-        run = func
+        async def run(self, **inputs):
+            print(inputs)
+            return await func(**inputs)
 
     # copy name & module
     FuncTask.__name__ = func.__name__
     FuncTask.__module__ = func.__module__
+    FuncTask.__wraps__ = func
 
     return FuncTask
