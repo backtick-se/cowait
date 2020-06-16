@@ -1,12 +1,14 @@
 import pytest
+import nest_asyncio
 from cowait import Task
-from cowait.test.fixtures import CowaitFixturePlugin, set_test_task
 
 
 class PytestTask(Task):
     async def run(self):
-        set_test_task(self)
-        code = pytest.main(plugins=[CowaitFixturePlugin()])
+        # apply a patch that allows nested asyncio loops
+        nest_asyncio.apply()
+
+        code = pytest.main()
         if code != pytest.ExitCode.OK and \
            code != pytest.ExitCode.NO_TESTS_COLLECTED:
             raise RuntimeError('Tests failed')
