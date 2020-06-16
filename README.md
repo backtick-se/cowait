@@ -5,9 +5,13 @@
 [![](https://img.shields.io/static/v1?label=docs&message=gitbook&color=blue)](http://docs.cowait.io/)
 [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](http://cowait.io/)
 
-Cowait is a framework for creating containerized workflows with asynchronous Python. Tasks can be run locally with Docker or on a kubernetes cluster. The goal is complete flexibility with minimal setup and configuration.
+Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called *Tasks*, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. However, Cowait can be used to easily build many types of distributed applications.
 
-Docs: http://docs.cowait.io/
+Check out the documentation at https://docs.cowait.io/
+
+## Notice
+
+Cowait is still in fairly early development. We invite you to try it out and gladly accept your feedback and contributions, but please be aware that breaking API changes may be introduced. Or things might straight up break occasionally.
 
 ## Getting Started
 
@@ -18,7 +22,7 @@ Docs: http://docs.cowait.io/
 **Installation**
 
 ```bash
-$ pip3 install cowait
+$ pip install cowait
 ```
 
 ## Task Development
@@ -29,16 +33,16 @@ $ pip3 install cowait
 
 ```python
 # hello.py
-from cowait import Task
+from cowait import task
 
-class Hello(Task):
-    async def run(self):
-        print('Hello World')
+@task
+async def Hello():
+    print('Hello World')
 ```
 
 2. **Build the task image**
 
-All files within a folder is bundled into a task image.
+All files within the current directory is bundled into a task image.
 
 In the same folder as `hello.py`, run:
 
@@ -46,9 +50,9 @@ In the same folder as `hello.py`, run:
 $ cowait build
 ```
 
-3. **Run it locally in Docker.** Make sure you're in a pipenv shell.
+3. **Run it locally**
 
-In the same folder as `hello.py`, run:
+To run a task, pass the name of the module containing the task to `cowait run`. In the same folder as `hello.py`, run:
 
 ```bash
 $ cowait run hello
@@ -56,28 +60,26 @@ $ cowait run hello
 
 **Notes**
 - `hello` supplied to `cowait run` is the module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
-- Class name does not matter, except for importing to other tasks.
+- Function/class name of the task does not matter when running, only when importing and running from other tasks.
 
 ### Subtasks, Arguments & Return Values
 
 Tasks can create subtasks, by importing and calling other tasks as if they were asynchronous python functions. Subtasks accept arguments and return results. Arguments and results must be JSON serializable.
 
 ```python
-from cowait import Task
+from cowait import task
 from some_subtask import SomeSubtask
 
-class MainTask(Task):
-    async def run(self, **inputs):
-        subtask_result = await SomeSubtask(custom_argument = 'hello')
-        print('Subtask finished with result', subtask_result)
-        return 'ok'
+@task
+async def MainTask(some_input: int = 5):
+    subtask_result = await SomeSubtask(custom_argument = 'hello')
+    print('Subtask finished with result', subtask_result)
+    return 'ok'
 ```
 
 ### Task Contexts
 
-Tasks live in a *Task Context*. If you have not explicitly defined one, the enclosing folder will be used along with sensible defaults. A task context can be used to package multiple tasks into a single image, customize dockerfiles, and to add extra pip requirements.
-
-*Todo*
+Tasks belong to a *Task Context*. If you have not explicitly defined one by creating a `cowait.yml` file, the enclosing folder will be used along with sensible defaults. Everything in the task context directory will be bundled into the final task image. A task context can be used to package multiple tasks into a single image, customize dockerfiles, and to add extra pip requirements.
 
 ### Pushing Task Images
 
