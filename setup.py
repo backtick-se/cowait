@@ -41,5 +41,6 @@ setuptools.setup(
         'pytest-cov',
         'pytest-asyncio',
         'nest-asyncio',
+        'numpy',
     ],
 )
