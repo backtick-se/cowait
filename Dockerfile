@@ -21,4 +21,4 @@ COPY . .
 
 # move to task directory
 WORKDIR /var/task
-CMD [ "python3", "-um", "cowait.exec" ]
+CMD [ "python3", "-Bum", "cowait.exec" ]
