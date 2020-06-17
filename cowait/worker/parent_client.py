@@ -61,8 +61,8 @@ class ParentClient(Client):
             result (any): Any serializable data to return to the upstream task.
             result_type (str): Result type description
         """
-        await self.msg(TASK_STATUS, status=DONE)
         await self.msg(TASK_RETURN, result=result, result_type=result_type)
+        await self.msg(TASK_STATUS, status=DONE)
 
     async def send_fail(self, error: str) -> None:
         """
@@ -71,8 +71,8 @@ class ParentClient(Client):
         Arguments:
             error (str): Error message
         """
-        await self.msg(TASK_STATUS, status=FAIL)
         await self.msg(TASK_FAIL,   error=error)
+        await self.msg(TASK_STATUS, status=FAIL)
 
     async def send_log(self, file: str, data: str) -> None:
         """
