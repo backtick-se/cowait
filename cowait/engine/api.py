@@ -20,15 +20,15 @@ class ApiProvider(ClusterProvider):
     def rpc(self, method: str, **kwargs) -> dict:
         # todo: authentication
         url = f'{self.url}/rpc/{method}'
-        resp = requests.post(url, json=kwargs, headers={
+        resp = requests.post(url, json={'args': kwargs}, headers={
             'Cowait-Key': self.token,
         })
         if resp.status_code == 401:
             raise RuntimeError('Authentication error. Invalid token?')
 
         msg = resp.json()
-        if resp.status_code == 200:
-            return msg
+        if resp.status_code == 200 and 'result' in msg:
+            return msg['result']
         if resp.status_code == 400 and 'error' in msg:
             raise RpcError(msg['error'])
         raise RpcError(f'Request status {resp.status_code}')
