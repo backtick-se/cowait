@@ -7,21 +7,18 @@ RUN apt-get update && \
     apt-get install -y \
     build-essential ca-certificates
 
-# create working directory
+# create directory structure
 RUN mkdir /var/cowait && mkdir /var/task
+
+# install cowait
 WORKDIR /var/cowait
-
-# install python requirements
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# copy minimum set of files to install pip package
 COPY setup.py README.md ./
 COPY bin ./bin
 RUN pip install -e .
 
-# copy code
-COPY . .
+# copy code last, to benefit from caching
+COPY . . 
 
+# move to task directory
 WORKDIR /var/task
-CMD [ "python3", "-um", "cowait.exec" ]
+CMD [ "python3", "-Bum", "cowait.exec" ]
