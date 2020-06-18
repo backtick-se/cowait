@@ -22,5 +22,5 @@ export default (({ id, status }) => {
     dispatch(tasks.actions.stop.request({ id }))
   }
 
-  return <Button icon="times" onClick={stopTask} {...taskActions?.stop}>Kill task</Button>
+  return <Button icon="stop" onClick={stopTask} {...taskActions?.stop}>Stop</Button>
 }) as React.FC<Props>

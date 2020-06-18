@@ -10,7 +10,9 @@ function* watchFetchRequest() {
 function* handleStop(action: ReturnType<typeof stop.request>): Generator<StrictEffect> {
   const { id } = action.payload
   const data = {
-    'task_id': action.payload.id
+    'args': {
+      'task_id': action.payload.id,
+    },
   }
   
   try {
