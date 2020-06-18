@@ -26,13 +26,15 @@ def get_type(name: str) -> Type:
     raise TypeError(f'Unknown type {name}')
 
 
-def TypeAlias(alias: ClassVar):
+def TypeAlias(*aliases: ClassVar):
     """ Registers a type alias for the decorated type """
     def register_alias(cls: ClassVar):
         if not is_cowait_type(cls):
             raise TypeError(f'{cls} must be a valid cowait type')
 
-        register_type(alias, cls)
+        for alias in aliases:
+            register_type(alias, cls)
+
         return cls
 
     return register_alias

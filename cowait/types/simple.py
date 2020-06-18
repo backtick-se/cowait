@@ -1,5 +1,5 @@
 from .type import Type
-from .mapping import TypeAlias
+from .mapping import TypeAlias, convert_type
 from datetime import datetime
 
 
@@ -11,6 +11,10 @@ class Any(Type):
 
     def validate(self, value: any, name: str) -> None:
         pass
+
+    def serialize(self, value: any) -> any:
+        guessed_type = convert_type(type(value))
+        return guessed_type.serialize(value)
 
 
 @TypeAlias(int)
@@ -24,6 +28,9 @@ class Int(Type):
             int(value)
         except ValueError:
             raise ValueError(f'{name} must be an integer')
+
+    def serialize(self, value: int) -> int:
+        return int(value)
 
     def deserialize(self, value: any) -> int:
         return int(value)
@@ -41,6 +48,9 @@ class Float(Type):
         except ValueError:
             raise ValueError(f'{name} must be a float')
 
+    def serialize(self, value: float) -> float:
+        return float(value)
+
     def deserialize(self, value: any) -> float:
         return float(value)
 
@@ -56,6 +66,9 @@ class String(Type):
             str(value)
         except ValueError:
             raise ValueError(f'{name} must be a string')
+
+    def serialize(self, value: str) -> str:
+        return str(value)
 
     def deserialize(self, value: any) -> str:
         return str(value)
@@ -78,6 +91,9 @@ class Bool(Type):
             return False
         else:
             raise ValueError(f'{name} must be a boolean')
+
+    def serialize(self, value: bool) -> bool:
+        return bool(value)
 
     def deserialize(self, value: any) -> bool:
         if isinstance(value, bool):
@@ -110,7 +126,7 @@ class DateTime(Type):
         return datetime.fromisoformat(value)
 
 
-@TypeAlias(None)
+@TypeAlias(type(None))
 class Void(Type):
     def validate(self, value, name: str):
         if value is not None:
