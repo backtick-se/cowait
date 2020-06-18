@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from marshmallow import Schema, fields, post_load
 from ..utils import uuid
+from .status import WAIT
 
 
 def generate_task_id(name: str) -> str:
@@ -52,6 +53,10 @@ class TaskDefinition(object):
         cpu:       str = '0',
         memory:    str = '0',
         owner:     str = '',
+        status:    str = WAIT,
+        error:     str = None,
+        result:    any = None,
+        log:       str = '',
         created_at: datetime = None,
     ):
         """
@@ -85,6 +90,10 @@ class TaskDefinition(object):
         self.memory = memory
         self.owner = owner
         self.volumes = volumes
+        self.status = status
+        self.error = error
+        self.result = result
+        self.log = log
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -121,7 +130,7 @@ class TaskDefinitionSchema(Schema):
     cpu = fields.Str(missing='0')
     memory = fields.Str(missing='0')
     owner = fields.Str(missing='')
-    status = fields.Str(allow_none=True)
+    status = fields.Str(missing=WAIT)
     error = fields.Str(allow_none=True)
     result = fields.Raw(allow_none=True)
     log = fields.Str(allow_none=True)

@@ -16,9 +16,6 @@ class RemoteTask(TaskDefinition):
         self.cluster = cluster
         self.future = Future()
         self.awaitable = asyncio.wrap_future(self.future)
-        self.status = WAIT
-        self.error = None
-        self.result = None
 
     def __await__(self):
         return self.awaitable.__await__()
