@@ -37,12 +37,13 @@ export const constructApiUri = (path: string = ''): string => {
     const token = getToken()
 
     // allow override with env
-    const uri = process.env.REACT_APP_AGENT_URL ?
-        process.env.REACT_APP_AGENT_URL :
-        `${window.location.protocol}://${window.location.host}?token=${token}`
+    if (process.env.REACT_APP_AGENT_URL) {
+        const uri = process.env.REACT_APP_AGENT_URL
+        const [url, params] = uri.split('?')
+        return `${url}${path}?${params}`
+    }
 
-    const [url, params] = uri.split('?')
-    return `${url}${path}?${params}`
+    return `${window.location.protocol}//${window.location.host}/${path}?token=${token}`
 }   
 
 /**
