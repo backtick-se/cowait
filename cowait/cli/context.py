@@ -16,11 +16,14 @@ class CowaitContext(object):
     def __getitem__(self, key: str) -> any:
         return self.get(key, required=True)
 
+    def __setitem__(self, key: str, value: any):
+        self.set(key, value)
+
     @property
     def workdir(self) -> str:
-        return self.get('workdir', '.')
+        return self.get('workdir', '.', False)
 
-    def get(self, key: str, default: any = None, required: bool = True):
+    def set(self, key: str, value: any) -> any:
         path = None
         if isinstance(key, str):
             path = key.split('.')
@@ -28,6 +31,35 @@ class CowaitContext(object):
             path = key
         else:
             raise TypeError("Expected key to be str or list")
+
+        if len(path) < 1:
+            raise ValueError(f'Invalid key {key}')
+
+        container = self.definition
+        for part in path[:-1]:
+            if part not in container:
+                container[part] = {}
+            container = container[part]
+
+        container[path[-1]] = value
+        return value
+
+    def override(self, key: str, value: any) -> any:
+        if value is None:
+            return self.get(key, None, False)
+        return self.set(key, value)
+
+    def get(self, key: str, default: any = None, required: bool = True) -> any:
+        path = None
+        if isinstance(key, str):
+            path = key.split('.')
+        elif isinstance(key, list):
+            path = key
+        else:
+            raise TypeError("Expected key to be str or list")
+
+        if len(path) < 1:
+            raise ValueError(f'Invalid key {key}')
 
         value = self.definition
         for part in path:

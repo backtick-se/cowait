@@ -2,19 +2,22 @@ import os.path
 import docker.errors
 import docker.credentials.errors
 from cowait.utils.const import DEFAULT_BASE_IMAGE
-from ..task_image import TaskImage, BuildError
+from ..task_image import TaskImage, BuildError, Dockerfile
 from ..context import CowaitContext
 from ..logger import Logger
 
 
-def build(quiet: bool = False) -> TaskImage:
+def build(quiet: bool = False, workdir: str = None) -> TaskImage:
     logger = Logger(quiet)
     try:
         context = CowaitContext.open()
+        context.override('workdir', workdir)
+
         image = TaskImage.open(context)
         logger.header('BUILD')
         logger.println('Image:', image.name)
         logger.println('Context Root:', context.root_path)
+        logger.println('Workdir:', context.workdir)
 
         # find task-specific requirements.txt
         # if it exists, it will be copied to the container, and installed
@@ -30,9 +33,10 @@ def build(quiet: bool = False) -> TaskImage:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
             logger.header('BASE')
 
+            basedf = Dockerfile.read(dockerfile)
             base = TaskImage.build_image(
                 path=os.path.dirname(dockerfile),
-                dockerfile='Dockerfile',
+                dockerfile=str(basedf),
             )
             if base is None:
                 raise RuntimeError('Failed to build base image')

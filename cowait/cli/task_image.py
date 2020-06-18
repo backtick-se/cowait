@@ -27,6 +27,13 @@ class Dockerfile(object):
     def __str__(self):
         return '\n'.join(self.lines)
 
+    @staticmethod
+    def read(path):
+        with open(path, 'r') as f:
+            df = Dockerfile('none')
+            df.lines = f.readlines()
+            return df
+
 
 class BuildError(RuntimeError):
     pass

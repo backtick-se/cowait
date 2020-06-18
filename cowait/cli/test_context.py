@@ -41,6 +41,13 @@ def test_get_values():
         assert context['undefined.undefined']
 
 
+def test_set_values():
+    context = CowaitContext('', {})
+    context['nested.key'] = 1
+    assert isinstance(context.definition['nested'], dict)
+    assert context.definition['nested']['key'] == 1
+
+
 def test_get_files():
     context = CowaitContext.open('test')
 
