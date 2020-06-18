@@ -16,6 +16,15 @@ if [ -n "$GITHUB_REF" ]; then
     fi
 fi
 
+# build dashboard
+if [[ $* == *--with-dashboard* ]]; then
+    (
+    cd cloud
+    yarn install
+    yarn run build
+    )
+fi
+
 # build image
 echo "Building $image:$version"
 docker build --tag "$image:latest" .

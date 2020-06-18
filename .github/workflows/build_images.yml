@@ -16,9 +16,14 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+
     - name: Build & publish task image
-      run: bash ./build.sh --push
+      run: bash ./build.sh --push --with-dashboard
 
   publish_pypi:
     runs-on: ubuntu-latest
