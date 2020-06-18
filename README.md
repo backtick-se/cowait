@@ -1,3 +1,4 @@
+![cowait](/assets/cowait_bg.png)
 # cowait
 
 [![Actions Status](https://github.com/backtick-se/cowait/workflows/Tests/badge.svg)](https://github.com/backtick-se/cowait/actions)
