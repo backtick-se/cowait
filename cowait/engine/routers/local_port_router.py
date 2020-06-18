@@ -15,6 +15,9 @@ class LocalPortRouter(Router):
                 continue
 
             host_port = random.randint(60000, 65000)
+            if taskdef.name == 'cowait.tasks.agent':
+                host_port = 1339
+
             url = f'http://localhost:{host_port}/'
 
             # assign route url

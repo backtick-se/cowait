@@ -41,9 +41,6 @@ class StreamCapture(object):
         data = self.capture.getvalue()
         return data
 
-    def __del__(self):
-        del self.capture
-
 
 class StreamCapturing(object):
     def __init__(
