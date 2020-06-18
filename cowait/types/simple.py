@@ -126,7 +126,7 @@ class DateTime(Type):
         return datetime.fromisoformat(value)
 
 
-@TypeAlias(type(None))
+@TypeAlias(type(None), None)
 class Void(Type):
     def validate(self, value, name: str):
         if value is not None:

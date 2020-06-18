@@ -51,7 +51,6 @@ class ParentClient(Client):
         """ Send status update: Stopped """
         id = self.id if id is None else id
         await self.msg(TASK_STATUS, status=STOP, id=id)
-        await self.msg(TASK_RETURN, result={}, id=id)
 
     async def send_done(self, result: Any, result_type: str = 'any') -> None:
         """

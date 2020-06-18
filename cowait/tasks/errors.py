@@ -1,5 +1,9 @@
 
 
+class StoppedError(RuntimeError):
+    pass
+
+
 class TaskError(RuntimeError):
     """
     Raised when an error is received from a subtask

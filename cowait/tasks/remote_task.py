@@ -2,9 +2,9 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import Future
 from cowait.types import type_from_description
-from .errors import TaskError
+from .errors import TaskError, StoppedError
 from .definition import TaskDefinition
-from .status import WAIT, WORK, FAIL, DONE
+from .status import WAIT, WORK, FAIL, DONE, STOP
 
 
 class RemoteTask(TaskDefinition):
@@ -33,7 +33,10 @@ class RemoteTask(TaskDefinition):
             raise RuntimeError('Cant complete a failed task')
 
         if self.status == DONE and status == FAIL:
-            raise RuntimeError('Cant fail a failed completed')
+            raise RuntimeError('Cant fail a completed task')
+
+        if status == STOP and not self.future.done():
+            self.future.set_exception(StoppedError(f'Remote task {self.id} was stopped'))
 
         # update status
         self.status = status
@@ -73,7 +76,7 @@ class RemoteTask(TaskDefinition):
             await asyncio.sleep(interval)
             slept += interval
 
-    async def call(self, method, args={}):
+    async def call(self, method, args={}) -> any:
         if self.status == WAIT:
             await self.wait_for_init()
         elif self.status != WORK:
@@ -83,8 +86,9 @@ class RemoteTask(TaskDefinition):
 
         return await self.conn.rpc.call(method, args)
 
-    async def stop(self):
-        # special case RPC - it always causes a send exception
+    async def stop(self) -> None:
+        if self.status == STOP:
+            return
         await self.call('stop')
 
     def __getattr__(self, method):

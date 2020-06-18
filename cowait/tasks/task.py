@@ -1,4 +1,4 @@
-import os
+import sys
 from typing import Any
 from cowait.network import get_local_connstr
 from .definition import TaskDefinition
@@ -70,11 +70,18 @@ class Task(TaskDefinition):
         """
         print('\n~~ STOPPED ~~')
 
+        # send a stop status
         await self.node.parent.send_stop()
+
+        # stop subtasks
         for task in self.subtasks.values():
             await task.stop()
 
-        os._exit(1)
+        # schedule exit on the next event loop
+        # this allows the RPC call to return properly.
+        async def quit():
+            sys.exit(1)
+        self.node.io.create_task(quit())
 
     def spawn(
         self,
