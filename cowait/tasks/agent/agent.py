@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from cowait.tasks import Task, TaskDefinition, sleep, rpc
 from cowait.network import Conn, get_local_connstr
-from cowait.tasks.status import DONE, FAIL
-from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL
+from cowait.tasks.status import FAIL, WAIT, WORK, STOP
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
 from .tasklist import TaskList
 from .subscriptions import Subscriptions
 from .api import Dashboard, TaskAPI
@@ -43,8 +43,8 @@ class Agent(Task):
         while True:
             running_tasks = self.cluster.list_all()
             for id, task in self.tasks.items():
-                # skip tasks that are done or failed
-                if task.status == DONE or task.status == FAIL:
+                # consider only tasks that are waiting or running
+                if task.status != WAIT and task.status != WORK:
                     continue
 
                 # ensure task is still in the list of running tasks
@@ -53,18 +53,7 @@ class Agent(Task):
                     # compute task age
                     since = datetime.now(timezone.utc) - task.created_at
                     error = f'Task lost after {since}'
-
-                    # update task state record
-                    await self.tasks.on_status(None, id=id, status=FAIL)
-                    await self.tasks.on_fail(None, id=id, error=error)
-
-                    # emulate failure messages to parent
-                    await self.node.parent.msg(type=TASK_STATUS, id=id, status=FAIL)
-                    await self.node.parent.msg(type=TASK_FAIL, id=id, error=error)
-
-                    # emulate failure messages to subscribers
-                    await self.subs.forward(None, id=id, type=TASK_FAIL, error=error)
-                    await self.subs.forward(None, id=id, type=TASK_STATUS, status=FAIL)
+                    await self.emulate_error(id, error)
 
             await sleep(5.0)
 
@@ -72,10 +61,14 @@ class Agent(Task):
 
     @rpc
     async def destroy(self, task_id) -> None:
+        await self.emulate_stop(task_id)
         self.cluster.destroy(task_id)
 
     @rpc
     async def destroy_all(self) -> None:
+        for id, task in self.tasks.items():
+            if task.status == WORK or task.status == WORK:
+                await self.emulate_stop(id)
         self.cluster.destroy_all()
 
     @rpc
@@ -133,3 +126,26 @@ class Agent(Task):
         self.subtasks.watch(task)
 
         return task.serialize()
+
+    async def emulate_stop(self, task_id: str):
+        # update task state record
+        await self.tasks.on_status(None, id=task_id, status=STOP)
+
+        # emulate stop messages to parent
+        await self.node.parent.msg(type=TASK_STATUS, id=task_id, status=STOP)
+
+        # emulate stop messages to subscribers
+        await self.subs.forward(None, id=task_id, type=TASK_STATUS, status=STOP)
+
+    async def emulate_error(self, task_id: str, error: str):
+        # update task state record
+        await self.tasks.on_status(None, id=task_id, status=FAIL)
+        await self.tasks.on_fail(None, id=task_id, error=error)
+
+        # emulate failure messages to parent
+        await self.node.parent.msg(type=TASK_STATUS, id=task_id, status=FAIL)
+        await self.node.parent.msg(type=TASK_FAIL, id=task_id, error=error)
+
+        # emulate failure messages to subscribers
+        await self.subs.forward(None, id=task_id, type=TASK_FAIL, error=error)
+        await self.subs.forward(None, id=task_id, type=TASK_STATUS, status=FAIL)

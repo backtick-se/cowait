@@ -1,9 +1,10 @@
 import React from 'react'
-
-import { availableThemes, ThemeType } from '../../../theme'
 import { useSelector, useDispatch } from 'react-redux'
+
 import { RootState } from '../../../store'
 import theme from '../../../store/theme'
+import { ThemeType } from '../../../theme/types'
+import { availableThemes } from '../../../theme'
 import { ThemeIcon, ThemePicker } from './styled'
 
 

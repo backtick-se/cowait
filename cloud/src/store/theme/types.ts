@@ -1,6 +1,6 @@
 
 import { UPDATE_THEME } from './reducer';
-import { ThemeType } from '../../theme';
+import { ThemeType } from '../../theme/types';
 
 export type UPDATE_THEME = typeof UPDATE_THEME
 
@@ -11,4 +11,3 @@ export enum ThemeActionTypes {
 export type ThemeState = {
   active: ThemeType
 }
-

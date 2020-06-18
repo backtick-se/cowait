@@ -9,6 +9,7 @@ export const Navbar = styled.nav`
   font-size: 0.8rem;
   justify-content: space-between;
   align-items: center;
+  z-index: 100;
 
   a {
     font-family: ${p => p.theme.fonts.header};

@@ -15,8 +15,8 @@ const statusIcon = (socketStatus: SocketStatus) =>
 
 const statusText = (socketStatus: SocketStatus) =>
   socketStatus === SOCKET_CONNECTED ?
-    'Agent connected' :
-    'Connecting to agent'
+    'Connected' :
+    'Connecting'
 
 const SocketStatusLabel: React.FC = ({ children }) => {
   const status = useSelector((state: RootState) => state.socket.status)

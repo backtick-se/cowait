@@ -1,6 +1,6 @@
 import { lighten } from 'polished'
 import colors from './colors.json'
-import { ColorTheme } from '..'
+import { ColorTheme } from '../types'
 
 
 export const theme: ColorTheme = {
@@ -13,6 +13,10 @@ export const theme: ColorTheme = {
         link: {
             primary: colors.purple,
             hover: lighten(0.1, colors.purple)
+        },
+        button: {
+            background: colors.purple,
+            color: colors.grayscale0
         },
         menu: {
             primary: colors.grayscale6,

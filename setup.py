@@ -35,6 +35,7 @@ setuptools.setup(
         'pyyaml',
         'marshmallow',
         'aiohttp',
+        'aiohttp-middlewares',
         'pytest',
         'pytest-sugar',
         'pytest-cov',

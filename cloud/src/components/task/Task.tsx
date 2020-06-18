@@ -3,14 +3,14 @@ import TaskLog from './TaskLog'
 import TaskStatus from './TaskStatus'
 import TaskError from './TaskError'
 import TaskResult from './TaskResult'
-import TaskLink from './TaskLink'
 import TaskInputs from './TaskInputs'
 import TaskSubTasks from './TaskSubTasks'
-import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, ParentWrapper, TaskTitleWrapper, TaskCreatedAt, TaskTitle } from './styled/Task'
+import { TaskHeader, TaskHeaderLink, TaskImage, TaskWrapper, TaskTitleWrapper, TaskCreatedAt, TaskTitle } from './styled/Task'
 import { Task as TaskInterface } from '../../store/tasks/types'
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { formatDate } from '../../utils'
+import TaskParent from './TaskParent'
+import TaskActionBar from './TaskActionBar'
+
 
 type TaskProps = TaskInterface & {
     maxLogHeight?: number
@@ -18,23 +18,23 @@ type TaskProps = TaskInterface & {
 
 export type TaskComponent = React.FC<TaskProps>
 
-export const Task: TaskComponent = ({ id, status, image, parent, result, error, sub_tasks, inputs, maxLogHeight, created_at }) => {
+export const Task: TaskComponent = (props: TaskProps) => {
+    const { id, status, image, parent, result, error, sub_tasks, inputs, maxLogHeight, created_at } = props
+
     return <TaskWrapper>
         <TaskHeader>
             <TaskTitleWrapper>
                 <TaskTitle>
-                    <TaskHeaderLink to={`/task/${id}`}>{id}</TaskHeaderLink> 
+                    <TaskHeaderLink to={`/task/${id}`}>{id}</TaskHeaderLink>
                     <TaskStatus status={status} />
                 </TaskTitle>
                 <TaskCreatedAt>{formatDate(created_at)}</TaskCreatedAt>
+                <TaskActionBar {...props} />
             </TaskTitleWrapper>
             <TaskImage>{image}</TaskImage>
-            {parent && <ParentWrapper>
-                <FontAwesomeIcon icon="level-up-alt" />
-                <TaskLink id={parent}/>
-            </ParentWrapper>}
         </TaskHeader>
 
+        <TaskParent parent={parent} />
         <TaskError error={error} />
         <TaskInputs inputs={inputs} />
         <TaskSubTasks sub_tasks={sub_tasks} />

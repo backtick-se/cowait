@@ -5,7 +5,8 @@ import { Reducer } from 'redux'
 const initialState: TaskState = {
     order: [],
     items: {},
-    logs: {}
+    logs: {},
+    actions: {}
 }
 
 // Prepend an item to a set. If replace is true and the item already exists,
@@ -30,7 +31,7 @@ function setPrepend(list: string[], item: string, replace: boolean = true) {
 const reducer: Reducer<TaskState> = (state = initialState, action) => {
     switch(action.type) {
     case TaskActionTypes.INIT: {
-        const { task } = action
+        const { task } = action.payload
         if (!task.parent) {
             return {
                 ...state,
@@ -72,7 +73,7 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
     }
 
     case TaskActionTypes.STATUS: {
-        const { id, status } = action
+        const { id, status } = action.payload
         const item = state.items[id]
         if (!item) {
             console.log('unknown task', id)
@@ -95,7 +96,7 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
     }
 
     case TaskActionTypes.LOG: {
-        const { id, data } = action
+        const { id, data } = action.payload
         return {
             ...state,
             logs: {
@@ -106,7 +107,7 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
     }
 
     case TaskActionTypes.RETURN: {
-        const { id, result } = action
+        const { id, result } = action.payload
         return {
             ...state,
             items: {
@@ -120,7 +121,7 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
     }
 
     case TaskActionTypes.FAIL: {
-        const { id, error } = action
+        const { id, error } = action.payload
         return {
             ...state,
             items: {
@@ -135,6 +136,57 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
 
     case TaskActionTypes.CLEAR: {
         return initialState
+    }
+
+    case TaskActionTypes.STOP_REQUEST: {
+        const { id } = action.payload
+        return {
+            ...state,
+            actions: {
+                ...state.actions,
+                [id]: {
+                    ...state.actions[id],
+                    'stop': {
+                        loading: true,
+                        error: undefined
+                    }
+                }
+            }
+        }
+    }
+
+    case TaskActionTypes.STOP_FAILURE: {
+        const { id, error } = action.payload
+        return {
+            ...state,
+            actions: {
+                ...state.actions,
+                [id]: {
+                    ...state.actions[id],
+                    'stop': {
+                        loading: false,
+                        error: error
+                    }
+                }
+            }
+        }
+    }
+
+    case TaskActionTypes.STOP_SUCCESS: {
+        const { id } = action.payload
+        return {
+            ...state,
+            actions: {
+                ...state.actions,
+                [id]: {
+                    ...state.actions[id],
+                    'stop': {
+                        loading: false,
+                        error: undefined
+                    }
+                }
+            }
+        }
     }
         
     default:

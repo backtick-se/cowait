@@ -4,7 +4,10 @@ export enum TaskActionTypes {
   RETURN = '@@task/RETURN',
   FAIL = '@@task/FAIL',
   LOG = '@@task/LOG',
-  CLEAR = '@@task/CLEAR'
+  CLEAR = '@@task/CLEAR',
+  STOP_REQUEST = '@@task/STOP_REQUEST',
+  STOP_SUCCESS = '@@task/STOP_SUCCESS',
+  STOP_FAILURE = '@@task/STOP_FAILURE'
 }
 
 export interface Task {
@@ -36,4 +39,13 @@ export interface TaskState {
   logs: {
     [task_id: string]: string
   },
+  actions: {
+    [task_id: string]: {
+      [action: string]: {
+        error?: string,
+        success?: boolean,
+        loading: boolean
+      }
+    }
+  }
 }

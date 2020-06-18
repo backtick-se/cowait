@@ -1,5 +1,6 @@
 import PipeClient from './PipeClient'
 import { createStore, StoreConfig } from './store'
+
 import socket from './store/socket'
 import tasks from './store/tasks'
 import { Store } from 'redux'
