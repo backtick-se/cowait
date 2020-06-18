@@ -59,14 +59,24 @@ class RpcComponent():
 
     async def http_rpc_handler(self, req):
         try:
-            args = await req.json()
+            call = await req.json()
+            args = call.get('args', {})
             method = req.match_info['method']
             result = await self.call(method, args)
-            return web.json_response(result)
+            return web.json_response({
+                'success': True,
+                'result': result,
+            })
         except Exception as e:
             print('HTTP RPC Error:')
             traceback.print_exc()
-            return web.json_response({'error': str(e)}, status=400)
+            return web.json_response(
+                {
+                    'success': False,
+                    'error': str(e),
+                },
+                status=400
+            )
 
 
 class RpcError(RuntimeError):
