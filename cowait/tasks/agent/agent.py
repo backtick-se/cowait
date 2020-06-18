@@ -25,6 +25,9 @@ class Agent(Task):
         self.subs.on('subscribe', send_state)
 
         self.token = self.meta['http_token']
+        if self.token is None or self.token == '':
+            self.node.http.auth.enabled = False
+            self.token = 'none'
 
         # create http server
         self.node.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
