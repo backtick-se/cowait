@@ -110,14 +110,14 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         await asyncio.sleep(0.5)
 
 
-async def handle_orphans(task: Task, mode: str = 'kill') -> None:
+async def handle_orphans(task: Task, mode: str = 'stop') -> None:
     orphans = filter(lambda child: not child.done, task.subtasks.values())
     for orphan in orphans:
         if mode == 'wait':
             print('~~ waiting for orphaned task', orphan.id)
             await orphan
-        elif mode == 'kill':
-            print('~~ killing orphaned task', orphan.id)
-            orphan.destroy()
+        elif mode == 'stop':
+            print('~~ stopping orphaned task', orphan.id)
+            await orphan.stop()
         else:
             raise RuntimeError(f'Unknown orphan mode {mode}')
