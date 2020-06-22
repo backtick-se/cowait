@@ -1,6 +1,7 @@
 import sys
 from typing import Any
 from cowait.network import get_local_connstr
+from cowait.types import serialize
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
 from .parent_task import ParentTask
@@ -130,8 +131,8 @@ class Task(TaskDefinition):
                 **volumes,
             },
             inputs={
-                **inputs,
-                **kwargs,
+                **serialize(inputs),
+                **serialize(kwargs),
             },
             env={
                 **self.env,
