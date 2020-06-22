@@ -1,32 +1,35 @@
-import asyncio
 from cowait.network import Server, HttpServer
 from cowait.utils import StreamCapturing
 from .io_thread import IOThread
 from .parent_client import ParentClient
+from .json_logger import JSONLogger
 
 
 class WorkerNode(object):
-    def __init__(self, id):
+    def __init__(self, id, upstream):
         super().__init__()
         self.id = id
         self.io = IOThread()
         self.io.start()
-
+        self.upstream = upstream
         self.http = HttpServer()
         self.children = Server(self)
-        self.parent = ParentClient(id)
 
-    async def connect(self, uri) -> None:
-        self.io.create_task(self.parent.connect(uri))
-        while not self.parent.connected:
-            await asyncio.sleep(0.1)
+        if upstream is None:
+            self.parent = JSONLogger(id, self.io)
+        else:
+            self.parent = ParentClient(id, self.io)
+
+    async def connect(self) -> None:
+        await self.parent.connect(self.upstream)
+
+    def serve(self):
+        self.io.create_task(self.http.serve())
 
     async def close(self) -> None:
         async def close():
-            if self.children:
-                await self.children.close()
-            if self.parent:
-                await self.parent.close()
+            await self.children.close()
+            await self.parent.close()
 
         self.io.create_task(close())
 
@@ -38,4 +41,8 @@ class WorkerNode(object):
                 self.io.create_task(self.parent.send_log(file, x))
             return callback
 
-        return StreamCapturing(logger('stdout'), logger('stderr'))
+        return StreamCapturing(
+            on_stdout=logger('stdout'),
+            on_stderr=logger('stderr'),
+            silence=True,
+        )

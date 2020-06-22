@@ -23,6 +23,9 @@ class Subscriptions(EventEmitter):
         if conn in self.subscribers:
             return
 
+        if msg.get('type', '__')[:2] == '__':
+            return
+
         for subscriber in self.subscribers:
             await subscriber.send(msg)
 

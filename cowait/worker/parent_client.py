@@ -1,4 +1,4 @@
-
+import asyncio
 from typing import Any
 from cowait.network import Client
 from cowait.tasks import TaskDefinition, WORK, DONE, STOP, FAIL
@@ -11,14 +11,22 @@ class ParentClient(Client):
     Upstream API client.
     """
 
-    def __init__(self, id: str):
+    def __init__(self, id, io_thread):
         super().__init__()
         self.id = id
+        self.io = io_thread
 
     async def connect(self, url: str, token: str = None) -> None:
         if token is None:
             token = self.id
-        return await super().connect(url, token)
+
+        # super.connect() blocks for the duration of the connection
+        # run it on the I/O loop
+        self.io.create_task(super().connect(url, token))
+
+        # block caller until connected
+        while not self.connected:
+            await asyncio.sleep(0.1)
 
     async def msg(self, type: str, **msg) -> None:
         """
@@ -33,6 +41,10 @@ class ParentClient(Client):
             'type': type,
             **msg,
         })
+
+    async def send(self, msg: dict):
+        # send messages on the I/O loop
+        await self.io.create_task(super().send(msg))
 
     async def send_init(self, taskdef: TaskDefinition) -> None:
         """

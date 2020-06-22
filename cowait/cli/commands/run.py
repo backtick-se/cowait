@@ -1,8 +1,10 @@
 import sys
+import json
 import getpass
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
-from cowait.utils import parse_task_image_name
+from cowait.utils import parse_task_image_name, EventEmitter
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 from ..config import CowaitConfig
 from ..context import CowaitContext
 from ..utils import ExitTrap, printheader
@@ -22,7 +24,10 @@ def run(
     detach: bool = False,
     cpu: str = '0',
     memory: str = '0',
+    raw: bool = False,
+    quiet: bool = False,
 ):
+    logger = RunLogger(raw, quiet)
     try:
         context = CowaitContext.open()
         cluster_name = context.get('cluster', config.default_cluster)
@@ -71,22 +76,15 @@ def run(
             cpu=cpu,
         )
 
+        logger.print_info(taskdef, cluster_name)
+
         # print execution info
-        printheader('task')
-        print('   task:      ', taskdef.id)
-        print('   cluster:   ', cluster_name)
-        if taskdef.upstream:
-            print('   upstream:  ', taskdef.upstream)
-        print('   image:     ', image)
-        print('   inputs:    ', inputs)
-        print('   env:       ', env)
-        print('   volumes:   ', volumes)
 
         # submit task to cluster
         task = cluster.spawn(taskdef)
 
         if detach:
-            printheader('detached')
+            logger.header('detached')
             return
 
         def destroy(*args):
@@ -98,17 +96,82 @@ def run(
         with ExitTrap(destroy):
             # capture & print logs
             logs = cluster.logs(task)
-            printheader('task output')
-            for log in logs:
-                print(log, flush=True)
+            logger.header('task output')
+            for msg in logs:
+                logger.handle(msg)
 
     except ProviderError as e:
-        printheader('error')
         print('Provider error:', str(e))
+        logger.on_exception(f'Provider Error: {e}')
 
     except TaskCreationError as e:
-        printheader('error')
-        print('Error creating task:', str(e))
+        logger.on_exception(f'Error creating task: {e}')
 
     finally:
-        printheader()
+        logger.header()
+
+
+class RunLogger(EventEmitter):
+    def __init__(self, raw: bool = False, quiet: bool = False):
+        super().__init__()
+        self.on(TASK_INIT, self.on_init)
+        self.on(TASK_STATUS, self.on_status)
+        self.on(TASK_FAIL, self.on_fail)
+        self.on(TASK_RETURN, self.on_return)
+        self.on(TASK_LOG, self.on_log)
+
+        self.raw = raw
+        self.quiet = quiet
+
+    def handle(self, msg):
+        if self.quiet:
+            # only top level return value
+            if 'type' in msg and msg['type'] == TASK_RETURN and msg['id'] == self.id:
+                print(json.dumps(msg['result']))
+            return
+        elif self.raw:
+            print(json.dumps(msg))
+        else:
+            self.emit_sync(**msg)
+
+    def header(self, title: str = None):
+        if self.quiet or self.raw:
+            return
+        printheader(title)
+
+    def print_info(self, taskdef, cluster_name):
+        self.id = taskdef.id
+
+        self.header('task')
+        self.print('   task:      ', taskdef.id)
+        self.print('   cluster:   ', cluster_name)
+        if taskdef.upstream:
+            self.print('   upstream:  ', taskdef.upstream)
+        self.print('   image:     ', taskdef.image)
+        self.print('   inputs:    ', taskdef.inputs)
+        self.print('   env:       ', taskdef.env)
+        self.print('   volumes:   ', taskdef.volumes)
+
+    def print(self, *args, **kwargs):
+        if self.quiet or self.raw:
+            return
+        print(*args, **kwargs)
+
+    def on_init(self, task: dict, **msg):
+        self.print('~~ create', task['id'], 'from', task['image'], task['inputs'])
+
+    def on_status(self, id, status, **msg):
+        self.print('~~', id, 'changed status to', status)
+
+    def on_exception(self, error):
+        self.header('error')
+        self.print(error)
+
+    def on_fail(self, id, error, **msg):
+        self.on_exception(f'Task {id} failed:\n{error}')
+
+    def on_return(self, id, result, **msg):
+        self.print('~~', id, 'returned:', json.dumps(result, indent=2))
+
+    def on_log(self, id, file, data, **msg):
+        self.print(data, end='')

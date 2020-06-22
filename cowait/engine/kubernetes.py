@@ -4,6 +4,7 @@ import kubernetes
 import urllib3.exceptions
 from kubernetes import client, config, watch
 from cowait.tasks import TaskDefinition, RemoteTask
+from cowait.utils import json_stream
 from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider
 from .errors import TaskCreationError, ProviderError
@@ -66,8 +67,8 @@ class KubernetesProvider(ClusterProvider):
         try:
             self.emit_sync('prepare', taskdef=taskdef)
 
-            if len(taskdef.volumes.keys()) > 0:
-                print('!! warning: kubernetes provider does not support volumes')
+            # if len(taskdef.volumes.keys()) > 0:
+            #     print('!! warning: kubernetes provider does not support volumes')
 
             # container definition
             container = client.V1Container(
@@ -112,7 +113,7 @@ class KubernetesProvider(ClusterProvider):
             )
 
             # wrap & return task
-            print('~~ created kubenetes pod', pod.metadata.name)
+            # print('~~ created kubenetes pod', pod.metadata.name)
             task = KubernetesTask(self, taskdef, pod)
             self.emit_sync('spawn', task=task)
             return task
@@ -196,11 +197,11 @@ class KubernetesProvider(ClusterProvider):
 
         try:
             w = watch.Watch()
-            return w.stream(
+            return json_stream(w.stream(
                 self.core.read_namespaced_pod_log,
                 name=task.id,
                 namespace=self.namespace,
-            )
+            ))
         except Exception:
             self.logs(task)
 
@@ -229,7 +230,7 @@ class KubernetesProvider(ClusterProvider):
 
     def destroy(self, task_id) -> list:
         def kill_family(task_id):
-            print('~~ kubernetes kill', task_id)
+            # print('~~ kubernetes kill', task_id)
 
             kills = []
             children = self.get_task_child_pods(task_id)

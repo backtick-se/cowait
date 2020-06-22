@@ -2,6 +2,7 @@ import docker
 import requests.exceptions
 from docker.types import Mount
 from cowait.tasks import TaskDefinition, RemoteTask
+from cowait.utils import json_stream
 from .cluster import ClusterProvider
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
 from .errors import ProviderError
@@ -57,8 +58,8 @@ class DockerProvider(ClusterProvider):
                 },
             )
 
-            print('~~ created docker container with id',
-                  container.id[:12], 'for task', taskdef.id)
+            # print('~~ created docker container with id',
+            #   container.id[:12], 'for task', taskdef.id)
 
             task = DockerTask(self, taskdef, container)
             self.emit_sync('spawn', task=task)
@@ -130,7 +131,7 @@ class DockerProvider(ClusterProvider):
 
         def kill_family(container):
             container_task_id = container.labels[LABEL_TASK_ID]
-            print(f'~~ kill {container_task_id} ({container.short_id})')
+            # print(f'~~ kill {container_task_id} ({container.short_id})')
 
             children = self.find_child_containers(container_task_id)
             kills = []
@@ -163,10 +164,7 @@ class DockerProvider(ClusterProvider):
     def logs(self, task: DockerTask):
         """ Stream task logs """
         try:
-            for log in task.container.logs(stream=True):
-                if log[-1] == 10:  # newline
-                    log = log[:-1]
-                yield str(log, encoding='utf-8')
+            return json_stream(task.container.logs(stream=True))
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
@@ -226,7 +224,8 @@ class DockerProvider(ClusterProvider):
             elif 'tmpfs' in volume:
                 mounts.append(create_tmpfs_mount(target, volume['tmpfs']))
             else:
-                print(f'!! unsupported volume: {target}')
+                # print(f'!! unsupported volume: {target}')
+                pass
 
         return mounts
 
