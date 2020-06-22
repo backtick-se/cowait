@@ -75,6 +75,7 @@ def run(
             volumes=volumes,
             memory=memory,
             cpu=cpu,
+            storage=context.get('storage', {}),
         )
 
         # print execution info

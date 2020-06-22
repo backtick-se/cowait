@@ -57,6 +57,7 @@ class TaskDefinition(object):
         error:     str = None,
         result:    any = None,
         log:       str = '',
+        storage:   dict = {},
         created_at: datetime = None,
     ):
         """
@@ -94,6 +95,7 @@ class TaskDefinition(object):
         self.error = error
         self.result = result
         self.log = log
+        self.storage = storage
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -135,6 +137,7 @@ class TaskDefinitionSchema(Schema):
     result = fields.Raw(allow_none=True)
     log = fields.Str(allow_none=True)
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
+    storage = fields.Dict(missing={})
     volumes = fields.Mapping(
         keys=fields.Str(),
         values=fields.Mapping(),
