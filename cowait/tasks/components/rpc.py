@@ -1,7 +1,7 @@
 import inspect
 import traceback
 from aiohttp import web
-from cowait.types import typed_async_call, get_return_type
+from cowait.types import typed_async_call
 
 RPC_CALL = 'rpc/call'
 RPC_ERROR = 'rpc/error'
@@ -28,15 +28,14 @@ class RpcComponent():
 
     async def call(self, method, args):
         rpc_func = self.get_method(method)
-        result = await typed_async_call(rpc_func, args)
+        result, _ = await typed_async_call(rpc_func, args)
         return result
 
     async def on_rpc(self, conn, method, args, nonce):
         try:
             rpc_func = self.get_method(method)
 
-            result = await typed_async_call(rpc_func, args)
-            result_type = get_return_type(rpc_func)
+            result, result_type = await typed_async_call(rpc_func, args)
 
             await conn.send({
                 'type': RPC_RESULT,
