@@ -45,11 +45,11 @@ class DaskCluster(Task):
     async def after(self, inputs: dict):
         await self.dask.close()
 
-        print('~~ destroying dask cluster')
-        self.scheduler.destroy()
+        print('~~ stopping dask cluster')
+        await self.scheduler.stop()
 
         for worker in self.workers:
-            worker.destroy()
+            await worker.stop()
 
         await super().after(inputs)
 
@@ -90,7 +90,7 @@ class DaskCluster(Task):
             count = len(self.workers)
 
         for worker in self.workers[-count:]:
-            worker.destroy()
+            await worker.stop()
         self.workers = self.workers[:-count]
 
     async def wait_for_nodes(self):
