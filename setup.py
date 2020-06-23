@@ -42,5 +42,6 @@ setuptools.setup(
         'pytest-asyncio',
         'nest-asyncio',
         'numpy',
+        'sty',
     ],
 )
