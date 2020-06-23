@@ -22,6 +22,10 @@ def agent(
         if cluster.type == 'api':
             raise CliError('Error: Cant deploy agent using an API cluster')
 
+        token = uuid()
+        if cluster.type == 'docker':
+            token = ''
+
         cluster.destroy('agent')
 
         # create task definition
@@ -34,7 +38,7 @@ def agent(
                 '/': 80,
             },
             meta={
-                'http_token': uuid(),
+                'http_token': token,
             },
         )
 

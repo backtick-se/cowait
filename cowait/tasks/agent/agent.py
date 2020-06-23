@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from cowait.tasks import Task, TaskDefinition, sleep, rpc
 from cowait.network import Conn, get_local_connstr
 from cowait.tasks.status import FAIL, WAIT, WORK, STOP
-from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL
 from .tasklist import TaskList
 from .subscriptions import Subscriptions
 from .api import Dashboard, TaskAPI
@@ -25,6 +25,9 @@ class Agent(Task):
         self.subs.on('subscribe', send_state)
 
         self.token = self.meta['http_token']
+        if self.token is None or self.token == '':
+            self.node.http.auth.enabled = False
+            self.token = 'none'
 
         # create http server
         self.node.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
@@ -67,7 +70,7 @@ class Agent(Task):
     @rpc
     async def destroy_all(self) -> None:
         for id, task in self.tasks.items():
-            if task.status == WORK or task.status == WORK:
+            if task.status == WAIT or task.status == WORK:
                 await self.emulate_stop(id)
         self.cluster.destroy_all()
 
@@ -128,24 +131,8 @@ class Agent(Task):
         return task.serialize()
 
     async def emulate_stop(self, task_id: str):
-        # update task state record
-        await self.tasks.on_status(None, id=task_id, status=STOP)
-
-        # emulate stop messages to parent
-        await self.node.parent.msg(type=TASK_STATUS, id=task_id, status=STOP)
-
-        # emulate stop messages to subscribers
-        await self.subs.forward(None, id=task_id, type=TASK_STATUS, status=STOP)
+        await self.node.children.emit(type=TASK_STATUS, id=task_id, status=STOP, conn=None)
 
     async def emulate_error(self, task_id: str, error: str):
-        # update task state record
-        await self.tasks.on_status(None, id=task_id, status=FAIL)
-        await self.tasks.on_fail(None, id=task_id, error=error)
-
-        # emulate failure messages to parent
-        await self.node.parent.msg(type=TASK_STATUS, id=task_id, status=FAIL)
-        await self.node.parent.msg(type=TASK_FAIL, id=task_id, error=error)
-
-        # emulate failure messages to subscribers
-        await self.subs.forward(None, id=task_id, type=TASK_FAIL, error=error)
-        await self.subs.forward(None, id=task_id, type=TASK_STATUS, status=FAIL)
+        await self.node.children.emit(type=TASK_STATUS, id=task_id, status=FAIL, conn=None)
+        await self.node.children.emit(type=TASK_FAIL, id=task_id, error=error, conn=None)

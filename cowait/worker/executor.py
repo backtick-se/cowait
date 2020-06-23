@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import Task, TaskDefinition, TaskError
-from cowait.types import typed_arguments, typed_return, get_return_type, get_parameter_defaults
+from cowait.types import typed_arguments, typed_return, get_parameter_defaults
 from .worker_node import WorkerNode
 from .service import FlowLogger, NopLogger
 from .loader import load_task_class
@@ -82,8 +82,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             await handle_orphans(task)
 
             # prepare & typecheck result
-            result = typed_return(taskfunc, result)
-            result_type = get_return_type(taskfunc)
+            result, result_type = typed_return(taskfunc, result)
 
             # submit result
             await node.parent.send_done(result, result_type.describe())
@@ -110,14 +109,14 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         await asyncio.sleep(0.5)
 
 
-async def handle_orphans(task: Task, mode: str = 'kill') -> None:
+async def handle_orphans(task: Task, mode: str = 'stop') -> None:
     orphans = filter(lambda child: not child.done, task.subtasks.values())
     for orphan in orphans:
         if mode == 'wait':
             print('~~ waiting for orphaned task', orphan.id)
             await orphan
-        elif mode == 'kill':
-            print('~~ killing orphaned task', orphan.id)
-            orphan.destroy()
+        elif mode == 'stop':
+            print('~~ stopping orphaned task', orphan.id)
+            await orphan.stop()
         else:
             raise RuntimeError(f'Unknown orphan mode {mode}')

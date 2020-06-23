@@ -5,6 +5,7 @@ from cowait.utils import uuid
 class AuthMiddleware(object):
     def __init__(self):
         self.tokens = {}
+        self.enabled = True
 
     def add_token(self, token: str) -> None:
         self.tokens[token] = True
@@ -21,6 +22,9 @@ class AuthMiddleware(object):
         return self.tokens.get(token, False)
 
     def is_public(self, path):
+        if not self.enabled:
+            return True
+
         if path == '/ws':
             return False
         if path.startswith('/api/'):

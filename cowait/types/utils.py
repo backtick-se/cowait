@@ -82,11 +82,13 @@ def typed_return(func: callable, result: object) -> object:
     Type checks and serializes a return value using cowait types.
     """
     result_type = get_return_type(func)
+    if isinstance(result_type, Any):
+        result_type = guess_type(result)
 
     # serialize & validate
     data = result_type.serialize(result)
     result_type.validate(data, 'Return')
-    return data
+    return data, result_type
 
 
 async def typed_call(func: callable, args: dict) -> object:

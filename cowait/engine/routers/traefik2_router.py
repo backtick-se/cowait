@@ -122,7 +122,7 @@ class Traefik2Router(Router):
             pass
 
         try:
-            self.cluster.custom.delete_cluster_custom_object_0(
+            self.cluster.custom.delete_cluster_custom_object(
                 group=TRAEFIK2_API_GROUP,
                 version=TRAEFIK2_API_VERSION,
                 plural=TRAEFIK2_INGRESSROUTE_PLURAL,
