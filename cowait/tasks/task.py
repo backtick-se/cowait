@@ -7,10 +7,9 @@ from .components import TaskManager, RpcComponent, rpc
 from .parent_task import ParentTask
 
 
-CURRENT_TASK = None
-
-
 class Task(TaskDefinition):
+    __current__ = None
+
     def __init__(
         self,
         **inputs,
@@ -32,22 +31,22 @@ class Task(TaskDefinition):
         if len(inputs) != 3:
             raise RuntimeError('Invalid task constructor call')
 
+        # set this task as the current active task
+        Task.set_current(self)
+
     def __new__(cls, *args, **inputs):
-        global CURRENT_TASK
-        if CURRENT_TASK is None:
-            # there is no active task.
-            # instantiate one and make it the active task.
-            task = object.__new__(cls)
-            CURRENT_TASK = task
-            return task
+        current = Task.get_current()
+        if current is None:
+            # there is no active task. continue normal instantiation.
+            return object.__new__(cls)
         else:
-            # we already have a task.
-            # spawn a remote task and return it.
+            # we already have a an active task in this process, so we should spawn a subtask.
+            # hijack constructor behaviour to instead spawn a remote task and return it.
 
             if len(args) > 0:
                 raise RuntimeError('Tasks do not accept positional arguments')
 
-            return CURRENT_TASK.spawn(cls, **inputs)
+            return current.spawn(cls, **inputs)
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
@@ -150,3 +149,11 @@ class Task(TaskDefinition):
         self.subtasks.watch(task)
 
         return task
+
+    @staticmethod
+    def get_current() -> 'Task':
+        return Task.__current__
+
+    @staticmethod
+    def set_current(task: 'Task'):
+        Task.__current__ = task

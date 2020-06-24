@@ -80,8 +80,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # submit result
             await node.parent.send_done(result, result_type.describe())
 
-            await asyncio.sleep(0.1)
-
     except TaskError as e:
         # pass subtask errors upstream
         await node.parent.send_fail(
@@ -98,10 +96,13 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         raise e
 
     finally:
-        await node.close()
-
         # ensure event loop has a chance to run
         await asyncio.sleep(0.1)
+
+        await node.close()
+
+        # clear active task
+        Task.set_current(None)
 
 
 async def handle_orphans(task: Task, mode: str = 'stop') -> None:
