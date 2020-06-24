@@ -197,13 +197,20 @@ class KubernetesProvider(ClusterProvider):
 
         try:
             w = watch.Watch()
-            return json_stream(w.stream(
+            logs = w.stream(
                 self.core.read_namespaced_pod_log,
                 name=task.id,
                 namespace=self.namespace,
-            ))
+            )
+
+            def add_newline_stream(task):
+                for log in logs:
+                    yield log + '\n'
+
+            return json_stream(add_newline_stream(task))
+
         except Exception:
-            self.logs(task)
+            return self.logs(task)
 
     def destroy_all(self) -> list:
         try:

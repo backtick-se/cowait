@@ -4,7 +4,12 @@ import json
 def json_stream(stream):
     buffer = ''
     for log in stream:
-        buffer += str(log, encoding='utf-8')
+        if isinstance(log, str):
+            buffer += log
+        elif isinstance(log, bytes):
+            buffer += str(log, encoding='utf-8')
+        else:
+            raise TypeError('Cant append ' + type(log) + ' to buffer')
 
         while '\n' in buffer:
             split = buffer.find('\n')
