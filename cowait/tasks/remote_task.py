@@ -91,6 +91,9 @@ class RemoteTask(TaskDefinition):
             return
         await self.call('stop')
 
+    def logs(self):
+        return self.cluster.logs(self)
+
     def __getattr__(self, method):
         async def magic_rpc(*args, **kwargs):
             if len(args) > 0:

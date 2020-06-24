@@ -7,7 +7,7 @@ from cowait.tasks import TaskDefinition
 from cowait.utils import json_stream
 
 TEST_IMAGE = 'cowait/task'
-TEST_TASK = 'cowait.test.tasks.utility_task'
+TEST_TASK = 'cowait.test.tasks.utility'
 
 
 def test_create_docker_task():
