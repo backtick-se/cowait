@@ -1,7 +1,7 @@
 from cowait.tasks import Task, TaskDefinition
 from cowait.engine import DockerProvider
 from cowait.utils.const import DEFAULT_BASE_IMAGE
-from .event_log import EventLog
+from .event_list import EventList
 
 
 def get_test_provider():
@@ -21,8 +21,8 @@ def spawn_test_task(name, **taskdef: dict) -> Task:
     }))
 
 
-def capture_task_events(name, **taskdef: dict) -> EventLog:
-    output = EventLog()
+def capture_task_output(name, **taskdef: dict) -> EventList:
+    output = EventList()
     task = spawn_test_task(name, **taskdef)
     output.collect(task.logs())
     return output
