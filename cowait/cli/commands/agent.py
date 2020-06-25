@@ -6,7 +6,8 @@ from cowait.utils import uuid
 from ..errors import CliError
 from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, printheader
+from ..utils import ExitTrap
+from .run import RunLogger
 
 
 def agent(
@@ -14,6 +15,7 @@ def agent(
     detach: bool = False,
     upstream: str = None,
 ) -> None:
+    logger = RunLogger(quiet=False, raw=False)
     try:
         context = CowaitContext.open()
         cluster_name = context.get('cluster', config.default_cluster)
@@ -46,23 +48,22 @@ def agent(
         task = cluster.spawn(taskdef)
 
         if detach:
-            printheader('detached')
+            logger.header('detached')
             return
 
         def destroy(*args):
-            print()
-            printheader('interrupt')
+            logger.header('interrupt')
             cluster.destroy(task.id)
             sys.exit(0)
 
         with ExitTrap(destroy):
             # capture & print logs
             logs = cluster.logs(task)
-            printheader('task output')
+            logger.header('task output')
             for log in logs:
-                print(log, flush=True)
+                logger.handle(log)
 
-        printheader()
+        logger.header()
 
     except ProviderError as e:
         raise CliError(f'Provider error: {e}')

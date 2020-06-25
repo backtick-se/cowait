@@ -27,7 +27,7 @@ def build(quiet: bool = False) -> TaskImage:
         base_image = context.get('base', DEFAULT_BASE_IMAGE)
         dockerfile = context.file('Dockerfile')
         if dockerfile:
-            logger.print('* Found custom Dockerfile:', context.relpath(dockerfile))
+            logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
             logger.header('BASE')
 
             base, logs = TaskImage.build_image(

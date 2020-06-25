@@ -1,3 +1,5 @@
+import sys
+import json
 import asyncio
 from typing import Any
 from cowait.network import Client
@@ -11,12 +13,16 @@ class ParentClient(Client):
     Upstream API client.
     """
 
-    def __init__(self, id, io_thread):
+    def __init__(self, id, io_loop):
         super().__init__()
         self.id = id
-        self.io = io_thread
+        self.io = io_loop
+        self.stdout = sys.stdout
 
     async def connect(self, url: str, token: str = None) -> None:
+        if url is None:
+            return
+
         if token is None:
             token = self.id
 
@@ -44,7 +50,12 @@ class ParentClient(Client):
 
     async def send(self, msg: dict):
         # send messages on the I/O loop
-        await self.io.create_task(super().send(msg))
+        self.io.create_task(self.log_json(msg))
+        if self.connected:
+            await self.io.create_task(super().send(msg))
+
+    async def log_json(self, msg):
+        print(json.dumps(msg), file=self.stdout)
 
     async def send_init(self, taskdef: TaskDefinition) -> None:
         """

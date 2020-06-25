@@ -3,7 +3,6 @@ from cowait.network import Server, HttpServer
 from cowait.utils import StreamCapturing
 from .io_thread import IOThread
 from .parent_client import ParentClient
-from .json_logger import JSONLogger
 
 
 class WorkerNode(object):
@@ -15,11 +14,7 @@ class WorkerNode(object):
         self.upstream = upstream
         self.http = HttpServer()
         self.children = Server(self)
-
-        if upstream is None:
-            self.parent = JSONLogger(id, self.io)
-        else:
-            self.parent = ParentClient(id, self.io)
+        self.parent = ParentClient(id, self.io)
 
     async def connect(self) -> None:
         await self.parent.connect(self.upstream)
