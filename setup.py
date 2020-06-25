@@ -44,5 +44,6 @@ setuptools.setup(
         'numpy',
         'sty',
         'jupyterlab',
+        'dill',
     ],
 )
