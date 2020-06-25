@@ -43,5 +43,6 @@ setuptools.setup(
         'nest-asyncio',
         'numpy',
         'sty',
+        'jupyterlab',
     ],
 )

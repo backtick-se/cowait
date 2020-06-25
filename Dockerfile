@@ -16,6 +16,9 @@ COPY setup.py README.md ./
 COPY bin ./bin
 RUN pip install -e .
 
+# jupyter
+COPY jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
+
 # copy code last, to benefit from caching
 COPY . . 
 
