@@ -23,7 +23,7 @@ class Preprocess(Task):
         df['tpep_dropoff_datetime'] = df['tpep_dropoff_datetime'].astype('datetime64')
 
         # Remove data that's not from 2019
-        df = df[df['tpep_pickup_datetime'].dt.year == 2019]]
+        df = df[df['tpep_pickup_datetime'].dt.year == 2019]
 
         # keep trips between 1 minute and 3 hours
         trip_seconds = (df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).td.total_seconds()
