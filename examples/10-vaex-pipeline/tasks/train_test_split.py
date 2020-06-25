@@ -25,6 +25,6 @@ class TrainTestSplit(Task):
         df_train.export(train_out)
         df_test.export(test_out)
 
-        os.remove(shuffle_path) # cleanup a bit
+        os.remove(shuffle_path) # cleanup
 
         return [train_out, test_out]
