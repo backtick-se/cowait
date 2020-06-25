@@ -39,7 +39,7 @@ setuptools.setup(
         'pytest',
         'pytest-sugar',
         'pytest-cov',
-        'pytest-asyncio',
+        'alt-pytest-asyncio',
         'nest-asyncio',
         'numpy',
         'sty',

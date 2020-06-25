@@ -20,4 +20,5 @@ def test_output_matching():
     output.append({'type': 'test', 'field': 'wut'})
     output.append({'type': 'test'})
     assert output.count(type='test', field='tea.') == 1
+    assert output.count(field='tea.') == 2
     assert len(output.match(type='test', field='tea.')) == 1

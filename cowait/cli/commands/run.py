@@ -181,11 +181,11 @@ class RunLogger(Logger):
         self.print_time()
         self.print_id(task['id'])
         self.print(
-            f' {fg.yellow}*{rs.all}',
+            f' {fg.yellow}*{rs.all} started with',
             self.json(task['inputs'], indent=2),
         )
         if task['parent'] is not None:
-            self.print(' [')
+            self.print(' by [')
             self.print_id(task['parent'], pad=False)
             self.println(']')
         else:
@@ -204,7 +204,7 @@ class RunLogger(Logger):
     def on_return(self, id, result, **msg):
         self.print_time()
         self.print_id(id)
-        self.println(f'{fg.green} ={rs.all}', self.json(result, indent=2))
+        self.println(f'{fg.green} ={rs.all} returned', self.json(result, indent=2))
 
     def on_log(self, id, file, data, **msg):
         self.print_time()

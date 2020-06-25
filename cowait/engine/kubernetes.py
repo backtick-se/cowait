@@ -192,6 +192,9 @@ class KubernetesProvider(ClusterProvider):
                 raise TimeoutError(f'Could not find pod for {task_id}')
 
     def logs(self, task: KubernetesTask):
+        if not isinstance(task, KubernetesTask):
+            raise TypeError('Expected a valid KubernetesTask')
+
         # wait for pod to become ready
         self.wait_until_ready(task.id)
 

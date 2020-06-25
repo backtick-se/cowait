@@ -1,8 +1,6 @@
-from cowait.test import task_test
 from parent import Parent
 
 
-@task_test
 async def test_parent():
     """
     This is an example of a black-box test of a task.

@@ -4,7 +4,6 @@ import pytest
 import docker
 from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from cowait.tasks import TaskDefinition
-from cowait.utils import json_stream
 
 TEST_IMAGE = 'cowait/task'
 TEST_TASK = 'cowait.test.tasks.utility'
@@ -42,16 +41,17 @@ def test_create_docker_task():
     assert container.labels[LABEL_TASK_ID] == task.id
     assert container.labels[LABEL_PARENT_ID] == 'parent'
 
-    # wait for container to execute
-    result = container.wait()
-    assert result['StatusCode'] == 0
-
     # test task will dump info as json, so we can pick it up
     # make sure it matches what we put in.
     task_dump = None
-    for msg in json_stream(container.logs(stream=True)):
+    for msg in task.logs():
+        print(msg)
         if msg['type'] == 'task/log':
             task_dump = json.loads(msg['data'])
+
+    # wait for container to execute
+    result = container.wait()
+    assert result['StatusCode'] == 0
 
     # taskdef
     assert task_dump is not None

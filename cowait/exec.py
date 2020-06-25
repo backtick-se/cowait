@@ -38,7 +38,6 @@ async def main():
         }))
         os._exit(1)
 
-    # force exit
     os._exit(0)
 
 # run asyncio loop

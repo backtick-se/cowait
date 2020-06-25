@@ -54,7 +54,7 @@ class Logger(object):
         dotc = rs.all
 
         if isinstance(obj, dict):
-            if len(obj) > 2 and indent > 0:
+            if len(obj) > 2 and len(obj) < 20 and indent > 0:
                 return f'{idt}{dotc}{{{rs.all}\n' + \
                     f'\n{idt}'.join([
                         f'{keyc}{k}{dotc}:{rs.all} '+self.json(v, lv=lv+1, indent=indent)
@@ -67,7 +67,7 @@ class Logger(object):
                     for k, v in obj.items()
                 ]) + f' {dotc}}}{rs.all}'
         elif isinstance(obj, list):
-            if len(obj) > 2 and indent > 0:
+            if len(obj) > 2 and len(obj) < 20 and indent > 0:
                 return f'{idt}{dotc}[{rs.all}\n' + \
                     f'{dotc},{rs.all}\n{idt}'.join([
                         self.json(v, lv=lv+1, indent=indent)

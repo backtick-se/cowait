@@ -163,6 +163,9 @@ class DockerProvider(ClusterProvider):
 
     def logs(self, task: DockerTask):
         """ Stream task logs """
+        if not isinstance(task, DockerTask):
+            raise TypeError('Expected a valid DockerTask')
+
         try:
             return json_stream(task.container.logs(stream=True))
 

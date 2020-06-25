@@ -1,4 +1,3 @@
-import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import Task, TaskDefinition, TaskError
@@ -24,6 +23,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
         # run task within a log capture context
         with node.capture_logs():
+
             # instantiate
             TaskClass = load_task_class(taskdef.name)
             task = TaskClass(
@@ -96,9 +96,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         raise e
 
     finally:
-        # ensure event loop has a chance to run
-        await asyncio.sleep(0.1)
-
         await node.close()
 
         # clear active task

@@ -10,41 +10,41 @@ from .parent_task import ParentTask
 class Task(TaskDefinition):
     __current__ = None
 
-    def __init__(
-        self,
-        **inputs,
-    ):
+    def __init__(self, **inputs):
         """
         Creates a new instance of the task. Pass inputs as keyword arguments.
         """
-        # we are using **inputs keyword arguments so that the documentation will be
-        # more helpful when invoking subtasks.
-        kwargs = inputs['taskdef'].serialize()
-        super().__init__(**kwargs)
+
+        # We are using **inputs keyword arguments so that in-IDE tooltips will be more helpful
+        # (at least less confusing) when invoking subtasks using constructor syntax.
+        # However, subtasks will actually never be instantiated. The constructor call is
+        # diverted by the runtime in Task.__new__().
+        # Tasks should only be constructed by the executor, and it will these 3 arguments:
+        if 'taskdef' not in inputs or 'node' not in inputs or \
+           'cluster' not in inputs or len(inputs) != 3:
+            raise RuntimeError('Invalid task class instantiation')
+
+        super().__init__(**inputs['taskdef'].serialize())
         self.node = inputs['node']
         self.cluster = inputs['cluster']
         self.parent = ParentTask(self.node)
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
 
-        # the base task constructor only takes 3 arguments.
-        if len(inputs) != 3:
-            raise RuntimeError('Invalid task constructor call')
-
-        # set this task as the current active task
+        # Set this task as the current active task
         Task.set_current(self)
 
     def __new__(cls, *args, **inputs):
         current = Task.get_current()
         if current is None:
-            # there is no active task. continue normal instantiation.
+            # There is no active task. Continue normal instantiation.
             return object.__new__(cls)
         else:
-            # we already have a an active task in this process, so we should spawn a subtask.
-            # hijack constructor behaviour to instead spawn a remote task and return it.
+            # There is already an active task in this process, so we should spawn a subtask.
+            # Divert constructor behaviour to instead spawn a remote task and return it.
 
             if len(args) > 0:
-                raise RuntimeError('Tasks do not accept positional arguments')
+                raise TypeError('Tasks do not accept positional arguments')
 
             return current.spawn(cls, **inputs)
 
@@ -77,11 +77,11 @@ class Task(TaskDefinition):
         for task in self.subtasks.values():
             await task.stop()
 
-        # schedule exit on the next event loop
-        # this allows the RPC call to return properly.
-        async def quit():
+        # schedule exit on the next event loop.
+        # allows the RPC call to return before exit.
+        async def _quit():
             sys.exit(1)
-        self.node.io.create_task(quit())
+        self.node.io.create_task(_quit())
 
     def spawn(
         self,

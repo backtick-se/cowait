@@ -16,7 +16,14 @@ def json_stream(stream):
             chunk = buffer[:split]
             buffer = buffer[split+1:]
 
-            if len(chunk) == 0:
+            if len(chunk.strip()) == 0:
                 continue
 
-            yield json.loads(chunk)
+            try:
+                yield json.loads(chunk)
+            except json.JSONDecodeError:
+                yield {
+                    'type': 'core/error',
+                    'error': 'json decode error',
+                    'chunk': chunk,
+                }

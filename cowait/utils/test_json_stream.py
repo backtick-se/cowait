@@ -1,5 +1,3 @@
-import json
-import pytest
 from .json_stream import json_stream
 
 
@@ -16,10 +14,16 @@ def test_json_stream():
 
 def test_json_stream_fail():
     parts = [
-        '{"oh no this json',
-        '":"is broken"}',
+        '{"oh no this json', '":"is broken"}\n',
+        'wtf is this?\n'
         '{"this one":"is not"}\n',
     ]
-    with pytest.raises(json.JSONDecodeError):
-        for _ in json_stream(parts):
-            pass
+    for msg in json_stream(parts):
+        if 'type' in msg and msg['type'] == 'core/error':
+            return
+    assert False
+
+
+def test_json_stream_empty():
+    parts = [' \n', '  ', '\n']
+    assert len([p for p in json_stream(parts)]) == 0

@@ -1,3 +1,4 @@
+import asyncio
 from cowait.network import Server, HttpServer
 from cowait.utils import StreamCapturing
 from .io_thread import IOThread
@@ -27,11 +28,13 @@ class WorkerNode(object):
         self.io.create_task(self.http.serve())
 
     async def close(self) -> None:
-        async def close():
+        async def _close():
+            await asyncio.sleep(0.01)
             await self.children.close()
             await self.parent.close()
 
-        self.io.create_task(close())
+        await asyncio.sleep(0.01)
+        self.io.create_task(_close())
 
     def capture_logs(self) -> StreamCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """

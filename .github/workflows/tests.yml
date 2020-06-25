@@ -15,5 +15,8 @@ jobs:
     - name: Create tasks network
       run: docker network create tasks
       
-    - name: Run tests
+    - name: Test Package
+      run: bash ./test.sh
+
+    - name: Test Examples
       run: bash ./test.sh --examples

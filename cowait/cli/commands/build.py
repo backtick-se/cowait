@@ -20,7 +20,7 @@ def build(quiet: bool = False) -> TaskImage:
         # if it exists, it will be copied to the container, and installed
         requirements = context.file_rel('requirements.txt')
         if requirements:
-            logger.print('* Found custom requirements.txt')
+            logger.println('* Found custom requirements.txt')
 
         # find custom Dockerfile
         # if it exists, build and extend that instead of the default base image
@@ -49,7 +49,6 @@ def build(quiet: bool = False) -> TaskImage:
             if 'stream' in log and not quiet:
                 print(log['stream'], flush=True, end='')
 
-        logger.header()
         return image
 
     except docker.errors.DockerException as e:
