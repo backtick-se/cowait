@@ -82,7 +82,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             result, result_type = typed_return(taskfunc, result)
 
             # submit result
-            node.io.create_task(node.parent.send_done(result, result_type.describe()))
+            await node.parent.send_done(result, result_type.describe())
 
     except TaskError as e:
         # pass subtask errors upstream
