@@ -22,12 +22,8 @@ class Preprocess(Task):
         df['tpep_pickup_datetime']  = df['tpep_pickup_datetime'].astype('datetime64')
         df['tpep_dropoff_datetime'] = df['tpep_dropoff_datetime'].astype('datetime64')
 
-        start = np.datetime64('2019-01-01')
-        end   = np.datetime64('2019-12-31')
-
         # Remove data that's not from 2019
-        df = df[(df['tpep_pickup_datetime'] > np.datetime64('2019-01-01')) &
-                (df['tpep_pickup_datetime'] < np.datetime64('2019-12-31'))]
+        df = df[df['tpep_pickup_datetime'].dt.year == 2019]]
 
         # keep trips between 1 minute and 3 hours
         trip_seconds = (df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).td.total_seconds()
