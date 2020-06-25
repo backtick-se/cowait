@@ -12,7 +12,11 @@ class VaexPipeline(Task):
         processed   = await Preprocess(inpath=hdf5, size=size)
         train, test = await TrainTestSplit(inpath=processed, test_size=0.25, size=size)
 
-        state       = await TrainModel(inpath=train)
-        
-        await TestModel(inpath=test, state=state)
-        await SanityCheck(state=state)
+        model       = await TrainModel(inpath=train, size=size)
+        test_acc    = await TestModel(inpath=test, state_path=model['path'])
+
+        return {
+            'alpha': model['alpha'],
+            'train_acc': model['acc'],
+            'test_acc': test_acc,
+        }
