@@ -1,9 +1,9 @@
-from cowait import Task
-import vaex
+import vaex, json
 from vaex.ml.sklearn import IncrementalPredictor
 from sklearn.naive_bayes import CategoricalNB
 from sklearn.metrics import accuracy_score
-import json
+
+from cowait import Task
 from utils import get_outpath, get_classes
 
 class Fit(Task):
