@@ -1,5 +1,5 @@
-import vaex
-import json
+import vaex, json
+
 from cowait import Task
 from sklearn.metrics import accuracy_score
 

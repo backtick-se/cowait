@@ -1,5 +1,5 @@
-import os
-import vaex
+import os, vaex
+
 from cowait import Task
 from utils import get_outpath
 

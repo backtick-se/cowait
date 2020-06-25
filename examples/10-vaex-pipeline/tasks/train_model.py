@@ -1,7 +1,6 @@
-import s3fs
-import vaex
-import json
+import s3fs, vaex, json
 import pandas as pd
+
 from cowait import Task, join
 from utils import get_outpath
 from .fit import Fit
