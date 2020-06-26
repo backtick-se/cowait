@@ -1,10 +1,10 @@
 from __future__ import annotations
-import json
 from abc import abstractmethod
 from typing import Iterable
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import EventEmitter
-from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION
+from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED
+from .utils import env_pack
 
 
 class ClusterProvider(EventEmitter):
@@ -64,8 +64,9 @@ class ClusterProvider(EventEmitter):
         """
         return {
             **taskdef.env,
-            ENV_TASK_CLUSTER:    json.dumps(self.serialize()),
-            ENV_TASK_DEFINITION: json.dumps(taskdef.serialize()),
+            ENV_GZIP_ENABLED:    '1',
+            ENV_TASK_CLUSTER:    env_pack(self.serialize()),
+            ENV_TASK_DEFINITION: env_pack(taskdef.serialize()),
         }
 
     def find_agent(self):

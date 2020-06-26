@@ -1,27 +1,24 @@
 import os
 import json
 from cowait.tasks import TaskDefinition
-from cowait.engine import \
-    get_cluster_provider, \
-    ENV_TASK_CLUSTER, \
-    ENV_TASK_DEFINITION
+from cowait.engine import get_cluster_provider, env_unpack, \
+    ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED
+
+
+def env_get(key):
+    if key not in os.environ:
+        raise ValueError(f'Missing required environment variable {key}')
+    value = os.environ[key]
+    if os.getenv(ENV_GZIP_ENABLED, '0') == '1':
+        return env_unpack(value)
+    return json.loads(value)
 
 
 def env_get_cluster_provider():
-    if ENV_TASK_CLUSTER not in os.environ:
-        raise ValueError(
-            f'Cluster provider must be passed in the '
-            f'{ENV_TASK_CLUSTER} environment variable.')
-
-    provider_json = json.loads(os.environ[ENV_TASK_CLUSTER])
-    return get_cluster_provider(**provider_json)
+    clusterdef = env_get(ENV_TASK_CLUSTER)
+    return get_cluster_provider(**clusterdef)
 
 
 def env_get_task_definition():
-    if ENV_TASK_DEFINITION not in os.environ:
-        raise ValueError(
-            f'Task definition must be passed in the '
-            f'{ENV_TASK_DEFINITION} environment variable.')
-
-    taskdef_json = json.loads(os.environ[ENV_TASK_DEFINITION])
-    return TaskDefinition.deserialize(taskdef_json)
+    taskdef = env_get(ENV_TASK_DEFINITION)
+    return TaskDefinition.deserialize(taskdef)
