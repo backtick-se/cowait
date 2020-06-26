@@ -13,10 +13,11 @@ class ParentClient(Client):
     Upstream API client.
     """
 
-    def __init__(self, id, io_loop):
+    def __init__(self, id, io_loop, quiet: bool = False):
         super().__init__()
         self.id = id
         self.io = io_loop
+        self.quiet = quiet
         self.stdout = sys.stdout
 
     async def connect(self, url: str, token: str = None) -> None:
@@ -50,7 +51,8 @@ class ParentClient(Client):
 
     async def send(self, msg: dict):
         # send messages on the I/O loop
-        self.io.create_task(self.log_json(msg))
+        if not self.quiet:
+            self.io.create_task(self.log_json(msg))
         if self.connected:
             await self.io.create_task(super().send(msg))
 

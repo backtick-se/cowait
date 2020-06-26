@@ -6,7 +6,7 @@ from .parent_client import ParentClient
 
 
 class WorkerNode(object):
-    def __init__(self, id: str, upstream: str, port: int = 80):
+    def __init__(self, id: str, upstream: str, port: int = 80, quiet: bool = False):
         super().__init__()
         self.id = id
         self.io = IOThread()
@@ -14,7 +14,7 @@ class WorkerNode(object):
         self.upstream = upstream
         self.http = HttpServer(port=port)
         self.children = Server(self)
-        self.parent = ParentClient(id, self.io)
+        self.parent = ParentClient(id, self.io, quiet)
 
     async def connect(self) -> None:
         await self.parent.connect(self.upstream)

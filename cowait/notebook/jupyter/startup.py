@@ -34,7 +34,12 @@ async def __init_kernel_task__():
     )
 
     # set up a node
-    node = WorkerNode(taskdef.id, taskdef.upstream, port=random.randint(10000, 60000))
+    node = WorkerNode(
+        id=taskdef.id,
+        upstream=taskdef.upstream,
+        port=random.randint(10000, 60000),
+        quiet=True,
+    )
     await node.connect()
     await node.parent.send_init(taskdef)
     node.http.auth.enabled = False
