@@ -1,8 +1,30 @@
-import os
 import docker
 from .context import CowaitContext
 
 client = docker.from_env()
+
+# shim that allows passing dockerfiles as a string together with a context path.
+# this removes the need to write temporary files!
+# source: https://github.com/docker/docker-py/issues/2105
+docker.api.build.process_dockerfile = lambda dockerfile, path: ('Dockerfile', dockerfile)
+
+
+class Dockerfile(object):
+    def __init__(self, base):
+        self.lines = [f'FROM {base}']
+
+    def copy(self, src, dst):
+        self.lines.append(f'COPY {src} {dst}')
+
+    def run(self, cmd):
+        self.lines.append(f'RUN {cmd}')
+
+    def __str__(self):
+        return '\n'.join(self.lines)
+
+
+class BuildError(RuntimeError):
+    pass
 
 
 class TaskImage(object):
@@ -13,41 +35,26 @@ class TaskImage(object):
     def name(self):
         return self.context.get_image_name()
 
-    def build(self, base, requirements: str = None):
+    def build(self, base: str, requirements: str = None):
         """ Build task image """
 
         # create temporary dockerfile
-        df_path = os.path.join(self.context.root_path, '__dockerfile__')
-        with open(df_path, 'w') as df:
-            # extend base image
-            print(f'FROM {base}', file=df)
+        df = Dockerfile(base)
 
-            # install task-specific requirements
-            requirements = self.context.file_rel('requirements.txt')
-            if requirements:
-                print(f'COPY ./{requirements} ./requirements.txt', file=df)
-                print('RUN pip install -r ./requirements.txt', file=df)
+        # install task-specific requirements
+        requirements = self.context.file_rel('requirements.txt')
+        if requirements:
+            df.copy(f'./{requirements}', './requirements.txt')
+            df.run('pip install -r ./requirements.txt')
 
-            # copy source code
-            print('COPY . .', file=df)
+        # copy source code
+        df.copy('.', '.')
 
-        # build image
-        self.image, logs = self.build_image(
+        return TaskImage.build_image(
+            dockerfile=str(df),
             path=self.context.root_path,
-            dockerfile=df_path,
+            tag=f'{self.name}:latest',
         )
-
-        # remove temproary dockerfile
-        os.unlink(df_path)
-
-        # always tag image so that it works locally
-        # todo: probably does not work until after logs
-        self.image.tag(
-            repository=self.name,
-            tag='latest'
-        )
-
-        return logs
 
     def push(self):
         """
@@ -80,4 +87,18 @@ class TaskImage(object):
 
     @staticmethod
     def build_image(**kwargs):
-        return client.images.build(**kwargs)
+        logs = client.api.build(decode=True, rm=True, **kwargs)
+
+        image_hash = None
+        for log in logs:
+            if 'stream' in log:
+                print(log['stream'], end='', flush=True)
+            elif 'aux' in log and 'ID' in log['aux']:
+                image_hash = log['aux']['ID']
+            elif 'errorDetail' in log:
+                raise BuildError(log['errorDetail']['message'])
+            else:
+                print(log)
+
+        if image_hash is not None:
+            return client.images.get(image_hash)

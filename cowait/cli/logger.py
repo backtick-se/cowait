@@ -43,7 +43,7 @@ class Logger(object):
         self.print(f'{elapsed:05.1f} ')
 
     def print_exception(self, error):
-        self.header(f'{fg.red}error{rs.all}')
+        self.header(f'error')
         self.println(error)
 
     def json(self, obj, indent: int = 0, lv=0):
