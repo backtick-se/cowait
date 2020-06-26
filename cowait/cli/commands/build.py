@@ -2,7 +2,7 @@ import os.path
 import docker.errors
 import docker.credentials.errors
 from cowait.utils.const import DEFAULT_BASE_IMAGE
-from ..task_image import TaskImage
+from ..task_image import TaskImage, BuildError
 from ..context import CowaitContext
 from ..logger import Logger
 
@@ -30,26 +30,24 @@ def build(quiet: bool = False) -> TaskImage:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
             logger.header('BASE')
 
-            base, logs = TaskImage.build_image(
+            base = TaskImage.build_image(
                 path=os.path.dirname(dockerfile),
                 dockerfile='Dockerfile',
             )
-            for log in logs:
-                if 'stream' in log and not quiet:
-                    print(log['stream'], flush=True, end='')
+            if base is None:
+                raise RuntimeError('Failed to build base image')
             base_image = base.id
 
         logger.header('IMAGE')
-        logs = image.build(
+        image = image.build(
             base=base_image,
             requirements=requirements,
         )
-
-        for log in logs:
-            if 'stream' in log and not quiet:
-                print(log['stream'], flush=True, end='')
 
         return image
 
     except docker.errors.DockerException as e:
         logger.print_exception(f'Docker exception: {e}')
+
+    except BuildError as e:
+        logger.print_exception(str(e))
