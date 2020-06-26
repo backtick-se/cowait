@@ -20,6 +20,8 @@ class TaskManager(dict):
 
         # forward child events to parent
         async def forward(conn, **msg):
+            if msg.get('type', '__')[:2] == '__':
+                return
             await task.node.parent.send(msg)
         task.node.children.on('*', forward)
 

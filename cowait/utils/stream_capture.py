@@ -31,19 +31,9 @@ class StreamCapture(object):
             self.stream.flush()
 
         if callable(self.callback):
-            value = self.getvalue()
-            if auto:
-                # auto flush happens if \n exists, so we dont need to check for it
-                last_break = value.rfind('\n')
-                self.capture = StringIO(value[last_break+1:])
-                self.callback(value[:last_break+1])
-            else:
-                # non-automated flush should return the full value
-                self.capture = StringIO()
-                self.callback(value)
-        else:
-            # if there is no callback, simply clear the capture buffer
-            self.capture = StringIO()
+            self.callback(self.getvalue())
+
+        self.capture = StringIO()
 
     def getvalue(self):
         data = self.capture.getvalue()

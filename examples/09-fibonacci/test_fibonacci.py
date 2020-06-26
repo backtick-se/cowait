@@ -1,8 +1,8 @@
-from cowait.test import task_test
+import pytest
 from fibonacci import Fibonacci
 
 
-@task_test
+@pytest.mark.async_timeout(30)
 async def test_fibonacci():
     result = await Fibonacci(n=3)
     assert result == 3

@@ -1,10 +1,8 @@
-import asyncio
 import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import Task, TaskDefinition, TaskError
 from cowait.types import typed_arguments, typed_return, get_parameter_defaults
 from .worker_node import WorkerNode
-from .service import FlowLogger, NopLogger
 from .loader import load_task_class
 
 
@@ -14,18 +12,10 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     """
 
     # create network node
-    node = WorkerNode(taskdef.id)
+    node = WorkerNode(taskdef.id, taskdef.upstream)
 
-    if taskdef.upstream:
-        if taskdef.upstream == 'disabled':
-            node.parent = NopLogger(taskdef.id)
-        else:
-            # start upstream client
-            await node.connect(taskdef.upstream)
-    else:
-        # if we dont have anywhere to forward events, log them to stdout.
-        # logs will be picked up from the top level task by docker/kubernetes.
-        node.parent = FlowLogger(taskdef.id)
+    # start upstream client
+    await node.connect()
 
     try:
         # init should always be the first command sent
@@ -33,6 +23,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
 
         # run task within a log capture context
         with node.capture_logs():
+
             # instantiate
             TaskClass = load_task_class(taskdef.name)
             task = TaskClass(
@@ -45,7 +36,9 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             task.init()
 
             # start http server
-            node.io.create_task(node.http.serve())
+            # this must happen after task.init() so that tasks have a chance
+            # to register extra http routes.
+            node.serve()
 
             # unpack wrapped function if defined.
             # allows typechecking of functional tasks
@@ -105,8 +98,8 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     finally:
         await node.close()
 
-        # ensure event loop has a chance to run
-        await asyncio.sleep(0.5)
+        # clear active task
+        Task.set_current(None)
 
 
 async def handle_orphans(task: Task, mode: str = 'stop') -> None:

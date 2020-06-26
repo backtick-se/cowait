@@ -1,12 +1,16 @@
 import sys
+import json
 import getpass
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, printheader
+from ..utils import ExitTrap
+from ..logger import Logger
 from .build import build as build_cmd
+from sty import fg, rs
 
 
 def run(
@@ -22,7 +26,10 @@ def run(
     detach: bool = False,
     cpu: str = '0',
     memory: str = '0',
+    raw: bool = False,
+    quiet: bool = False,
 ):
+    logger = RunLogger(raw, quiet)
     try:
         context = CowaitContext.open()
         cluster_name = context.get('cluster', config.default_cluster)
@@ -33,7 +40,7 @@ def run(
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
-                build_cmd()
+                build_cmd(quiet=quiet or raw)
             image = context.get_image_name()
             remote_image = False
 
@@ -72,43 +79,134 @@ def run(
         )
 
         # print execution info
-        printheader('task')
-        print('   task:      ', taskdef.id)
-        print('   cluster:   ', cluster_name)
-        if taskdef.upstream:
-            print('   upstream:  ', taskdef.upstream)
-        print('   image:     ', image)
-        print('   inputs:    ', inputs)
-        print('   env:       ', env)
-        print('   volumes:   ', volumes)
+        logger.print_info(taskdef, cluster_name)
 
         # submit task to cluster
         task = cluster.spawn(taskdef)
 
         if detach:
-            printheader('detached')
+            logger.header('detached')
             return
 
         def destroy(*args):
-            print()
-            printheader('interrupt')
+            logger.header('interrupt')
             cluster.destroy(task.id)
             sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs
             logs = cluster.logs(task)
-            printheader('task output')
-            for log in logs:
-                print(log, flush=True)
+            logger.header('task output')
+            for msg in logs:
+                logger.handle(msg)
+
+        logger.header()
 
     except ProviderError as e:
-        printheader('error')
         print('Provider error:', str(e))
+        logger.print_exception(f'Provider Error: {e}')
 
     except TaskCreationError as e:
-        printheader('error')
-        print('Error creating task:', str(e))
+        logger.print_exception(f'Error creating task: {e}')
 
-    finally:
-        printheader()
+
+class RunLogger(Logger):
+    def __init__(self, raw: bool = False, quiet: bool = False, time: bool = True):
+        super().__init__(quiet, time)
+        self.raw = raw
+        self.idlen = 0
+
+    @property
+    def newline_indent(self):
+        return self.idlen + 4 + super().newline_indent
+
+    def handle(self, msg):
+        if 'type' not in msg:
+            return
+        type = msg['type']
+
+        if self.quiet:
+            # only top level return value
+            if type == TASK_RETURN and msg['id'] == self.id:
+                print(json.dumps(msg['result']))
+            return
+        elif self.raw:
+            print(json.dumps(msg))
+        else:
+            if type == TASK_INIT:
+                self.on_init(**msg)
+            elif type == TASK_RETURN:
+                self.on_return(**msg)
+            elif type == TASK_FAIL:
+                self.on_fail(**msg)
+            elif type == TASK_STATUS:
+                pass
+            elif type == TASK_LOG:
+                self.on_log(**msg)
+
+    def header(self, title: str = None):
+        if self.raw:
+            return
+        super().header(title)
+
+    def print_info(self, taskdef, cluster_name):
+        self.id = taskdef.id
+
+        self.header('task')
+        self.println('   task:      ', self.json(taskdef.id))
+        self.println('   cluster:   ', self.json(cluster_name))
+        if taskdef.upstream:
+            self.println('   upstream:  ', self.json(taskdef.upstream))
+        self.println('   image:     ', self.json(taskdef.image))
+        if len(taskdef.inputs) > 0:
+            self.println('   inputs:    ', self.json(taskdef.inputs))
+        if len(taskdef.env) > 0:
+            self.println('   env:       ', self.json(taskdef.env))
+        if len(taskdef.volumes) > 0:
+            self.println('   volumes:   ', self.json(taskdef.volumes))
+
+    def print(self, *args):
+        if self.raw:
+            return
+        super().print(*args)
+
+    def print_id(self, id, short=True, pad=True):
+        color = fg(hash(id) % 214 + 17)
+        if short and '-' in id:
+            id = id[:id.find('-')]
+            self.idlen = max(self.idlen, len(id))
+        self.print(color + id.ljust(self.idlen if pad else 0) + rs.all)
+
+    def on_init(self, task: dict, **msg):
+        self.print_time()
+        self.print_id(task['id'])
+        self.print(
+            f' {fg.yellow}*{rs.all} started with',
+            self.json(task['inputs'], indent=2),
+        )
+        if task['parent'] is not None:
+            self.print(' by [')
+            self.print_id(task['parent'], pad=False)
+            self.println(']')
+        else:
+            self.println()
+
+    def on_status(self, id, status, **msg):
+        self.print_time()
+        self.print_id(id)
+        self.println(f'{fg.yellow} ~ {status}{rs.all}')
+
+    def on_fail(self, id, error, **msg):
+        self.print_time()
+        self.print_id(id)
+        self.println(f'{fg.red} ! {rs.all}ERROR: {error}')
+
+    def on_return(self, id, result, **msg):
+        self.print_time()
+        self.print_id(id)
+        self.println(f'{fg.green} ={rs.all} returned', self.json(result, indent=2))
+
+    def on_log(self, id, file, data, **msg):
+        self.print_time()
+        self.print_id(id)
+        self.println('  ', data)

@@ -1,10 +1,8 @@
-import pytest
 from asyncio import coroutine
 from unittest.mock import Mock
 from .emitter import EventEmitter
 
 
-@pytest.mark.asyncio
 async def test_emitter():
     emitter = EventEmitter()
     cb = Mock(side_effect=coroutine(Mock()))
@@ -13,7 +11,6 @@ async def test_emitter():
     cb.assert_called()
 
 
-@pytest.mark.asyncio
 async def test_emitter_wildcard():
     emitter = EventEmitter()
     cb = Mock(side_effect=coroutine(Mock()))
@@ -22,7 +19,6 @@ async def test_emitter_wildcard():
     cb.assert_called()
 
 
-@pytest.mark.asyncio
 async def test_emitter_off():
     emitter = EventEmitter()
     cb = Mock(side_effect=coroutine(Mock()))

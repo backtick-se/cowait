@@ -1,9 +1,10 @@
 import sys
-from cowait.tasks import TaskDefinition
+from cowait.tasks import TaskDefinition, TASK_LOG
 from cowait.engine import ProviderError, TaskCreationError
 from ..config import CowaitConfig
 from ..context import CowaitContext
-from ..utils import ExitTrap, printheader
+from ..utils import ExitTrap
+from ..logger import Logger
 from .build import build as run_build
 from .push import push as run_push
 
@@ -12,6 +13,7 @@ def test(
     config: CowaitConfig,
     push: bool,
 ):
+    logger = TestLogger()
     try:
         context = CowaitContext.open()
         cluster_name = context.get('cluster', config.default_cluster)
@@ -29,31 +31,34 @@ def test(
         ))
 
         def destroy(*args):
-            print()
-            printheader('interrupt')
+            logger.header('interrupt')
             cluster.destroy(task.id)
             sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs
             logs = cluster.logs(task)
-            printheader('task output')
-            for log in logs:
-                print(log, flush=True)
+            logger.header('task output')
+            for msg in logs:
+                logger.handle(msg)
+
+        logger.header()
 
         # grab task result
         passing = cluster.wait(task)
         sys.exit(0 if passing else 1)
 
-    except TaskCreationError as e:
-        printheader('error')
-        print('Error creating task:', str(e))
-        sys.exit(1)
-
     except ProviderError as e:
-        printheader('error')
-        print('Provider error:', str(e))
+        logger.print_exception(f'Provider Error: {e}')
         sys.exit(1)
 
-    finally:
-        printheader()
+    except TaskCreationError as e:
+        logger.print_exception(f'Error creating task: {e}')
+        sys.exit(1)
+
+
+class TestLogger(Logger):
+    def handle(self, msg):
+        type = msg.get('type', None)
+        if type == TASK_LOG:
+            print(msg['data'], end='')

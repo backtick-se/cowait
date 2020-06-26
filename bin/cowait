@@ -95,12 +95,20 @@ def new_context(name: str, image: str, base: str, cluster_name: str):
               help='yaml/json file with inputs', 
               type=str, 
               default=None)
+@click.option('-r', '--raw',
+              type=bool, is_flag=True,
+              help='raw json output',
+              default=False)
+@click.option('-q', '--quiet',
+              type=bool, is_flag=True,
+              help='no output except result',
+              default=False)
 @click.pass_context
 def run(
     ctx, task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
-    file: str,
+    file: str, raw: bool, quiet: bool
 ):
     if cluster is not None:
         ctx.obj.default_cluster = cluster
@@ -130,6 +138,8 @@ def run(
         upstream=upstream,
         build=build,
         detach=detach,
+        raw=raw,
+        quiet=quiet,
     )
 
 

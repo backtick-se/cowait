@@ -1,6 +1,6 @@
 import setuptools
 
-VERSION = "0.2.2"
+VERSION = "0.3.0"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -39,8 +39,9 @@ setuptools.setup(
         'pytest',
         'pytest-sugar',
         'pytest-cov',
-        'pytest-asyncio',
+        'alt-pytest-asyncio',
         'nest-asyncio',
         'numpy',
+        'sty',
     ],
 )

@@ -6,7 +6,7 @@ from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from cowait.tasks import TaskDefinition
 
 TEST_IMAGE = 'cowait/task'
-TEST_TASK = 'cowait.test.tasks.utility_task'
+TEST_TASK = 'cowait.test.tasks.utility'
 
 
 def test_create_docker_task():
@@ -24,11 +24,6 @@ def test_create_docker_task():
             'hello': '123',
             'child': False,
         },
-
-        # disables any output.
-        # this is hacky and should be refactored
-        # we need a proper way to disable all logging
-        upstream='disabled',
     )
 
     # run task
@@ -43,19 +38,23 @@ def test_create_docker_task():
     assert task.container == container
 
     # make sure container is properly labeled
-    assert container.labels[LABEL_TASK_ID] == task.id 
+    assert container.labels[LABEL_TASK_ID] == task.id
     assert container.labels[LABEL_PARENT_ID] == 'parent'
+
+    # test task will dump info as json, so we can pick it up
+    # make sure it matches what we put in.
+    task_dump = None
+    for msg in task.logs():
+        print(msg)
+        if msg['type'] == 'task/log':
+            task_dump = json.loads(msg['data'])
 
     # wait for container to execute
     result = container.wait()
     assert result['StatusCode'] == 0
 
-    # test task will dump info as json, so we can pick it up
-    # make sure it matches what we put in.
-    logs = container.logs()
-    task_dump = json.loads(logs)
-
     # taskdef
+    assert task_dump is not None
     assert taskdef.serialize() == task_dump['taskdef']
 
     # actual environment variables

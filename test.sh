@@ -7,18 +7,18 @@ if [[ $* == *--build* ]]; then
     bash ./build.sh
 fi
 
-# run package tests
-docker run \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    --workdir /var/cowait \
-    cowait/task \
-    python -m pytest
-
-# run example tests
 if [[ $* == *--examples* ]]; then
+    # run example tests
     docker run \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v $(pwd)/examples:/var/task \
         cowait/task \
         bash ./test_examples.sh
+else
+    # run package tests
+    docker run \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --workdir /var/cowait \
+        cowait/task \
+        python -m pytest
 fi

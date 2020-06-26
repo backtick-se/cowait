@@ -1,16 +1,10 @@
-from cowait.tasks import TaskDefinition
-from cowait.engine.docker import DockerProvider
-from cowait.utils.const import DEFAULT_BASE_IMAGE
+from cowait.test import capture_task_events
+from cowait.tasks import TASK_RETURN, TASK_STATUS, DONE
 
 
 def test_rpc():
-    dp = DockerProvider()
-
-    task = dp.spawn(TaskDefinition(
-        name='cowait.test.tasks.rpc_parent',
-        image=DEFAULT_BASE_IMAGE,
-    ))
-
-    # wait for execution
-    result = task.container.wait()
-    assert result['StatusCode'] == 0
+    # we expect to find two return values
+    # and two success statuses
+    output = capture_task_events('cowait.test.tasks.rpc_parent')
+    assert output.count(type=TASK_RETURN) == 2
+    assert output.count(type=TASK_STATUS, status=DONE) == 2

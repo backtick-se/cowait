@@ -23,6 +23,7 @@ pytest-cov = "*"
 pytest-asyncio = "*"
 nest-asyncio = "*"
 numpy = "*"
+sty = "*"
 
 [requires]
 python_version = "3.7"

@@ -33,9 +33,7 @@ class UtilityTask(Task):
         # create a child
         if child or child_error:
             print('spawn child')
-            await self.spawn(
-                'cowait.test.tasks.utility_task',
-                inputs={'error': child_error})
+            await UtilityTask(error=child_error)
 
         if error:
             raise RuntimeError('Caused test error')
