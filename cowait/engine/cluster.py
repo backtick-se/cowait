@@ -3,7 +3,8 @@ from abc import abstractmethod
 from typing import Iterable
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import EventEmitter
-from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED
+from .const import ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED, MAX_ENV_LENGTH
+from .errors import ProviderError
 from .utils import env_pack
 
 
@@ -62,12 +63,21 @@ class ClusterProvider(EventEmitter):
         Returns:
             env (dict): Environment variable dict
         """
-        return {
+
+        env = {
             **taskdef.env,
             ENV_GZIP_ENABLED:    '1',
             ENV_TASK_CLUSTER:    env_pack(self.serialize()),
             ENV_TASK_DEFINITION: env_pack(taskdef.serialize()),
         }
+
+        length = 0
+        for key, value in env.items():
+            length += len(key) + len(value)
+        if length > MAX_ENV_LENGTH:
+            raise ProviderError(f'Task input too long. Was {length}, max: {MAX_ENV_LENGTH}')
+
+        return env
 
     def find_agent(self):
         return None
