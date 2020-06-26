@@ -1,3 +1,4 @@
+import inspect
 from .task import Task
 
 
@@ -11,7 +12,10 @@ def task(func):
 
     class FuncTask(Task):
         async def run(self, **inputs):
-            return await func(**inputs)
+            if inspect.iscoroutinefunction(func):
+                return await func(**inputs)
+            else:
+                return func(**inputs)
 
     # copy name & module
     FuncTask.__name__ = func.__name__
