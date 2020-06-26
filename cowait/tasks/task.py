@@ -1,6 +1,5 @@
 import sys
 from typing import Any
-from cowait.network import get_local_connstr
 from cowait.types import serialize
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
@@ -118,7 +117,7 @@ class Task(TaskDefinition):
             name=name,
             parent=self.id,
             image=image if image else self.image,
-            upstream=get_local_connstr(),
+            upstream=self.node.get_url(),
             meta=meta,
             ports=ports,
             routes=routes,
