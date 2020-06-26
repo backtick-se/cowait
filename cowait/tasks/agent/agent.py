@@ -50,6 +50,17 @@ class Agent(Task):
                 if task.status != WAIT and task.status != WORK:
                     continue
 
+                # check if parent is dead
+                if task.parent is not None and task.parent not in running_tasks:
+                    since = datetime.now(timezone.utc) - task.created_at
+                    error = f'Task lost parent after {since}'
+                    await self.emulate_error(id, error)
+                    continue
+
+                # skip virtual tasks, since they never appear in the list of running tasks
+                if task.meta.get('virtual', False):
+                    continue
+
                 # ensure task is still in the list of running tasks
                 # if not, consider it lost.
                 if id not in running_tasks:
