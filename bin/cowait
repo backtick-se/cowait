@@ -210,6 +210,22 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
     cowait.cli.agent(ctx.obj, detach, upstream)
 
 
+@cli.command(help='start notebook')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
+@click.option('-b', '--build',
+              type=bool, is_flag=True,
+              help='build and push first',
+              default=False)
+@click.pass_context
+def notebook(ctx, cluster, build):
+    if cluster is not None:
+        ctx.obj.default_cluster = cluster
+    cowait.cli.notebook(ctx.obj, build)
+
+
 #
 # task image commands
 #
