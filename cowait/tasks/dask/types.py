@@ -11,7 +11,7 @@ class DaskClientType(Type):
     def validate(self, client: Client, name: str) -> None:
         if not isinstance(client, dict):
             raise ValueError(f'{name} is not a DaskClient')
-        if SCHEDULER_URI in client:
+        if SCHEDULER_URI not in client:
             raise ValueError(f'{name} is not a valid DaskClient: Missing {SCHEDULER_URI}')
 
     def serialize(self, client: Client):
