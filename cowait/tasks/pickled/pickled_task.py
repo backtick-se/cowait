@@ -1,10 +1,12 @@
-import dill
-import base64
-from cowait import Task
+import inspect
+from ..task import Task
+from .pickle_task import unpickle_task
 
 
 class PickledTask(Task):
     async def run(self, func: str, **inputs):
-        funcbytes = base64.b64decode(func)
-        func = dill.loads(funcbytes)
-        return await func(**inputs)
+        func = unpickle_task(func)
+        if inspect.iscoroutinefunction(func):
+            return await func(**inputs)
+        else:
+            return func(**inputs)
