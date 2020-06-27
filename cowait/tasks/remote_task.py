@@ -100,3 +100,9 @@ class RemoteTask(TaskDefinition):
                 raise TypeError('Positional arguments are not supported for RPC methods')
             return await self.call(method, kwargs)
         return magic_rpc
+
+    def __str__(self):
+        return f'RemoteTask({self.id}, {self.status}, {self.inputs})'
+
+    def __repr__(self):
+        return self.__str__()

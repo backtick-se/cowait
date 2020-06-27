@@ -1,6 +1,11 @@
 import random
 from .router import Router
 
+STATIC_PORTS = {
+    'cowait.tasks.agent': 1339,
+    'cowait.notebook': 1889,
+}
+
 
 class LocalPortRouter(Router):
     def __init__(self, cluster):
@@ -14,9 +19,7 @@ class LocalPortRouter(Router):
                       'is not routable locally')
                 continue
 
-            host_port = random.randint(60000, 65000)
-            if taskdef.name == 'cowait.tasks.agent':
-                host_port = 1339
+            host_port = STATIC_PORTS.get(taskdef.name, random.randint(60000, 65000))
 
             url = f'http://localhost:{host_port}/'
 

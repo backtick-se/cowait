@@ -1,18 +1,15 @@
 import os
 import asyncio
 from cowait.tasks import Task, rpc
-from cowait.types import Dict, Int
+from cowait.types import Dict
 
 ShellResult = Dict({
-    'code': Int(),
+    'code': int,
 })
 
 
 class ShellTask(Task):
-    async def run(
-        self, command: str,
-        env: dict = {},
-    ) -> ShellResult:
+    async def run(self, command: str, env: dict = {}) -> ShellResult:
         # run shell command
         self.process = await asyncio.create_subprocess_shell(
             command,
@@ -25,8 +22,8 @@ class ShellTask(Task):
         )
 
         # setup stream readers
-        stream_log_to_node(self.process.stdout, self.node, 'stdout')
-        stream_log_to_node(self.process.stderr, self.node, 'stderr')
+        print_stream(self.process.stdout, 'stdout', self.filter_stdout)
+        print_stream(self.process.stderr, 'stderr', self.filter_stderr)
 
         # wait for process to finish
         result = await self.process.wait()
@@ -35,21 +32,28 @@ class ShellTask(Task):
             'code': result,
         }
 
+    def filter_stdout(self, line: str) -> bool:
+        return True
+
+    def filter_stderr(self, line: str) -> bool:
+        return True
+
     @rpc
     async def stop(self):
-        print('stopping shell process')
+        print('Stopping shell process')
         self.process.kill()
-
         return await super().stop()
 
 
-def stream_log_to_node(stream, node, name):
-    async def logger():
+def print_stream(stream, name: str, filter: callable) -> None:
+    async def logger() -> None:
         while True:
             line = await stream.readline()
+            if filter is not None:
+                if not filter(line):
+                    continue
             if line == b'':
                 return
-
             print(line.decode('utf-8'), end='')
 
     asyncio.create_task(logger())

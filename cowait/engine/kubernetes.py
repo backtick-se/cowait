@@ -28,6 +28,9 @@ class KubernetesTask(RemoteTask):
         self.pod = pod
         self.ip = self.pod.status.pod_ip
 
+    def __str__(self):
+        return f'KubernetesTask({self.id}, {self.status}, {self.inputs})'
+
 
 class KubernetesProvider(ClusterProvider):
     def __init__(self, args={}):

@@ -1,26 +1,24 @@
-import random
+import cowait
 import asyncio
-from cowait.tasks import Task
 
 __task__ = None
 __node__ = None
 
 
-class KernelTask(Task):
+class KernelTask(cowait.Task):
     pass
 
 
 async def __init_kernel_task__():
-    from cowait.tasks import TaskDefinition
-    from cowait.worker import env_get_cluster_provider, env_get_task_definition
-    from cowait.worker.worker_node import WorkerNode
-    from cowait.network import get_local_connstr
     global __task__, __node__
+    from cowait.tasks import TaskDefinition
+    from cowait.network import get_local_connstr
+    from cowait.worker import env_get_cluster_provider, env_get_task_definition
+    from cowait.notebook.node import NotebookNode
 
     cluster = env_get_cluster_provider()
     parent = env_get_task_definition()
 
-    # create a virtual task for the kernel
     taskdef = TaskDefinition(
         name='kernel',
         image=parent.image,
@@ -33,22 +31,12 @@ async def __init_kernel_task__():
         },
     )
 
-    # set up a node
-    node = WorkerNode(
-        id=taskdef.id,
-        upstream=taskdef.upstream,
-        port=random.randint(10000, 60000),
-        quiet=True,
-    )
-    await node.connect()
-    await node.parent.send_init(taskdef)
-    node.http.auth.enabled = False
-    node.serve()
+    # set up notebook node
+    node = NotebookNode(taskdef)
+    await node.start()
 
     # instantiate kernel task
     kernel = KernelTask(node=node, cluster=cluster, taskdef=taskdef)
-    await node.parent.send_run()
-    await node.parent.send_log(data='Kernel task ready.', file='stdout')
 
     # write globals
     __node__ = node
