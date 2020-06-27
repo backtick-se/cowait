@@ -49,11 +49,14 @@ def print_stream(stream, name: str, filter: callable) -> None:
     async def logger() -> None:
         while True:
             line = await stream.readline()
-            if filter is not None:
-                if not filter(line):
-                    continue
             if line == b'':
                 return
-            print(line.decode('utf-8'), end='')
+
+            text = line.decode('utf-8')
+            if filter is not None:
+                if not filter(text):
+                    continue
+
+            print(text, end='')
 
     asyncio.create_task(logger())

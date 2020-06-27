@@ -11,6 +11,7 @@ class KernelTask(cowait.Task):
 
 async def __init_kernel_task__():
     global __task__, __node__
+    import os
     from cowait.tasks import TaskDefinition
     from cowait.network import get_local_connstr
     from cowait.worker import env_get_cluster_provider, env_get_task_definition
@@ -18,6 +19,7 @@ async def __init_kernel_task__():
 
     cluster = env_get_cluster_provider()
     parent = env_get_task_definition()
+    token = os.getenv('KERNEL_TOKEN')
 
     taskdef = TaskDefinition(
         name='kernel',
@@ -33,7 +35,7 @@ async def __init_kernel_task__():
 
     # set up notebook node
     node = NotebookNode(taskdef)
-    await node.start()
+    await node.start(token)
 
     # instantiate kernel task
     kernel = KernelTask(node=node, cluster=cluster, taskdef=taskdef)

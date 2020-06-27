@@ -53,10 +53,10 @@ class Agent(Task):
                 # check if parent is dead
                 if task.parent is not None and task.parent not in running_tasks:
                     parent = self.tasks[task.parent]
-                    if not parent.meta.get('virtual', False) or parent.status != WORK:
+                    virtual_parent = parent.meta.get('virtual', False)
+                    if not virtual_parent or parent.status != WORK:
                         since = datetime.now(timezone.utc) - task.created_at
-                        error = f'Task lost parent after {since}'
-                        await self.subtasks.emit_child_error(id, error)
+                        await self.subtasks.emit_child_error(id, f'Task lost parent after {since}')
 
                         # destroy it
                         self.cluster.destroy(task.id)

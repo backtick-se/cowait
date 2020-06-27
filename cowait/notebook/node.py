@@ -21,16 +21,16 @@ class NotebookNode(WorkerNode):
             quiet=True,
         )
 
-        # disable HTTP authentication requirements
-        self.http.auth.enabled = False
-
-    async def start(self) -> None:
+    async def start(self, token: str) -> None:
         """
         Starts the node by connecting upstream, sending initialization
         events and starting the local web server.
         """
-        await self.connect()
+        await self.connect(token)
         await self.parent.send_init(self.taskdef)
         await self.parent.send_run()
         await self.parent.send_log(data='Kernel Task ready.', file='stdout')
         self.serve()
+
+    async def connect(self, token: str) -> None:
+        await self.parent.connect(self.upstream, token)
