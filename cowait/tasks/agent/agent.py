@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from cowait.tasks import Task, TaskDefinition, sleep, rpc
 from cowait.network import Conn, get_local_connstr
-from cowait.tasks.status import FAIL, WAIT, WORK, STOP
-from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL
+from cowait.tasks.status import WAIT, WORK, STOP
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS
 from .tasklist import TaskList
 from .subscriptions import Subscriptions
 from .api import Dashboard, TaskAPI
@@ -50,13 +50,20 @@ class Agent(Task):
                 if task.status != WAIT and task.status != WORK:
                     continue
 
-                # special case for virtual tasks
-                if task.meta.get('virtual', False):
-                    # check if parent is dead
-                    if task.parent is not None and task.parent not in running_tasks:
+                # check if parent is dead
+                if task.parent is not None and task.parent not in running_tasks:
+                    parent = self.tasks[task.parent]
+                    if not parent.meta.get('virtual', False) or parent.status != WORK:
                         since = datetime.now(timezone.utc) - task.created_at
                         error = f'Task lost parent after {since}'
-                        await self.emulate_error(id, error)
+                        await self.subtasks.emit_child_error(id, error)
+
+                        # destroy it
+                        self.cluster.destroy(task.id)
+
+                # special case for virtual tasks: since they dont exist as containers,
+                # we cant check if they are still alive.
+                if task.meta.get('virtual', False):
                     continue
 
                 # ensure task is still in the list of running tasks
@@ -65,7 +72,7 @@ class Agent(Task):
                     # compute task age
                     since = datetime.now(timezone.utc) - task.created_at
                     error = f'Task lost after {since}'
-                    await self.emulate_error(id, error)
+                    await self.subtasks.emit_child_error(id, error)
 
             await sleep(5.0)
 
@@ -141,7 +148,3 @@ class Agent(Task):
 
     async def emulate_stop(self, task_id: str):
         await self.node.children.emit(type=TASK_STATUS, id=task_id, status=STOP, conn=None)
-
-    async def emulate_error(self, task_id: str, error: str):
-        await self.node.children.emit(type=TASK_STATUS, id=task_id, status=FAIL, conn=None)
-        await self.node.children.emit(type=TASK_FAIL, id=task_id, error=error, conn=None)
