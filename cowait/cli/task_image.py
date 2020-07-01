@@ -1,3 +1,5 @@
+import os
+import os.path
 import docker
 from .context import CowaitContext
 
@@ -19,8 +21,18 @@ class Dockerfile(object):
     def run(self, cmd):
         self.lines.append(f'RUN {cmd}')
 
+    def workdir(self, path):
+        self.lines.append(f'WORKDIR {path}')
+
     def __str__(self):
         return '\n'.join(self.lines)
+
+    @staticmethod
+    def read(path):
+        with open(path, 'r') as f:
+            df = Dockerfile('none')
+            df.lines = f.readlines()
+            return df
 
 
 class BuildError(RuntimeError):
@@ -49,6 +61,10 @@ class TaskImage(object):
 
         # copy source code
         df.copy('.', '.')
+
+        workdir = self.context.workdir
+        if workdir != '.':
+            df.workdir(os.path.join('/var/task', workdir))
 
         return TaskImage.build_image(
             dockerfile=str(df),

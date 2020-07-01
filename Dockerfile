@@ -21,4 +21,6 @@ COPY . .
 
 # move to task directory
 WORKDIR /var/task
+
+ENV PYTHONPATH="/var/task:${PYTHONPATH}"
 CMD [ "python3", "-Bum", "cowait.exec" ]

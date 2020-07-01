@@ -221,8 +221,12 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
 
 
 @cli.command(help='build a task')
-def build():
-    cowait.cli.build()
+@click.option('-w', '--workdir',
+              default=None,
+              type=str,
+              help='task working directory')
+def build(workdir: str):
+    cowait.cli.build(workdir)
 
 
 @cli.command(help='push a task to the registry')
