@@ -34,7 +34,7 @@ def build(quiet: bool = False, workdir: str = None) -> TaskImage:
 
         # find custom Dockerfile
         # if it exists, build and extend that instead of the default base image
-        base_image = context.get('base', DEFAULT_BASE_IMAGE)
+        base_image = context.base
         dockerfile = context.file('Dockerfile')
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))

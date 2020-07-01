@@ -16,7 +16,7 @@ def agent(
 ) -> None:
     logger = RunLogger(quiet=False, raw=False)
     try:
-        cluster = config.get_cluster(config.default_cluster)
+        cluster = config.get_cluster()
 
         if cluster.type == 'api':
             raise CliError('Error: Cant deploy agent using an API cluster')

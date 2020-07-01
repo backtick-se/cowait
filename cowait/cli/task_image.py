@@ -17,7 +17,7 @@ class TaskImage(object):
 
     @property
     def name(self):
-        return self.context.get_image_name()
+        return self.context.image
 
     def build(self, base: str, requirements: str = None):
         """ Build task image """
