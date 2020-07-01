@@ -16,8 +16,7 @@ def test(
     logger = TestLogger()
     try:
         context = CowaitContext.open()
-        cluster_name = context.get('cluster', config.default_cluster)
-        cluster = config.get_cluster(cluster_name)
+        cluster = config.get_cluster(config.default_cluster)
 
         if push:
             run_push()

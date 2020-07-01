@@ -65,6 +65,9 @@ class DockerProvider(ClusterProvider):
             self.emit_sync('spawn', task=task)
             return task
 
+        except docker.errors.APIError as e:
+            raise ProviderError(e.explanation)
+
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 

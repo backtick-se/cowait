@@ -2,6 +2,7 @@ import os
 import os.path
 import yaml
 import docker
+from cowait.utils.const import DEFAULT_BASE_IMAGE
 from .utils import find_file_in_parents
 from .const import CONTEXT_FILE_NAME
 
@@ -112,7 +113,24 @@ class CowaitContext(object):
         """
         Returns the context image name.
         """
-        return self.get('image', os.path.basename(self.root_path))
+        return self.get('image', DEFAULT_BASE_IMAGE)
+
+    @property
+    def image(self):
+        return self.get('image', DEFAULT_BASE_IMAGE)
+
+    @staticmethod
+    def exists(path: str = None):
+        if path is None:
+            path = os.getcwd()
+
+        # ensure the provided path is an actual directory
+        if not os.path.isdir(path):
+            return False
+
+        # find context root by looking for the context definition file
+        context_file_path = find_file_in_parents(path, CONTEXT_FILE_NAME)
+        return context_file_path is not None
 
     @staticmethod
     def open(path: str = None):
@@ -123,22 +141,26 @@ class CowaitContext(object):
         if not os.path.isdir(path):
             raise ValueError(f'Invalid context path {path}: Not a directory')
 
+        context = {
+            'image': 'cowait/task',
+        }
+
         # find context root by looking for the context definition file
         context_file_path = find_file_in_parents(path, CONTEXT_FILE_NAME)
         if context_file_path is None:
             # use the current directory as the context
             return CowaitContext(
                 root_path=os.path.abspath(path),
-                definition={},
+                definition=context,
             )
 
         # load context yaml definition
         with open(context_file_path, 'r') as context_file:
             context_def = yaml.load(context_file, Loader=yaml.FullLoader)
-            if 'version' not in context_def or context_def['version'] != 1:
-                raise ValueError('Invalid cowait context version')
-
-            context = context_def.get('cowait', {})
+            if context_def is not None:
+                if 'version' not in context_def or context_def['version'] != 1:
+                    raise ValueError('Invalid cowait context version')
+                context = context_def.get('cowait', {})
 
         # context root path is the yml folder
         root_path = os.path.abspath(os.path.dirname(context_file_path))

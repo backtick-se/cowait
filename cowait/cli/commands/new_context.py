@@ -8,7 +8,6 @@ def new_context(
     name: str,
     image: str,
     base: str,
-    cluster_name: str = None,
 ):
     path = os.getcwd()
 
@@ -31,10 +30,6 @@ def new_context(
         print('Base image:', base)
         context['base'] = base
 
-    # override default cluster
-    if cluster_name is not None:
-        context['cluster'] = cluster_name
-
     context_file = os.path.join(path, CONTEXT_FILE_NAME)
     if os.path.isfile(context_file):
         print('Error: Context file', context_file, 'already exists')
@@ -48,6 +43,7 @@ def new_context(
             },
             stream=cf,
             sort_keys=False,
+            default_flow_style=False,
         )
 
     print('Created new context definition', context_file)

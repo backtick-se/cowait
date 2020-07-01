@@ -39,16 +39,11 @@ def cli(ctx):
 @click.argument('name', type=str, required=False)
 @click.option('--image', type=str, required=False, help='image name')
 @click.option('--base', type=str, required=False, help='base image name')
-@click.option('--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-def new_context(name: str, image: str, base: str, cluster_name: str):
+def new(name: str, image: str, base: str):
     cowait.cli.new_context(
         name=name,
         image=image,
         base=base,
-        cluster_name=cluster_name,
     )
 
 
