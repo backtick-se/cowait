@@ -32,8 +32,7 @@ def run(
     logger = RunLogger(raw, quiet)
     try:
         context = CowaitContext.open()
-        cluster_name = context.get('cluster', config.default_cluster)
-        cluster = config.get_cluster(cluster_name)
+        cluster = config.get_cluster(config.default_cluster)
 
         # figure out image name
         remote_image = True
@@ -41,7 +40,7 @@ def run(
         if image is None:
             if build:
                 build_cmd(quiet=quiet or raw)
-            image = context.get_image_name()
+            image = context.image
             remote_image = False
 
         volumes = context.get('volumes', {})
@@ -79,7 +78,7 @@ def run(
         )
 
         # print execution info
-        logger.print_info(taskdef, cluster_name)
+        logger.print_info(taskdef, config.default_cluster)
 
         # submit task to cluster
         task = cluster.spawn(taskdef)

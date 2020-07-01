@@ -2,37 +2,9 @@ import os
 import os.path
 import docker
 from .context import CowaitContext
+from .docker_file import Dockerfile
 
 client = docker.from_env()
-
-# shim that allows passing dockerfiles as a string together with a context path.
-# this removes the need to write temporary files!
-# source: https://github.com/docker/docker-py/issues/2105
-docker.api.build.process_dockerfile = lambda dockerfile, path: ('Dockerfile', dockerfile)
-
-
-class Dockerfile(object):
-    def __init__(self, base):
-        self.lines = [f'FROM {base}']
-
-    def copy(self, src, dst):
-        self.lines.append(f'COPY {src} {dst}')
-
-    def run(self, cmd):
-        self.lines.append(f'RUN {cmd}')
-
-    def workdir(self, path):
-        self.lines.append(f'WORKDIR {path}')
-
-    def __str__(self):
-        return '\n'.join(self.lines)
-
-    @staticmethod
-    def read(path):
-        with open(path, 'r') as f:
-            df = Dockerfile('none')
-            df.lines = f.readlines()
-            return df
 
 
 class BuildError(RuntimeError):
@@ -102,6 +74,10 @@ class TaskImage(object):
         )
 
     @staticmethod
+    def get(name_or_id):
+        return client.images.get(name_or_id)
+
+    @staticmethod
     def build_image(**kwargs):
         logs = client.api.build(decode=True, rm=True, **kwargs)
 
@@ -117,4 +93,4 @@ class TaskImage(object):
                 print(log)
 
         if image_hash is not None:
-            return client.images.get(image_hash)
+            return TaskImage.get(image_hash)

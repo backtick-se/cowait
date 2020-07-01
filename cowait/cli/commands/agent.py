@@ -5,7 +5,6 @@ from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
 from ..errors import CliError
 from ..config import CowaitConfig
-from ..context import CowaitContext
 from ..utils import ExitTrap
 from .run import RunLogger
 
@@ -17,9 +16,7 @@ def agent(
 ) -> None:
     logger = RunLogger(quiet=False, raw=False)
     try:
-        context = CowaitContext.open()
-        cluster_name = context.get('cluster', config.default_cluster)
-        cluster = config.get_cluster(cluster_name)
+        cluster = config.get_cluster(config.default_cluster)
 
         if cluster.type == 'api':
             raise CliError('Error: Cant deploy agent using an API cluster')

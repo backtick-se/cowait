@@ -1,15 +1,22 @@
 import os.path
+import docker
 import docker.errors
 import docker.credentials.errors
 from cowait.utils.const import DEFAULT_BASE_IMAGE
-from ..task_image import TaskImage, BuildError, Dockerfile
-from ..context import CowaitContext
+from ..task_image import TaskImage, BuildError
+from ..docker_file import Dockerfile
+from ..context import CowaitContext, CONTEXT_FILE_NAME
 from ..logger import Logger
 
 
 def build(quiet: bool = False, workdir: str = None) -> TaskImage:
     logger = Logger(quiet)
     try:
+        if not CowaitContext.exists():
+            logger.println(f'No {CONTEXT_FILE_NAME} found. '
+                           f'Using default image: {DEFAULT_BASE_IMAGE}')
+            return TaskImage.get(DEFAULT_BASE_IMAGE)
+
         context = CowaitContext.open()
         context.override('workdir', workdir)
 
