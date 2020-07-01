@@ -25,6 +25,9 @@ class DockerTask(RemoteTask):
         self.container = container
         self.ip = taskdef.id  # id should be routable within docker
 
+    def __str__(self):
+        return f'DockerTask({self.id}, {self.status}, {self.inputs}, {self.container.id[:10]})'
+
 
 class DockerProvider(ClusterProvider):
     def __init__(self, args={}):

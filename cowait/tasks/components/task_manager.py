@@ -1,7 +1,9 @@
 import asyncio
 from typing import Any
-from ..errors import TaskError
+from ..status import WAIT, WORK, FAIL
 from ..messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
+from ..definition import TaskDefinition
+from ..remote_task import RemoteTask
 
 
 class TaskManager(dict):
@@ -16,7 +18,7 @@ class TaskManager(dict):
         task.node.children.on(TASK_STATUS, self.on_child_status)
         task.node.children.on(TASK_RETURN, self.on_child_return)
         task.node.children.on(TASK_FAIL, self.on_child_fail)
-        task.node.children.on('error', self.on_child_error)
+        task.node.children.on('__close', self.on_child_close)
 
         # forward child events to parent
         async def forward(conn, **msg):
@@ -25,17 +27,17 @@ class TaskManager(dict):
             await task.node.parent.send(msg)
         task.node.children.on('*', forward)
 
-    def watch(self, task):
+    def watch(self, task, timeout=30):
         # set up init timeout check
-        self.set_init_timeout(task, 30)
+        self.set_init_timeout(task, timeout)
         self[task.id] = task
 
     def set_init_timeout(self, task, timeout):
         async def timeout_check(task, timeout):
             await asyncio.sleep(timeout)
             if not task.future.done() and task.id not in self.conns.values():
-                task.future.set_exception(TaskError(
-                    f'{task.id} timed out before initialization'))
+                await self.emit_child_error(
+                    id=task.id, error=f'{task.id} timed out before initialization')
 
         self.task.node.io.create_task(timeout_check(task, timeout))
 
@@ -44,8 +46,19 @@ class TaskManager(dict):
             self.conns[conn] = id
 
         if id in self:
+            # set task connection reference
             task = self[id]
             task.conn = conn
+        else:
+            # this task is not known - its either a virtual task or a child of a child.
+            # check if it has the running task set as its parent, if so, try to adopt it.
+            taskdef = TaskDefinition.deserialize(task)
+            if taskdef.parent != self.task.id:
+                return
+
+            task = RemoteTask(taskdef, self.task.cluster)
+            task.conn = conn
+            self[id] = task
 
     async def on_child_status(self, conn, id: str, status: str, **msg: dict):
         if id in self:
@@ -53,15 +66,32 @@ class TaskManager(dict):
             task.set_status(status)
 
     async def on_child_return(self, conn, id: str, result: Any, result_type: any, **msg: dict):
-        task = self[id]
-        task.set_result(result, result_type)
+        if id in self:
+            task = self[id]
+            task.set_result(result, result_type)
 
     async def on_child_fail(self, conn, id: str, error: str, **msg: dict):
-        task = self[id]
-        task.set_error(error)
+        if id in self:
+            task = self[id]
+            task.set_error(error)
 
-    async def on_child_error(self, conn, reason: str):
-        if conn in self.conns:
-            task_id = self.conns[conn]
-            task = self[task_id]
-            task.set_error(f'Lost connection to {task_id}')
+    async def on_child_close(self, conn, **msg: dict) -> None:
+        if conn not in self.conns:
+            return
+
+        # lookup task & remove from active connections
+        task_id = self.conns[conn]
+        task = self[task_id]
+        del self.conns[conn]
+
+        # unset task connection reference
+        task.conn = None
+
+        # emit an error event if connection was lost before done/fail
+        if task.status == WAIT or task.status == WORK:
+            await self.emit_child_error(
+                conn=conn, id=task.id, error=f'Lost connection to {task_id}')
+
+    async def emit_child_error(self, id, error, conn=None):
+        await self.task.node.children.emit(type=TASK_STATUS, id=id, status=FAIL, conn=conn)
+        await self.task.node.children.emit(type=TASK_FAIL, id=id, conn=conn, error=error)

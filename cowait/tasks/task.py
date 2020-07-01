@@ -1,6 +1,6 @@
 import sys
+import inspect
 from typing import Any
-from cowait.network import get_local_connstr
 from cowait.types import serialize
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
@@ -108,30 +108,40 @@ class Task(TaskDefinition):
             kwargs (dict): Input arguments
         """
 
-        if not isinstance(name, str) and issubclass(name, Task):
-            name = name.__module__
+        # merge inputs with remaining kwargs
+        inputs = {
+            **inputs,
+            **kwargs,
+        }
 
-        # todo: throw error if any input is a coroutine
+        if isinstance(name, str):
+            pass
+        elif issubclass(name, Task):
+            name = name.__module__
+        else:
+            raise TypeError('Unsupported task type: ' + type(name))
+
+        # throw error if any input is a coroutine
+        for key, value in inputs.items():
+            if inspect.iscoroutine(value):
+                raise TypeError(f'Input {key} must be awaited first')
 
         taskdef = TaskDefinition(
             id=id,
             name=name,
             parent=self.id,
             image=image if image else self.image,
-            upstream=get_local_connstr(),
+            upstream=self.node.get_url(),
             meta=meta,
             ports=ports,
             routes=routes,
             cpu=cpu,
             memory=memory,
             owner=owner,
+            inputs=serialize(inputs),
             volumes={
                 **self.volumes,
                 **volumes,
-            },
-            inputs={
-                **serialize(inputs),
-                **serialize(kwargs),
             },
             env={
                 **self.env,

@@ -87,9 +87,9 @@ class SparkCluster(Task):
 
     async def after(self, inputs: dict):
         print('~~ destroying spark cluster')
-        await self.master.stop()
+        self.master.destroy()
         for worker in self.workers:
-            await worker.stop()
+            worker.destroy()
 
         await super().after(inputs)
 
@@ -164,7 +164,7 @@ class SparkCluster(Task):
             count = len(self.workers)
 
         for worker in self.workers[-count:]:
-            await worker.stop()
+            worker.destroy()
         self.workers = self.workers[:-count]
 
     async def wait_for_nodes(self):
