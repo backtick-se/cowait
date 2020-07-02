@@ -5,12 +5,13 @@ from ipykernel.ipkernel import IPythonKernel
 from cowait.tasks import Task, TaskDefinition
 from cowait.network import get_local_connstr
 from cowait.worker import env_get_cluster_provider, env_get_task_definition
-from cowait.notebook.node import NotebookNode
+from .node import NotebookNode
+
+import cowait.notebook.html_repr  # noqa: F401
 
 
 class KernelTask(Task):
-    def _repr_html_(self):
-        return f'<b>kernel task!</b>'
+    pass
 
 
 class CowaitKernel(IPythonKernel):
@@ -44,8 +45,7 @@ class CowaitKernel(IPythonKernel):
 
         # write globals
         self.shell.push({
-            '__node__': self.node,
-            '__task__': self.task,
+            'tasks': self.task.subtasks,
         })
 
     def do_shutdown(self, restart):

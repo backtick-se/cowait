@@ -1,5 +1,6 @@
 from random import randint
 from cowait.worker.worker_node import WorkerNode
+from .html_logger import HTMLLogger
 
 
 class NotebookNode(WorkerNode):
@@ -18,7 +19,7 @@ class NotebookNode(WorkerNode):
             id=taskdef.id,
             upstream=taskdef.upstream,
             port=randint(10000, 60000),
-            quiet=True,
+            logger=HTMLLogger(),
         )
 
     async def start(self, token: str) -> None:
