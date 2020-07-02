@@ -17,8 +17,8 @@ COPY bin ./bin
 RUN pip install -e .
 
 # jupyter mods
-COPY cowait/notebook/jupyter/jupyter_config.py /root/.jupyter/jupyter_notebook_config.py
-COPY cowait/notebook/jupyter/startup.py /root/.ipython/profile_default/startup/startup.py
+COPY notebook/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
+COPY notebook/kernel /usr/share/jupyter/kernels/cowait
 
 # copy code last, to benefit from caching
 COPY . . 

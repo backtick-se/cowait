@@ -29,8 +29,13 @@ class NotebookNode(WorkerNode):
         await self.connect(token)
         await self.parent.send_init(self.taskdef)
         await self.parent.send_run()
-        await self.parent.send_log(data='Kernel Task ready.', file='stdout')
+        await self.parent.send_log(data='Kernel ready.', file='stdout')
         self.serve()
+
+    async def stop(self):
+        await self.parent.send_log(data='Kernel stopped!', file='stdout')
+        await self.parent.send_stop()
+        await self.parent.close()
 
     async def connect(self, token: str) -> None:
         await self.parent.connect(self.upstream, token)
