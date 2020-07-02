@@ -46,5 +46,7 @@ setuptools.setup(
         'jupyterlab',
         'dill',
         'python-dotenv',
+        'fsspec',
+        's3fs',
     ],
 )

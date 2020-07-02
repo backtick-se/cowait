@@ -25,6 +25,8 @@ nest-asyncio = "*"
 numpy = "*"
 sty = "*"
 python-dotenv = "*"
+fsspec = "*"
+s3fs = "*"
 
 [requires]
 python_version = "3.7"
