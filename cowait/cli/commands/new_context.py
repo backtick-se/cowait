@@ -1,7 +1,7 @@
 import os
 import os.path
-import yaml
 from ..const import CONTEXT_FILE_NAME
+from ..context import CowaitContext
 
 
 def new_context(
@@ -18,7 +18,7 @@ def new_context(
         os.mkdir(path)
         print('Created context folder', path)
 
-    context = {}
+    context = CowaitContext(root_path=name, data={})
 
     # image name
     if image is not None:
@@ -35,15 +35,5 @@ def new_context(
         print('Error: Context file', context_file, 'already exists')
         return
 
-    with open(context_file, 'w') as cf:
-        yaml.dump(
-            {
-                'version': 1,
-                'cowait': context,
-            },
-            stream=cf,
-            sort_keys=False,
-            default_flow_style=False,
-        )
-
+    context.write(context_file)
     print('Created new context definition', context_file)

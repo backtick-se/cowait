@@ -17,37 +17,6 @@ def test_create_context():
     assert local.root_path == os.getcwd()
 
 
-def test_get_values():
-    context = CowaitContext.open('test')
-    assert context['repo'] == 'repo'
-    assert context['cluster.type'] == 'docker'
-
-    # unset keys with a provided default should return the default
-    assert context.get('cluster.undefined', 'nothing') == 'nothing'
-
-    # uset parent with a provided default should return the default
-    assert context.get('undefined.undefined', 'nothing') == 'nothing'
-
-    # unset keys should raise errors
-    with pytest.raises(KeyError):
-        assert context.get('unset')
-
-    # unset child keys with no default should raise errors
-    with pytest.raises(KeyError):
-        assert context['cluster.undefined']
-
-    # unset child keys with unset parent no default should raise errors
-    with pytest.raises(KeyError):
-        assert context['undefined.undefined']
-
-
-def test_set_values():
-    context = CowaitContext('', {})
-    context['nested.key'] = 1
-    assert isinstance(context.definition['nested'], dict)
-    assert context.definition['nested']['key'] == 1
-
-
 def test_get_files():
     context = CowaitContext.open('test')
 

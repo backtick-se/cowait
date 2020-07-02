@@ -1,7 +1,7 @@
-import yaml
 import os.path
 from cowait.engine import get_cluster_provider
 from .const import CONTEXT_FILE_NAME
+from .settings_dict import SettingsDict
 
 
 def get_config_path():
@@ -9,20 +9,34 @@ def get_config_path():
     return f'{home}/.{CONTEXT_FILE_NAME}'
 
 
-class CowaitConfig(object):
-    def __init__(self, default_cluster: str = 'docker', clusters: dict = {}):
-        self.default_cluster = default_cluster
-        self.clusters = {
+class CowaitConfig(SettingsDict):
+    def __init__(
+        self, *,
+        path: str = None,
+        data: dict = None
+    ):
+        super().__init__(path=path, data=data)
+        self.set('clusters', {
             'docker': {'type': 'docker'},
             'kubernetes': {'type': 'kubernetes'},
-            **clusters,
-        }
+            **self.get('clusters', {}),
+        })
+
+    @property
+    def clusters(self) -> list:
+        return self.get('clusters', {}, False)
+
+    @property
+    def default_cluster(self) -> str:
+        return self.get('default_cluster', 'docker', False)
 
     def get_cluster(self, cluster_name: str = None):
+        if cluster_name is None:
+            cluster_name = self.default_cluster
         if cluster_name not in self.clusters:
             raise RuntimeError(
                 f'No configuration found for cluster {cluster_name}')
-        return get_cluster_provider(**self.clusters[cluster_name])
+        return get_cluster_provider(**self.get(f'clusters.{cluster_name}'))
 
     @staticmethod
     def load(path: str = None) -> None:
@@ -30,20 +44,11 @@ class CowaitConfig(object):
             path = get_config_path()
 
         if not os.path.exists(path):
-            return CowaitConfig()
+            return CowaitConfig(data={})
 
-        with open(path) as cfg:
-            return CowaitConfig(**yaml.load(cfg, Loader=yaml.FullLoader))
+        return CowaitConfig(path=path)
 
-    def save(self, path: str = None) -> None:
+    def write(self, path: str = None) -> None:
         if path is None:
             path = get_config_path()
-        with open(path, 'w') as cfg:
-            yaml.dump(
-                {
-                    'default_cluster': self.default_cluster,
-                    'clusters': self.clusters,
-                },
-                stream=cfg,
-                sort_keys=False,
-            )
+        return super().write(path)

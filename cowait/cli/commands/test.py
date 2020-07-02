@@ -16,7 +16,7 @@ def test(
     logger = TestLogger()
     try:
         context = CowaitContext.open()
-        cluster = config.get_cluster(config.default_cluster)
+        cluster = config.get_cluster()
 
         if push:
             run_push()
@@ -26,7 +26,7 @@ def test(
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
             name='cowait.test',
-            image=context.get_image_name(),
+            image=context.image,
         ))
 
         def destroy(*args):

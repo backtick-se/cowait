@@ -32,7 +32,7 @@ def run(
     logger = RunLogger(raw, quiet)
     try:
         context = CowaitContext.open()
-        cluster = config.get_cluster(config.default_cluster)
+        cluster = config.get_cluster()
 
         # figure out image name
         remote_image = True
@@ -64,7 +64,7 @@ def run(
             image=image,
             inputs=inputs,
             env={
-                **context.get('environment', {}),
+                **context.environment,
                 **env,
             },
             ports=ports,

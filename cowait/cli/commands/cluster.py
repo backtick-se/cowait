@@ -9,7 +9,7 @@ def cluster_get(config: CowaitConfig, name: str) -> None:
         print('Unknown cluster', name)
         return 1
 
-    args = config.clusters[name]
+    args = config.get(['clusters', name])
     print(name)
     if name == config.default_cluster:
         print('    default')
@@ -32,11 +32,11 @@ def cluster_add(config: CowaitConfig, name: str, type: str, **options) -> None:
         print(f'Error: Cant add cluster of type {type}')
         return 1
 
-    config.clusters[name] = {
+    config.set(['clusters', name], {
         'type': type,
         **options,
-    }
-    config.save()
+    })
+    config.write()
 
     # dump added cluster
     cluster_get(config, name)
@@ -59,8 +59,8 @@ def cluster_rm(config: CowaitConfig, name: str) -> None:
         print('Error: Cant remove the kubernetes provider')
         return 1
 
-    del config.clusters[name]
-    config.save()
+    config.delete(['clusters', name])
+    config.write()
 
 
 def cluster_default(config: CowaitConfig) -> None:
@@ -72,5 +72,5 @@ def cluster_set_default(config: CowaitConfig, name: str) -> None:
         print(f'Error: Cluster {name} does not exist')
         return 1
 
-    config.default_cluster = name
-    config.save()
+    config.set('default_cluster', name)
+    config.write()

@@ -58,7 +58,7 @@ def new(name: str, image: str, base: str):
               default=None,
               type=str,
               help='cluster name')
-@click.option('--name',
+@click.option('-n', '--name',
               type=str,
               default=None,
               help='specific task name')
@@ -70,12 +70,12 @@ def new(name: str, image: str, base: str):
               type=(str, str),
               multiple=True,
               help='define enviornment variable')
-@click.option('--port', type=int, multiple=True, help='open a port')
-@click.option('--route',
+@click.option('-p', '--port', type=int, multiple=True, help='open a port')
+@click.option('-r', '--route',
               type=(str, str),
               multiple=True,
               help='add an ingress route')
-@click.option('--upstream',
+@click.option('-u', '--upstream',
               type=str,
               help='root task upstream uri')
 @click.option('-b', '--build',
@@ -90,7 +90,7 @@ def new(name: str, image: str, base: str):
               help='yaml/json file with inputs', 
               type=str, 
               default=None)
-@click.option('-r', '--raw',
+@click.option('--raw',
               type=bool, is_flag=True,
               help='raw json output',
               default=False)
