@@ -3,11 +3,12 @@ import asyncio
 from concurrent.futures import Future
 from cowait.types import type_from_description
 from .errors import TaskError, StoppedError
+from .instance import TaskInstance
 from .definition import TaskDefinition
 from .status import WAIT, WORK, FAIL, DONE, STOP
 
 
-class RemoteTask(TaskDefinition):
+class RemoteTask(TaskInstance):
     def __init__(self, taskdef: TaskDefinition, cluster):
         kwargs = taskdef.serialize()
         super().__init__(**kwargs)

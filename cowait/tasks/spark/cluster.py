@@ -98,9 +98,7 @@ class SparkCluster(Task):
         print(f'~~   workers = {workers}')
 
         # create spark master
-        self.master = SparkMaster(
-            routes={'/': 8080},
-        )
+        self.master = self.spawn(SparkMaster, routes={'/': 8080})
         self.master.ready = Future()
         self.master_uri = f'spark://{self.master.ip}:7077'
 
@@ -149,11 +147,12 @@ class SparkCluster(Task):
 
     async def add_workers(self, count):
         for i in range(0, count):
-            w = SparkWorker(
-                master=self.master_uri,
-                cores=2,
+            w = self.spawn(
+                SparkWorker,
                 routes={},
                 ports={},
+                master=self.master_uri,
+                cores=2,
             )
             w.ready = Future()
             self.workers.append(w)

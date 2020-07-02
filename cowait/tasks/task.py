@@ -7,7 +7,7 @@ from .components import TaskManager, RpcComponent, rpc
 from .parent_task import ParentTask
 
 
-class Task(TaskDefinition):
+class Task(object):
     __current__ = None
 
     def __init__(self, **inputs):
@@ -24,9 +24,10 @@ class Task(TaskDefinition):
            'cluster' not in inputs or len(inputs) != 3:
             raise RuntimeError('Invalid task class instantiation')
 
-        super().__init__(**inputs['taskdef'].serialize())
         self.node = inputs['node']
         self.cluster = inputs['cluster']
+        self.taskdef = inputs['taskdef']
+
         self.parent = ParentTask(self.node)
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
@@ -46,7 +47,19 @@ class Task(TaskDefinition):
             if len(args) > 0:
                 raise TypeError('Tasks do not accept positional arguments')
 
-            return current.spawn(cls, **inputs)
+            return current.spawn(cls, inputs=inputs)
+
+    @property
+    def id(self) -> str:
+        return self.taskdef.id
+
+    @property
+    def image(self) -> str:
+        return self.taskdef.image
+
+    @property
+    def meta(self) -> dict:
+        return self.taskdef.meta
 
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
@@ -139,12 +152,13 @@ class Task(TaskDefinition):
             memory=memory,
             owner=owner,
             inputs=serialize(inputs),
+            storage=self.taskdef.storage,
             volumes={
-                **self.volumes,
+                **self.taskdef.volumes,
                 **volumes,
             },
             env={
-                **self.env,
+                **self.taskdef.env,
                 **env,
             },
         )

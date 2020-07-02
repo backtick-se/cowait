@@ -17,7 +17,7 @@ class NotebookTask(ShellTask):
             command='jupyter lab',
             env={
                 ENV_GZIP_ENABLED: '1',
-                ENV_TASK_DEFINITION: env_pack(self.serialize()),
+                ENV_TASK_DEFINITION: env_pack(self.taskdef.serialize()),
                 ENV_TASK_CLUSTER: env_pack(self.cluster.serialize()),
                 'KERNEL_TOKEN': self.node.http.auth.get_token(),
             },
@@ -26,8 +26,8 @@ class NotebookTask(ShellTask):
     def on_ready(self):
         print()
         print('JupyterLab ready!')
-        if '/' in self.routes:
-            url = self.routes['/']['url']
+        if '/' in self.taskdef.routes:
+            url = self.taskdef.routes['/']['url']
             print('Notebook available at:')
             print(f'  {url}?token={self.jupyter_token}')
         else:

@@ -19,10 +19,6 @@ def test_taskdef_serialization():
         'cpu':        '0',
         'memory':     '0',
         'owner':      'santa',
-        'status':     'wait',
-        'result':     None,
-        'error':      None,
-        'log':        '',
     }
 
     taskdef = TaskDefinition.deserialize(sample)

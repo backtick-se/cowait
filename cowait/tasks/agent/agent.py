@@ -35,8 +35,8 @@ class Agent(Task):
         self.node.http.auth.add_token(self.token)
 
     async def run(self, **inputs) -> dict:
-        if '/' in self.routes:
-            url = self.routes['/']['url']
+        if '/' in self.taskdef.routes:
+            url = self.taskdef.routes['/']['url']
             print('Agent ready. Dashboard available at:')
             print(f'{url}?token={self.token}')
         else:
