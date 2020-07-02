@@ -10,6 +10,7 @@ __pycache__/
 .DS_Store
 .vscode
 .gitignore
+**/.ipynb_checkpoints/
 
 build.sh
 test.sh

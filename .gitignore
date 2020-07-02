@@ -9,3 +9,4 @@ htmlcov/
 .coverage
 .DS_Store
 .vscode
+.ipynb_checkpoints/

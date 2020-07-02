@@ -1,5 +1,6 @@
 from random import randint
 from cowait.worker.worker_node import WorkerNode
+from .html_logger import HTMLLogger
 
 
 class NotebookNode(WorkerNode):
@@ -18,7 +19,7 @@ class NotebookNode(WorkerNode):
             id=taskdef.id,
             upstream=taskdef.upstream,
             port=randint(10000, 60000),
-            quiet=True,
+            logger=HTMLLogger(),
         )
 
     async def start(self, token: str) -> None:
@@ -29,8 +30,13 @@ class NotebookNode(WorkerNode):
         await self.connect(token)
         await self.parent.send_init(self.taskdef)
         await self.parent.send_run()
-        await self.parent.send_log(data='Kernel Task ready.', file='stdout')
+        await self.parent.send_log(data='Kernel ready.', file='stdout')
         self.serve()
+
+    async def stop(self):
+        await self.parent.send_log(data='Kernel stopped!', file='stdout')
+        await self.parent.send_stop()
+        await self.parent.close()
 
     async def connect(self, token: str) -> None:
         await self.parent.connect(self.upstream, token)

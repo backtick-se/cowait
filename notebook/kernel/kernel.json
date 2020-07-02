@@ -1,0 +1,6 @@
+{
+    "argv": ["python3", "-m", "cowait.notebook.kernel",
+             "-f", "{connection_file}"],
+    "display_name": "Cowait",
+    "language": "python"
+}
