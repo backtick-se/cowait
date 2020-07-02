@@ -1,0 +1,10 @@
+version: 1
+cowait:
+    image: cowait/task-example-11
+    storage:
+        aws:
+            protocol: s3
+            key: ASIAULLOEUCNGCRBY3VF
+            secret: ErTHexoosnrPpcoOsBURfPEggvev8j0MZX/H722y
+            token: FwoGZXIvYXdzEOn//////////wEaDIK8B70sRJCUjzhU1SKGAWU655+jnebHvGeS9njXmmV+NJYpkNmRuZjy3U8OVgHZgmoTGaSDLc4Oq8PeCLlUvw4/xZfev3YG9xTl7I7nw9TU2+/UlLMmsHhbPVmB5g9wl9Dt1oC0pIHgyTdscjh/27eTDLqBquw9CJ7Bp36x+l1KcxzxXVPwAme/fpkWhK5m5SmB6jNIKPe8+/cFMijRapsOGNNEHyrkA+R49oob0vUpd+xOS50aaXVXqmimSR5NlxTZPUoK
+            
