@@ -1,5 +1,6 @@
 import os
 import os.path
+from dotenv import dotenv_values
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from .settings_dict import SettingsDict
 from .utils import find_file_in_parents
@@ -22,6 +23,13 @@ class CowaitContext(SettingsDict):
     @property
     def base(self):
         return self.get('base', DEFAULT_BASE_IMAGE, False)
+
+    @property
+    def environment(self):
+        return {
+            **self.get('environment', {}, False),
+            **dotenv_values(),
+        }
 
     def file(self, file_name: str) -> str:
         """
@@ -54,6 +62,9 @@ class CowaitContext(SettingsDict):
         return self.root_path in path
 
     def unpack_data(self, data: dict) -> dict:
+        if data is None:
+            return {}
+
         if 'version' not in data:
             raise RuntimeError('Invalid context file, no version set.')
 

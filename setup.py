@@ -45,5 +45,6 @@ setuptools.setup(
         'sty',
         'jupyterlab',
         'dill',
+        'python-dotenv',
     ],
 )

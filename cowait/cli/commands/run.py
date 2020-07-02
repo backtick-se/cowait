@@ -64,7 +64,7 @@ def run(
             image=image,
             inputs=inputs,
             env={
-                **context.get('environment', {}),
+                **context.environment,
                 **env,
             },
             ports=ports,
