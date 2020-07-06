@@ -16,7 +16,7 @@ class PytestTask(Task):
             AltPytestAsyncioPlugin(loop=loop),
         ]
 
-        code = pytest.main([], plugins=plugins)
+        code = pytest.main(["-c", "/var/cowait/pytest.ini"], plugins=plugins)
         if code != pytest.ExitCode.OK and \
            code != pytest.ExitCode.NO_TESTS_COLLECTED:
             raise RuntimeError('Tests failed')
