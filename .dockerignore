@@ -1,10 +1,14 @@
 .git/
-dist/
+**dist/
 **/node_modules/
 cowait.egg-info/
-dask-worker-space/
+**/dask-worker-space/
 .pytest_cache/
-__pycache__/
+**/__pycache__/
+htmlcov/
+build/
+assets/
+images/
 *.pyc
 
 .DS_Store

@@ -1,5 +1,6 @@
 import asyncio
 from typing import Any
+from cowait.utils import Version
 from ..status import WAIT, WORK, FAIL
 from ..messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
 from ..definition import TaskDefinition
@@ -41,11 +42,27 @@ class TaskManager(dict):
 
         self.task.node.io.create_task(timeout_check(task, timeout))
 
-    async def on_child_init(self, conn, id: str, task: dict, **msg: dict):
+    async def on_child_init(self, conn, id: str, task: dict, version: str, **msg: dict):
+        # version check
+        try:
+            version = Version.parse(version)
+            if not version.is_compatible():
+                raise RuntimeError(f'{id} runs an incompatible library version: {version}')
+        except Exception as e:
+            await self.emit_child_error(id=task.id, error=str(e))
+            await conn.close()
+            if conn in self.conns:
+                del self.conns[conn]
+            if id in self:
+                del self[id]
+            return
+
+        # register connection if its not yet known
         if conn not in self.conns:
             self.conns[conn] = id
 
         if id in self:
+            # we have seen this task before. thats strange and might indicate an error.
             # set task connection reference
             task = self[id]
             task.conn = conn

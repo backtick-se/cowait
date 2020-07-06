@@ -58,7 +58,8 @@ class DaskCluster(Task):
         print(f'~~   workers = {workers}')
 
         # create dask scheduler
-        self.scheduler = DaskScheduler(
+        self.scheduler = self.spawn(
+            DaskScheduler,
             routes={
                 # '/': 8787,
             },

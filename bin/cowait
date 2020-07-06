@@ -3,10 +3,10 @@
 import yaml
 import json
 import click
-import pkg_resources
 import cowait.cli.commands
 from cowait.cli import CliError
 from cowait.cli.config import CowaitConfig
+from cowait.utils import version_string
 
 
 def option_val(val):
@@ -24,7 +24,7 @@ def option_dict(opts):
 
 
 @click.group()
-@click.version_option(pkg_resources.require("cowait")[0].version)
+@click.version_option(version_string())
 @click.pass_context
 def cli(ctx):
     pass

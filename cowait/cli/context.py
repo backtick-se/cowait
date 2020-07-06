@@ -61,6 +61,12 @@ class CowaitContext(SettingsDict):
         """
         return self.root_path in path
 
+    def pack_data(self, data: dict) -> dict:
+        return {
+            'version': 1,
+            'cowait': data
+        }
+
     def unpack_data(self, data: dict) -> dict:
         if data is None:
             return {}
@@ -74,11 +80,10 @@ class CowaitContext(SettingsDict):
 
         return data.get('cowait', {})
 
-    def write(self, path: str) -> None:
-        return {
-            'version': 1,
-            'cowait': self.data
-        }
+    def write(self, path: str = None) -> None:
+        if path is None:
+            path = os.path.join(self.root_path, CONTEXT_FILE_NAME)
+        return super().write(path)
 
     @staticmethod
     def exists(path: str = None):

@@ -34,7 +34,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             )
 
             # initialize storage
-            task.storage = StorageBackends(task.storage)
+            setattr(task, 'storage', StorageBackends(taskdef.storage))
 
             # initialize task
             task.init()

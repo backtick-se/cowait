@@ -4,6 +4,7 @@ from ipykernel.kernelapp import IPKernelApp
 from ipykernel.ipkernel import IPythonKernel
 from cowait.tasks import Task, TaskDefinition
 from cowait.network import get_local_connstr
+from cowait.storage import StorageBackends
 from cowait.worker import env_get_cluster_provider, env_get_task_definition
 from .node import NotebookNode
 
@@ -29,6 +30,7 @@ class CowaitKernel(IPythonKernel):
             image=parent.image,
             parent=parent.id,
             volumes=parent.volumes,
+            storage=parent.storage,
             env=parent.env,
             upstream=get_local_connstr(),
             meta={
@@ -42,9 +44,11 @@ class CowaitKernel(IPythonKernel):
 
         # instantiate kernel task
         self.task = KernelTask(node=self.node, cluster=cluster, taskdef=taskdef)
+        setattr(self.task, 'storage', StorageBackends(taskdef.storage))
 
         # write globals
         self.shell.push({
+            'kernel': self.task,
             'tasks': self.task.subtasks,
         })
 

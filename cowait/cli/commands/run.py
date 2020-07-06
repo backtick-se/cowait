@@ -164,6 +164,8 @@ class RunLogger(Logger):
             self.println('   env:       ', self.json(taskdef.env))
         if len(taskdef.volumes) > 0:
             self.println('   volumes:   ', self.json(taskdef.volumes))
+        if len(taskdef.storage) > 0:
+            self.println('   storage:   ', ', '.join(taskdef.storage.keys()))
 
     def print(self, *args):
         if self.raw:
@@ -177,7 +179,7 @@ class RunLogger(Logger):
             self.idlen = max(self.idlen, len(id))
         self.print(color + id.ljust(self.idlen if pad else 0) + rs.all)
 
-    def on_init(self, task: dict, **msg):
+    def on_init(self, task: dict, version: str, **msg):
         self.print_time()
         self.print_id(task['id'])
         self.print(
