@@ -50,7 +50,7 @@ def build(quiet: bool = False, workdir: str = None) -> TaskImage:
             base_image = base.id
 
         logger.header('IMAGE')
-        image = image.build(
+        image.build(
             base=base_image,
             requirements=requirements,
         )

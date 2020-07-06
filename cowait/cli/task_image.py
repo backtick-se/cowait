@@ -14,12 +14,13 @@ class BuildError(RuntimeError):
 class TaskImage(object):
     def __init__(self, context):
         self.context = context
+        self.image = None
 
     @property
     def name(self):
         return self.context.image
 
-    def build(self, base: str, requirements: str = None):
+    def build(self, base: str, requirements: str = None) -> None:
         """ Build task image """
 
         # create temporary dockerfile
@@ -38,7 +39,7 @@ class TaskImage(object):
         if workdir != '.':
             df.workdir(os.path.join('/var/task', workdir))
 
-        return TaskImage.build_image(
+        self.image = TaskImage.build_image(
             dockerfile=str(df),
             path=self.context.root_path,
             tag=f'{self.name}:latest',

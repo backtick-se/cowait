@@ -13,7 +13,8 @@ ENV PY4J_VERSION=0.10.8.1
 RUN wget \
         -O spark.tgz https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
         --progress=dot:giga && \
-    tar -xzf spark.tgz -C /
+    tar -xzf spark.tgz -C / && \
+    rm spark.tgz
 
 ENV SPARK_HOME=/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}
 ENV PATH=$SPARK_HOME/python:$PATH:$SPARK_HOME/bin
