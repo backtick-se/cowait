@@ -164,6 +164,8 @@ class RunLogger(Logger):
             self.println('   env:       ', self.json(taskdef.env))
         if len(taskdef.volumes) > 0:
             self.println('   volumes:   ', self.json(taskdef.volumes))
+        if len(taskdef.storage) > 0:
+            self.println('   storage:   ', ', '.join(taskdef.storage.keys()))
 
     def print(self, *args):
         if self.raw:
