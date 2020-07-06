@@ -2,8 +2,8 @@ import asyncio
 from typing import Any
 from cowait.network import Client
 from cowait.tasks import TaskDefinition, WORK, DONE, STOP, FAIL
-from cowait.tasks.messages import \
-    TASK_INIT, TASK_LOG, TASK_STATUS, TASK_RETURN, TASK_FAIL
+from cowait.tasks.messages import TASK_INIT, TASK_LOG, TASK_STATUS, TASK_RETURN, TASK_FAIL
+from cowait.utils import version_string
 from .logger import Logger, JSONLogger
 
 
@@ -60,7 +60,11 @@ class ParentClient(Client):
         Arguments:
             taskdef (TaskDefinition): New task definition
         """
-        await self.msg(TASK_INIT, task=taskdef.serialize())
+        await self.msg(
+            TASK_INIT,
+            task=taskdef.serialize(),
+            version=version_string(),
+        )
 
     async def send_run(self) -> None:
         """ Send status update: Running """
