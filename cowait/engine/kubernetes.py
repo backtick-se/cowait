@@ -1,11 +1,10 @@
-import os
 import time
 import kubernetes
 import urllib3.exceptions
 from kubernetes import client, config, watch
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import json_stream
-from .const import ENV_TASK_CLUSTER, LABEL_TASK_ID, LABEL_PARENT_ID
+from .const import LABEL_TASK_ID, LABEL_PARENT_ID
 from .cluster import ClusterProvider
 from .errors import TaskCreationError, ProviderError
 from .routers import create_router
@@ -36,14 +35,14 @@ class KubernetesProvider(ClusterProvider):
     def __init__(self, args={}):
         super().__init__('kubernetes', args)
 
-        # hacky way to check if we're running within a pod
-        if ENV_TASK_CLUSTER in os.environ:
+        try:
+            # attempt to load incluster config if available
             config.load_incluster_config()
-        else:
+        except kubernetes.config.ConfigException:
+            # load local config
             config.load_kube_config(context=self.args.get('context', None))
 
-        configuration = client.Configuration()
-        self.client = kubernetes.client.ApiClient(configuration)
+        self.client = kubernetes.client.ApiClient(client.Configuration())
         self.core = client.CoreV1Api(self.client)
         self.ext = client.ExtensionsV1beta1Api(self.client)
         self.custom = client.CustomObjectsApi(self.client)
