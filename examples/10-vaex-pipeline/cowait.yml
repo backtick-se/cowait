@@ -1,3 +1,13 @@
 version: 1
 cowait:
-    image: cowait/task-example-10
+  image: cowait/task-example-10
+  storage:
+    minio:
+      protocol: s3
+      key: minio
+      secret: minio123
+      client_kwargs:
+        endpoint_url: http://minio:9000
+    s3:
+      protocol: s3
+      anon: True

@@ -1,17 +1,20 @@
 import vaex, s3fs
 
 from cowait import Task
-from utils import get_outpath
+from cowait.types import FileType
+from utils import vaex_open, vaex_export
 
 
 class CsvToHdf5(Task):
-    async def run(self, inpath, size):
-        print("Reading data to dataframe, input path:", inpath)
-        fs = s3fs.S3FileSystem(anon=True)
+    async def run(self, inpath: str, size: str) -> FileType:
+        print("Reading CSV data to dataframe, input path:", inpath)
 
-        outpath = get_outpath(size, 'taxi.hdf5')
+        df = vaex.open(f'{inpath}?anon=True')
         
-        with fs.open(inpath, "r") as f:
-            vaex.from_csv(f, convert=outpath)
+        print(self.storage.minio)
 
-        return outpath
+        f = self.storage.minio.open(f'taxi/{size}/taxi.hdf5', 'wb')
+
+        vaex_export(df, f)
+
+        return f    # returns a <S3File> handle to the written file.

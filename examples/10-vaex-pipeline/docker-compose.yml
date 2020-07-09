@@ -1,0 +1,19 @@
+version: "3.7"
+
+# starts minio on port 9000
+services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    command: server /data
+    volumes:
+      - ./data:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+
+networks:
+  default:
+    external:
+      name: cowait

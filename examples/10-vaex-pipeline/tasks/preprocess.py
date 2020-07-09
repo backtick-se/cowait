@@ -2,12 +2,13 @@ import vaex
 import numpy as np
 
 from cowait import Task
-from utils import get_outpath
-
+from cowait.types import FileType
+from utils import vaex_open, vaex_export
 
 class Preprocess(Task):
-    async def run(self, inpath, size):
-        df       = vaex.open(inpath)
+    async def run(self, file: FileType, size: str) -> FileType:
+        print(file)
+        df       = vaex_open(file)
         orig_len = len(df)
 
         # Fix types, saves some memory (& disk space when dumping to hdf5)
@@ -35,7 +36,7 @@ class Preprocess(Task):
         print('Removed', orig_len - len(df), 'outlier rows')
         print('Total number of new rows:', len(df))
 
-        outpath = get_outpath(size, 'processed.hdf5')
-        df.export(outpath)
+        with self.storage.minio.open(f'taxi/{size}/processed.hdf5') as f:
+            vaex_export(df, f)
 
-        return outpath
+        return f

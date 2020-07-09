@@ -4,10 +4,11 @@ from sklearn.naive_bayes import CategoricalNB
 from sklearn.metrics import accuracy_score
 
 from cowait import Task
-from utils import get_outpath, get_classes
+from cowait.types import FileType
+from utils import vaex_open, vaex_export
 
 class Fit(Task):
-    async def run(self, inpath, alpha, size):
+    async def run(self, file: FileType, alpha: float, size: str) -> dict:
         model      = CategoricalNB(alpha=alpha)
         vaex_model = IncrementalPredictor(features=['PULocationID', 'dayofweek', 'hour'],
                                           target='DOLocationID',
@@ -16,18 +17,19 @@ class Fit(Task):
                                           partial_fit_kwargs={'classes': get_classes()}
                                          )
 
-        df = vaex.open(inpath)
+        df = vaex_open(file)
         vaex_model.fit(df=df, progress=True)
 
         df  = vaex_model.transform(df=df)
         acc = accuracy_score(y_true=df['DOLocationID'].values,
                              y_pred=df['prediction'].values)
 
-        outpath = get_outpath(size, f'model-{self.id}.json') # task id used to seperate result output paths
-        json.dump(df.state_get(), open(outpath, 'w'))
+        # task id used to seperate result output paths
+        with self.storage.minio.open(f'taxi/{size}/model_{self.id}.json') as f:
+            json.dump(df.state_get(), f)
 
         return {
             'alpha': alpha,
             'acc': acc,
-            'path': outpath
+            'state': f
         }

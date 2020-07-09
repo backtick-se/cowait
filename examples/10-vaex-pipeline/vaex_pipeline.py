@@ -9,11 +9,11 @@ class VaexPipeline(Task):
         s3_path     = f's3://cowait/yellow_2019-{size}.csv'
 
         hdf5        = await CsvToHdf5(inpath=s3_path, size=size)
-        processed   = await Preprocess(inpath=hdf5, size=size)
-        train, test = await TrainTestSplit(inpath=processed, test_size=0.25, size=size)
+        processed   = await Preprocess(file=hdf5, size=size)
+        train, test = await TrainTestSplit(file=processed, test_size=0.25, size=size)
 
-        model       = await TrainModel(inpath=train, size=size)
-        test_acc    = await TestModel(inpath=test, state_path=model['path'])
+        model       = await TrainModel(file=train, size=size)
+        test_acc    = await TestModel(file=test, state_file=model['state'])
 
         return {
             'alpha': model['alpha'],
