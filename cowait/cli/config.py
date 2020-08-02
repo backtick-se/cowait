@@ -29,6 +29,10 @@ class CowaitConfig(SettingsDict):
     @property
     def default_cluster(self) -> str:
         return self.get('default_cluster', 'docker', False)
+    
+    @default_cluster.setter
+    def default_cluster(self, value):
+        self.set("default_cluster", value)
 
     def get_cluster(self, cluster_name: str = None):
         if cluster_name is None:
