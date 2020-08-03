@@ -86,9 +86,9 @@ def new(name: str, image: str, base: str):
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
-@click.option('-f', '--json', '--yml', '--yaml', 'file', 
-              help='yaml/json file with inputs', 
-              type=str, 
+@click.option('-f', '--json', '--yml', '--yaml', 'file',
+              help='yaml/json file with inputs',
+              type=str,
               default=None)
 @click.option('--raw',
               type=bool, is_flag=True,
@@ -105,6 +105,7 @@ def run(
     upstream: str, build: bool, detach: bool,
     file: str, raw: bool, quiet: bool
 ):
+    ctx.obj.load()
     if cluster is not None:
         ctx.obj.default_cluster = cluster
 
