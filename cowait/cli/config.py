@@ -2,6 +2,7 @@ import os.path
 from cowait.engine import get_cluster_provider
 from .const import CONTEXT_FILE_NAME
 from .settings_dict import SettingsDict
+from .utils import find_file_in_parents
 
 
 def get_config_path():
@@ -29,7 +30,7 @@ class CowaitConfig(SettingsDict):
     @property
     def default_cluster(self) -> str:
         return self.get('default_cluster', 'docker', False)
-    
+
     @default_cluster.setter
     def default_cluster(self, value):
         self.set("default_cluster", value)
@@ -45,7 +46,8 @@ class CowaitConfig(SettingsDict):
     @staticmethod
     def load(path: str = None) -> None:
         if path is None:
-            path = get_config_path()
+            path = find_file_in_parents(
+                os.getcwd(), CONTEXT_FILE_NAME)  # get_config_path()
 
         if not os.path.exists(path):
             return CowaitConfig(data={})
