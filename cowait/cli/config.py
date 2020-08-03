@@ -49,7 +49,7 @@ class CowaitConfig(SettingsDict):
             path = find_file_in_parents(
                 os.getcwd(), CONTEXT_FILE_NAME)  # get_config_path()
 
-        if not os.path.exists(path):
+        if not path or not os.path.exists(path):
             return CowaitConfig(data={})
 
         return CowaitConfig(path=path)
