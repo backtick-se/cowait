@@ -18,8 +18,8 @@ class CowaitConfig(SettingsDict):
     ):
         super().__init__(path=path, data=data)
         self.set('clusters', {
-            'docker': {'type': 'docker'},
-            'kubernetes': {'type': 'kubernetes'},
+            'docker': self.data.get('cowait', {}).get('clusters', {}).get("docker", {'type': 'docker'}),
+            'kubernetes': self.data.get('cowait', {}).get('clusters', {}).get("kubernetes", {'type': 'kubernetes'}),
             **self.get('clusters', {}),
         })
 

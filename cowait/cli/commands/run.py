@@ -182,10 +182,12 @@ class RunLogger(Logger):
     def on_init(self, task: dict, version: str, **msg):
         self.print_time()
         self.print_id(task['id'])
+        
         self.print(
             f' {fg.yellow}*{rs.all} started with',
-            self.json(task['inputs'], indent=2),
+            self.json({k: (v if len(json.dumps(v)) < 50 else '..')  for k, v in task['inputs'].items()}, indent=2),
         )
+
         if task['parent'] is not None:
             self.print(' by [')
             self.print_id(task['parent'], pad=False)
