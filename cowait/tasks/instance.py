@@ -35,6 +35,5 @@ class TaskInstanceSchema(TaskDefinitionSchema):
     result = fields.Raw(allow_none=True)
     log = fields.Str(allow_none=True)
 
-    @post_load
-    def make_taskinstance(self, data: dict, **kwargs) -> TaskInstance:
+    def make_instance(self, data: dict) -> TaskInstance:
         return TaskInstance(**data)

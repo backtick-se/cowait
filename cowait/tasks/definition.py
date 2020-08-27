@@ -132,5 +132,8 @@ class TaskDefinitionSchema(Schema):
     )
 
     @post_load
-    def make_taskdef(self, data: dict, **kwargs) -> TaskDefinition:
+    def make_class(self, data: dict, **kwargs):
+        return self.make_instance(data)
+
+    def make_instance(self, data: dict) -> TaskDefinition:
         return TaskDefinition(**data)

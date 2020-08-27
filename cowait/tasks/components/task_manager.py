@@ -3,7 +3,7 @@ from typing import Any
 from cowait.utils import Version
 from ..status import WAIT, WORK, FAIL
 from ..messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
-from ..definition import TaskDefinition
+from ..instance import TaskInstance
 from ..remote_task import RemoteTask
 
 
@@ -69,7 +69,7 @@ class TaskManager(dict):
         else:
             # this task is not known - its either a virtual task or a child of a child.
             # check if it has the running task set as its parent, if so, try to adopt it.
-            taskdef = TaskDefinition.deserialize(task)
+            taskdef = TaskInstance.deserialize(task)
             if taskdef.parent != self.task.id:
                 return
 
