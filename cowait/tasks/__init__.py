@@ -9,6 +9,7 @@ from .errors import TaskError, TaskNotFoundError
 from .task import Task
 from .remote_task import RemoteTask
 from .definition import TaskDefinition
+from .instance import TaskInstance
 from .decorator import task
 from .ops import join, gather
 

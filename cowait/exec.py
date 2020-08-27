@@ -29,6 +29,7 @@ async def main():
     # execute task
     try:
         await execute(cluster, taskdef)
+        await asyncio.sleep(0.1)
 
     except Exception:
         print(json.dumps({

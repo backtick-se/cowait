@@ -1,6 +1,6 @@
 from cowait.network import Conn
-from cowait.tasks import TaskDefinition
-from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
+from ..instance import TaskInstance
+from ..messages import TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
 
 
 class TaskList(dict):
@@ -14,7 +14,7 @@ class TaskList(dict):
         task.node.children.on(TASK_LOG, self.on_log)
 
     async def on_init(self, conn: Conn, id: str, task: dict, **msg):
-        self[id] = TaskDefinition.deserialize(task)
+        self[id] = TaskInstance.deserialize(task)
 
     async def on_status(self, conn: Conn, id, status, **msg):
         if id in self:
