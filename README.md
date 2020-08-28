@@ -6,13 +6,13 @@
 [![](https://img.shields.io/static/v1?label=docs&message=gitbook&color=blue)](http://docs.cowait.io/)
 [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](http://cowait.io/)
 
-Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called *Tasks*, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. However, Cowait can be used to easily build many types of distributed applications.
+Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called *Tasks*, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. Because of the loose definition of what a Task could be, and the integration with Docker & Kubernetes, Cowait can be used to easily build many types of distributed applications.
 
 Check out the documentation at https://docs.cowait.io/
 
 ## Notice
 
-Cowait is still in fairly early development. We invite you to try it out and gladly accept your feedback and contributions, but please be aware that breaking API changes may be introduced. Or things might straight up break occasionally.
+Cowait is still in fairly early development. We invite you to try it out and gladly accept your feedback and contributions, but please be aware that breaking API changes may be introduced.
 
 ## Getting Started
 
@@ -30,7 +30,9 @@ $ pip install cowait
 
 ### First Task
 
-1. **Write a task class.**
+1. **Write a task.**
+
+Tasks can be written as decorated functions or subclasses of `cowait.Task`. The easiest way is to write a decorated function:
 
 ```python
 # hello.py
@@ -41,9 +43,9 @@ async def Hello():
     print('Hello World')
 ```
 
-2. **Build the task image**
+2. **Build a task image**
 
-All files within the current directory is bundled into a task image.
+All files within the current directory is bundled into a docker image.
 
 In the same folder as `hello.py`, run:
 
@@ -53,46 +55,73 @@ $ cowait build
 
 3. **Run it locally**
 
-To run a task, pass the name of the module containing the task to `cowait run`. In the same folder as `hello.py`, run:
+To run a task, pass the name of the module import name to `cowait run`. Since our task code lives in `hello.py`, the module name will be `hello`. In the same folder as `hello.py`, run:
 
 ```bash
 $ cowait run hello
 ```
 
 **Notes**
-- `hello` supplied to `cowait run` is the module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
-- Function/class name of the task does not matter when running, only when importing and running from other tasks.
+- `hello` supplied to `cowait run` is the python module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
+- The actual function/class name of the task does not matter when running from the CLI, only when importing and executing tasks from python.
 
 ### Subtasks, Arguments & Return Values
 
-Tasks can create subtasks, by importing and calling other tasks as if they were asynchronous python functions. Subtasks accept arguments and return results. Arguments and results must be JSON serializable.
+Tasks can execute subtasks by importing and calling asynchronously using the `await` keyword. Subtasks accept named arguments and return results, much like regular functions.
+
+Suppose we have a `Square` task that squares an integer.
 
 ```python
+# square.py
 from cowait import task
-from some_subtask import SomeSubtask
 
 @task
-async def MainTask(some_input: int = 5):
-    subtask_result = await SomeSubtask(custom_argument = 'hello')
-    print('Subtask finished with result', subtask_result)
-    return 'ok'
+async def Square(number: int) -> int:
+    return number ** 2
+```
+
+We can import it to another task and execute it:
+
+```python
+# main.py
+from cowait import task
+from square import Square
+
+@task
+async def MainTask():
+    value = 22
+    squared = await Square(number=22)
+    print(f'{value} squared is {squared}!')
 ```
 
 ### Task Contexts
 
-Tasks belong to a *Task Context*. If you have not explicitly defined one by creating a `cowait.yml` file, the enclosing folder will be used along with sensible defaults. Everything in the task context directory will be bundled into the final task image. A task context can be used to package multiple tasks into a single image, customize dockerfiles, and to add extra pip requirements.
+A task context is a directory containing a `cowait.yml` configuration file. This directory will act as the root of a project, and everything within this folder is copied into the resulting docker image during the build step. If you have not created a `cowait.yml` file, the current working directory (when executing `cowait build`) will be used.
+
+** Example Task Context **
+```
+ /var/stuff/my_cowait_project
+   src/
+     library.py
+   cowait.yml
+   requirements.txt
+   task1.py
+   task2.py
+```
+
+In this case, `/var/stuff/my_cowait_project` will be the context directory.
 
 ### Pushing Task Images
 
-Before you can run tasks on a remote cluster, they must be pushed to a docker registry accessible from the cluster. To do this, you must define a proper image name in the context configuration file.
+Before you can run tasks on a Kubernetes cluster, they must be pushed to a docker registry that is accessible from the cluster. To do this, you must define a proper image name in the context configuration file.
 
 ```yaml
 version: 1
 cowait:
-    image: cowait/task-test
+    image: docker.io/username/cowait-task
 ```
 
-Once the image url has been configured, you can push the image:
+Once the full image name has been configured, you can push the image using `cowait push`:
 
 ```bash
 $ cowait push
@@ -112,16 +141,18 @@ $ cowait push
 
 **Kubernetes Configuration**
 
-Before you can run tasks on a kubernetes cluster, you need to apply some RBAC rules to allow pods to interact with other pods. A sample configuration is provided in `k8setup.yml`, which will allow pods owned by the default service account to create, list and destroy other pods.
+Before you can run tasks on a kubernetes cluster, you need a service account with permissions to create/list pods. A sample configuration is provided in `k8setup.yml`, which will allow any pods owned by the default service account to create, list and destroy other pods. 
 
-Tasks will run on your default configured cluster (the one returned by `$ kubectl config current-context`).
+For detailed information about running on Kubernetes, see the [documentation](https://docs.cowait.io/kubernetes/setup]).
 
 **Running Tasks**
 
-Once the cluster has been configured, simply run a task with the kubernetes cluster provider:
+To run tasks on a remote cluster, pass the cluster name using the `--cluster` option to `cowait run`. 
+
+Cowait comes with a predefined cluster called `kubernetes` which always refers to your default configured cluster (the one returned by `$ kubectl config current-context`).
 
 ```bash
-$ cowait run hello --cluster kubernetes
+$ cowait run docker.io/username/cowait-task --cluster kubernetes
 ```
 
 ## Development
@@ -140,12 +171,6 @@ Changes to the `cowait/` directory require a rebuild of the base image. You can 
 
 ```bash
 $ ./build.sh
-```
-
-If you have access to `cowait` on Docker Hub you can also push it automatically:
-
-```bash
-$ ./build.sh --push
 ```
 
 **Note:** Tasks will have to rebuilt with `cowait build` for the changes to take effect.
