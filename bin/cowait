@@ -219,11 +219,15 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
               type=bool, is_flag=True,
               help='build and push first',
               default=False)
+@click.option('-i', '--image',
+              type=str,
+              default=None,
+              help='default image')
 @click.pass_context
-def notebook(ctx, cluster, build):
+def notebook(ctx, cluster, build, image):
     if cluster is not None:
         ctx.obj.default_cluster = cluster
-    cowait.cli.notebook(ctx.obj, build)
+    cowait.cli.notebook(ctx.obj, build, image)
 
 
 #
