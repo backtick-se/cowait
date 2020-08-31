@@ -4,6 +4,7 @@ from cowait.utils import StreamCapturing
 from .io_thread import IOThread
 from .logger import Logger
 from .parent_client import ParentClient
+from .resource_monitor import ResourceMonitor
 
 
 class WorkerNode(object):
@@ -48,3 +49,12 @@ class WorkerNode(object):
             on_stderr=logger('stderr'),
             silence=True,
         )
+
+    def monitor_system(self):
+        async def monitor_loop(interval, parent):
+            monitor = ResourceMonitor()
+            while True:
+                await asyncio.sleep(interval)
+                await parent.send_stats(monitor.stats())
+
+        self.io.create_task(monitor_loop(1, self.parent))
