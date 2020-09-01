@@ -2,14 +2,15 @@
 Task worker entry point.
 
 Environment:
-    TASK_CLUSTER (json): JSON-serialized ClusterProvider
-    TASK_DEFINITION (json): JSON-serialized TaskDefinition
+    COWAIT_CLUSTER (json): JSON-serialized ClusterProvider
+    COWAIT_TASK (json): JSON-serialized TaskDefinition
 """
 import os
 import sys
 import json
 import asyncio
 import traceback
+import nest_asyncio
 from cowait.tasks.messages import TASK_FAIL
 from cowait.worker import execute, \
     env_get_cluster_provider, \
@@ -40,6 +41,9 @@ async def main():
         os._exit(1)
 
     os._exit(0)
+
+# apply a patch that allows nested asyncio loops
+nest_asyncio.apply()
 
 # run asyncio loop
 asyncio.run(main())
