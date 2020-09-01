@@ -79,7 +79,7 @@ class TaskDefinition(object):
         self.upstream = upstream
         self.inputs = inputs
         self.meta = meta
-        self.env = env
+        self.env = { str(k): str(v) for k, v in env.items() }
         self.ports = ports
         self.routes = routes
         self.cpu = cpu
