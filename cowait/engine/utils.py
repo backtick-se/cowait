@@ -6,7 +6,7 @@ from base64 import b64encode, b64decode
 def env_pack(value):
     value = json.dumps(value).encode('utf-8')
     value = gzip.compress(value)
-    return b64encode(value)
+    return b64encode(value).decode('utf-8')
 
 
 def env_unpack(value):

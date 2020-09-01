@@ -2,4 +2,4 @@ version: '2'
 services:
   spark:
     build: './spark'
-    image: 'cowait/task-spark'
+    image: 'cowait/spark'

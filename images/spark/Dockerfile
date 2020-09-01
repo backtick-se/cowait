@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install -y wget default-jre-headless
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 
 # install spark
-ENV SPARK_VERSION=3.0.0-preview2
+ENV SPARK_VERSION=3.0.0
 ENV HADOOP_VERSION=3.2
-ENV PY4J_VERSION=0.10.8.1
+ENV PY4J_VERSION=0.10.9
 
 RUN wget \
         -O spark.tgz https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
