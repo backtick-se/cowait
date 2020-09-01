@@ -71,11 +71,13 @@ class ClusterProvider(EventEmitter):
             ENV_TASK_DEFINITION: env_pack(taskdef.serialize()),
         }
 
+        # check total length of environment data
         length = 0
         for key, value in env.items():
-            length += len(key) + len(value)
+            length += len(str(key)) + len(str(value))
+
         if length > MAX_ENV_LENGTH:
-            raise ProviderError(f'Task input too long. Was {length}, max: {MAX_ENV_LENGTH}')
+            raise ProviderError(f'Task environment too long. Was {length}, max: {MAX_ENV_LENGTH}')
 
         return env
 
