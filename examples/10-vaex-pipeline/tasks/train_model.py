@@ -10,9 +10,7 @@ class TrainModel(Task):
         df      = vaex.open(inpath)
         alphas  = [0.1, 0.5, 1.0]
 
-        # parallel parameter search
-        tasks   = [Fit(inpath=inpath, alpha=a, size=size) for a in alphas]
-        results = await join(tasks)
+        results   = [await Fit(inpath=inpath, alpha=a, size=size) for a in alphas]
 
         winner  = max(results, key=lambda x: x['acc'])
 

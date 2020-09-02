@@ -20,8 +20,7 @@ class Fit(Task):
         vaex_model.fit(df=df, progress=True)
 
         df  = vaex_model.transform(df=df)
-        acc = accuracy_score(y_true=df['DOLocationID'].values,
-                             y_pred=df['prediction'].values)
+        acc = (df['DOLocationID'] == df['prediction']).sum() / len(df)
 
         outpath = get_outpath(size, f'model-{self.id}.json') # task id used to seperate result output paths
         json.dump(df.state_get(), open(outpath, 'w'))

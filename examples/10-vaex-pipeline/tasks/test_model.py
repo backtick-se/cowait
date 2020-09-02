@@ -10,7 +10,6 @@ class TestModel(Task):
         
         df.state_set(state)
 
-        acc = accuracy_score(y_true=df['DOLocationID'].values,
-                             y_pred=df.prediction.values)
+        acc = (df['DOLocationID'] == df['prediction']).sum() / len(df)
 
         return acc
