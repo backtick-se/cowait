@@ -160,8 +160,6 @@ class RunLogger(Logger):
         self.println('   image:     ', self.json(taskdef.image))
         if len(taskdef.inputs) > 0:
             self.println('   inputs:    ', self.json(taskdef.inputs))
-        if len(taskdef.env) > 0:
-            self.println('   env:       ', self.json(taskdef.env))
         if len(taskdef.volumes) > 0:
             self.println('   volumes:   ', self.json(taskdef.volumes))
         if len(taskdef.storage) > 0:
