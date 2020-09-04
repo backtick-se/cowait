@@ -226,7 +226,7 @@ def kill(ctx, cluster: str, task: str):
 @click.pass_context
 def kill_name_search(ctx, cluster: str, partial_task_id: str):
     ctx.obj.load()
-
+    
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.kill_name_search(ctx.obj, partial_task_id)
