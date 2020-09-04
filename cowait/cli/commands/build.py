@@ -56,6 +56,7 @@ def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> T
         image.build(
             base=base_image,
             requirements=requirements,
+            quiet=quiet,
         )
 
         return image
