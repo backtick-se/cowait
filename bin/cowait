@@ -240,8 +240,15 @@ def notebook(ctx, cluster, build, image):
               default=None,
               type=str,
               help='task working directory')
-def build(workdir: str):
-    cowait.cli.build(workdir)
+@click.option('-i', '--image',
+              default=None,
+              type=str,
+              help='image name')
+def build(workdir: str, image: str):
+    cowait.cli.build(
+        workdir=workdir, 
+        image_name=image,
+    )
 
 
 @cli.command(help='push a task to the registry')
