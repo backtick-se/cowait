@@ -9,7 +9,7 @@ from ..context import CowaitContext, CONTEXT_FILE_NAME
 from ..logger import Logger
 
 
-def build(quiet: bool = False, workdir: str = None) -> TaskImage:
+def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> TaskImage:
     logger = Logger(quiet)
     try:
         if not CowaitContext.exists():
@@ -19,6 +19,9 @@ def build(quiet: bool = False, workdir: str = None) -> TaskImage:
 
         context = CowaitContext.open()
         context.override('workdir', workdir)
+
+        if image_name is not None:
+            context.override('image', image_name)
 
         image = TaskImage.open(context)
         logger.header('BUILD')
@@ -53,6 +56,7 @@ def build(quiet: bool = False, workdir: str = None) -> TaskImage:
         image.build(
             base=base_image,
             requirements=requirements,
+            quiet=quiet,
         )
 
         return image
