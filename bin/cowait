@@ -195,6 +195,8 @@ def rm(ctx, cluster: str):
               help='cluster name')
 @click.pass_context
 def ps(ctx, cluster: str):
+    ctx.obj.load()
+    
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.list_tasks(ctx.obj)
@@ -208,6 +210,8 @@ def ps(ctx, cluster: str):
 @click.argument('task', type=str)
 @click.pass_context
 def kill(ctx, cluster: str, task: str):
+    ctx.obj.load()
+
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.kill(ctx.obj, task)
@@ -221,6 +225,8 @@ def kill(ctx, cluster: str, task: str):
 @click.argument('partial_task_id', type=str)
 @click.pass_context
 def kill_name_search(ctx, cluster: str, partial_task_id: str):
+    ctx.obj.load()
+
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.kill_name_search(ctx.obj, partial_task_id)
