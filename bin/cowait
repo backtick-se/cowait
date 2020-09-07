@@ -196,7 +196,7 @@ def rm(ctx, cluster: str):
 @click.pass_context
 def ps(ctx, cluster: str):
     ctx.obj.load()
-
+    
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.list_tasks(ctx.obj)
