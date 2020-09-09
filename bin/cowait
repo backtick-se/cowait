@@ -114,6 +114,14 @@ def new(name: str, image: str, base: str):
               type=bool, is_flag=True,
               help='no output except result',
               default=False)
+@click.option('--cpu',
+              help='cpu for task, for example 0.1 or 2.4',
+              type=str,
+              default='0')
+@click.option('--memory',
+              help='memory resouce for task, for example 0.1 or 2.4',
+              type=str,
+              default='0')
 @click.pass_context
 def run(
     ctx, task: str, cluster: str, name: str,
@@ -196,7 +204,7 @@ def rm(ctx, cluster: str):
 @click.pass_context
 def ps(ctx, cluster: str):
     ctx.obj.load()
-    
+
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.list_tasks(ctx.obj)
