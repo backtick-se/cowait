@@ -80,13 +80,13 @@ class KubernetesProvider(ClusterProvider):
                 ports=self.create_ports(taskdef),
                 image_pull_policy='Always',  # taskdef field??
                 resources=client.V1ResourceRequirements(
-                    limits={
-                        'cpu': str(taskdef.cpu),
-                        'memory': str(taskdef.memory),
-                    },
                     requests={
-                        'cpu': str(taskdef.cpu),
-                        'memory': str(taskdef.memory),
+                        'cpu': str(taskdef.cpu or '0'),
+                        'memory': str(taskdef.memory or '0'),
+                    },
+                    limits={
+                        'cpu': str(taskdef.cpu_limit or '0'),
+                        'memory': str(taskdef.memory_limit or '0'),
                     },
                 ),
             )
