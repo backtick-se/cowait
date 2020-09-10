@@ -24,8 +24,10 @@ def run(
     build: bool = False,
     upstream: str = None,
     detach: bool = False,
-    cpu: str = '0',
-    memory: str = '0',
+    cpu: str = None,
+    cpu_limit: str = None,
+    memory: str = None,
+    memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
 ):
@@ -73,8 +75,10 @@ def run(
             upstream=context.coalesce('upstream', upstream, agent),
             owner=getpass.getuser(),
             volumes=volumes,
-            memory=memory,
-            cpu=cpu,
+            cpu=context.override('cpu', cpu),
+            cpu_limit=context.override('cpu_limit', cpu_limit),
+            memory=context.override('memory', memory),
+            memory_limit=context.override('memory_limit', memory_limit),
             storage=context.get('storage', {}),
         )
 
@@ -164,6 +168,10 @@ class RunLogger(Logger):
             self.println('   volumes:   ', self.json(taskdef.volumes))
         if len(taskdef.storage) > 0:
             self.println('   storage:   ', ', '.join(taskdef.storage.keys()))
+        if taskdef.cpu or taskdef.cpu_limit:
+            self.println(f'   cpu:        {taskdef.cpu}/{taskdef.cpu_limit}')
+        if taskdef.memory or taskdef.memory_limit:
+            self.println(f'   memory:     {taskdef.memory}/{taskdef.memory_limit}')
 
     def print(self, *args):
         if self.raw:

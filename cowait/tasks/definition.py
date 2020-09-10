@@ -30,30 +30,34 @@ class TaskDefinition(object):
         ports (dict): Port forwards
         routes (dict): HTTP Ingresses
         volumes (dict): List of volumes
-        cpu (str): CPU allocation
-        memory (str): Memory allocation
+        cpu (str): CPU request
+        cpu_limit (str): CPU limit
+        memory (str): Memory request
+        memory_limit (str): Memory limit
         owner (str): Owner name
         created_at (DateTime): Creation date
     """
 
     def __init__(
         self,
-        name:      str,
-        image:     str,
-        id:        str = None,
-        upstream:  str = None,
-        parent:    str = None,
-        inputs:    dict = {},
-        meta:      dict = {},
-        env:       dict = {},
-        ports:     dict = {},
-        routes:    dict = {},
-        volumes:   dict = {},
-        storage:   dict = {},
-        cpu:       str = '0',
-        memory:    str = '0',
-        owner:     str = '',
-        created_at: datetime = None,
+        name:         str,
+        image:        str,
+        id:           str = None,
+        upstream:     str = None,
+        parent:       str = None,
+        inputs:       dict = {},
+        meta:         dict = {},
+        env:          dict = {},
+        ports:        dict = {},
+        routes:       dict = {},
+        volumes:      dict = {},
+        storage:      dict = {},
+        cpu:          str = None,
+        cpu_limit:    str = None,
+        memory:       str = None,
+        memory_limit: str = None,
+        owner:        str = '',
+        created_at:   datetime = None,
     ):
         """
         Arguments:
@@ -67,23 +71,27 @@ class TaskDefinition(object):
             ports (dict): Port forwards
             routes (dict): HTTP Ingresses
             volumes (dict): List of volumes
-            cpu (str): CPU allocation
-            memory (str): Memory allocation
+            cpu (str): CPU request
+            cpu_limit (str): CPU limit
+            memory (str): Memory request
+            memory_limit (str): Memory limit
             owner (str): Owner name
             created_at (DateTime): Creation date
         """
-        self.id = generate_task_id(name) if not id else id
+        self.id = generate_task_id(name) if id is None else id
         self.name = name
         self.image = image
         self.parent = parent
         self.upstream = upstream
         self.inputs = inputs
         self.meta = meta
-        self.env = { str(k): str(v) for k, v in env.items() }
+        self.env = {str(k): str(v) for k, v in env.items()}
         self.ports = ports
         self.routes = routes
         self.cpu = cpu
+        self.cpu_limit = cpu_limit
         self.memory = memory
+        self.memory_limit = memory_limit
         self.owner = owner
         self.volumes = volumes
         self.storage = storage
@@ -120,8 +128,10 @@ class TaskDefinitionSchema(Schema):
     env = fields.Dict(missing={})
     ports = fields.Dict(missing={})
     routes = fields.Dict(missing={})
-    cpu = fields.Str(missing='0')
-    memory = fields.Str(missing='0')
+    cpu = fields.Str(allow_none=True)
+    cpu_limit = fields.Str(allow_none=True)
+    memory = fields.Str(allow_none=True)
+    memory_limit = fields.Str(allow_none=True)
     owner = fields.Str(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
     storage = fields.Dict(missing={})

@@ -45,6 +45,9 @@ class DockerProvider(ClusterProvider):
 
             self.emit_sync('prepare', taskdef=taskdef)
 
+            cpu_period = 100000
+            cpu_quota = float(taskdef.cpu_limit or 0) * cpu_period
+
             container = self.docker.containers.run(
                 detach=True,
                 image=taskdef.image,
@@ -54,6 +57,10 @@ class DockerProvider(ClusterProvider):
                 ports=self.create_ports(taskdef),
                 environment=self.create_env(taskdef),
                 mounts=self.create_mounts(taskdef.volumes),
+                cpu_quota=int(cpu_quota),
+                cpu_period=int(cpu_period),
+                mem_reservation=str(taskdef.memory or 0),
+                mem_limit=str(taskdef.memory_limit or 0),
                 labels={
                     LABEL_TASK_ID: taskdef.id,
                     LABEL_PARENT_ID: taskdef.parent,

@@ -86,6 +86,22 @@ def new(name: str, image: str, base: str):
               type=bool, is_flag=True,
               help='run in detached mode',
               default=False)
+@click.option('--cpu',
+              help='cpu request',
+              type=str,
+              default=None)
+@click.option('--cpu-limit',
+              help='cpu limit',
+              type=str,
+              default=None)
+@click.option('--memory', '--mem',
+              help='memory request',
+              type=str,
+              default=None)
+@click.option('--memory-limit', '--mem-limit',
+              help='memory limit',
+              type=str,
+              default=None)
 @click.option('-f', '--json', '--yml', '--yaml', 'file', 
               help='yaml/json file with inputs', 
               type=str, 
@@ -103,6 +119,7 @@ def run(
     ctx, task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
+    cpu: str, cpu_limit: str, memory: str, memory_limit: str,
     file: str, raw: bool, quiet: bool
 ):
     if cluster is not None:
@@ -135,6 +152,10 @@ def run(
         detach=detach,
         raw=raw,
         quiet=quiet,
+        cpu=cpu,
+        cpu_limit=cpu_limit,
+        memory=memory,
+        memory_limit=memory_limit,
     )
 
 
