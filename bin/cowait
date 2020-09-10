@@ -19,7 +19,7 @@ def option_val(val):
 def option_dict(opts):
     options = {}
     for [key, val] in opts:
-        options[key] = str(option_val(val))
+        options[key] = option_val(val)
     return options
 
 
