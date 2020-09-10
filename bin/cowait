@@ -19,7 +19,7 @@ def option_val(val):
 def option_dict(opts):
     options = {}
     for [key, val] in opts:
-        options[key] = str(option_val(val))
+        options[key] = option_val(val)
     return options
 
 
@@ -102,9 +102,9 @@ def new(name: str, image: str, base: str):
               help='memory limit',
               type=str,
               default=None)
-@click.option('-f', '--json', '--yml', '--yaml', 'file', 
-              help='yaml/json file with inputs', 
-              type=str, 
+@click.option('-f', '--json', '--yml', '--yaml', 'file',
+              help='yaml/json file with inputs',
+              type=str,
               default=None)
 @click.option('--raw',
               type=bool, is_flag=True,
@@ -292,7 +292,7 @@ def notebook(ctx, cluster, build, image):
 def build(quiet: bool, workdir: str, image: str):
     cowait.cli.build(
         quiet=quiet,
-        workdir=workdir, 
+        workdir=workdir,
         image_name=image,
     )
 
