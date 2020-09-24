@@ -76,7 +76,7 @@ class ApiLogsWatcher(Thread):
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.__watch())
 
-    def watch(self, timeout=60):
+    def watch(self, timeout=300):
         self.start()
         while True:
             try:

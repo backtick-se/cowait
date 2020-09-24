@@ -28,7 +28,7 @@ class TaskManager(dict):
             await task.node.parent.send(msg)
         task.node.children.on('*', forward)
 
-    def watch(self, task, timeout=30):
+    def watch(self, task, timeout=300):
         # set up init timeout check
         self.set_init_timeout(task, timeout)
         self[task.id] = task
