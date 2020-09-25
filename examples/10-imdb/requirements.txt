@@ -33,7 +33,7 @@ rsa==4.0
 scipy==1.4.1 ; python_version >= '3'
 six==1.14.0
 tensorboard==2.1.1
-tensorflow-cpu==2.1.0
+tensorflow-cpu==2.1.2
 tensorflow-estimator==2.1.0
 termcolor==1.1.0
 urllib3==1.25.8
