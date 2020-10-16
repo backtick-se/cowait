@@ -31,7 +31,7 @@ setuptools.setup(
         'pyyaml',
         'dask',
         'distributed',
-        'kubernetes',
+        'kubernetes < 12',
         'pyyaml',
         'marshmallow',
         'aiohttp',
