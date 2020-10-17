@@ -5,6 +5,10 @@ from cowait.utils import EventEmitter
 from .rpc_client import RpcClient
 
 
+class AuthError(Exception):
+    pass
+
+
 class Client(EventEmitter):
     def __init__(self):
         super().__init__()
@@ -28,8 +32,11 @@ class Client(EventEmitter):
             try:
                 await self._connect(url, token)
             except aiohttp.ClientError as e:
-                print('Upstream connection failed:', str(e))
-                await asyncio.sleep(retries * 3)
+                if hasattr(e, 'status') and e.status == 401:
+                    raise AuthError('Upstream authentication failed')
+                else:
+                    print('Upstream connection failed:', str(e))
+                    await asyncio.sleep(retries * 3)
             finally:
                 self.ws = None
 
@@ -45,6 +52,7 @@ class Client(EventEmitter):
             async with session.ws_connect(url, headers=headers) as ws:
                 self.ws = ws
                 self.rpc = RpcClient(ws)
+                await self.emit('__connect', conn=self)
 
                 # send buffered messages
                 for msg in self.buffer:
@@ -62,10 +70,13 @@ class Client(EventEmitter):
                         await self.emit(**event, conn=self)
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
-                        print('parent ws clean close')
+                        break
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
-                        print('parent ws client error:', ws.exception())
+                        await self.emit('__error', conn=self, error=ws.exception())
+                        break
+
+                await self.emit('__close', conn=self)
 
     async def close(self):
         if self.connected:
