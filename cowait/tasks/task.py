@@ -168,7 +168,7 @@ class Task(object):
         )
 
         # authorize id
-        self.node.http.auth.add_token(taskdef.id)
+        self.node.server.auth.add_token(taskdef.id)
 
         # spawn task
         task = self.cluster.spawn(taskdef)

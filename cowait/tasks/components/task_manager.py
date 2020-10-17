@@ -15,18 +15,18 @@ class TaskManager(dict):
         self.conns = {}
 
         # subscribe to child task status updates
-        task.node.children.on(TASK_INIT, self.on_child_init)
-        task.node.children.on(TASK_STATUS, self.on_child_status)
-        task.node.children.on(TASK_RETURN, self.on_child_return)
-        task.node.children.on(TASK_FAIL, self.on_child_fail)
-        task.node.children.on('__close', self.on_child_close)
+        task.node.server.on(TASK_INIT, self.on_child_init)
+        task.node.server.on(TASK_STATUS, self.on_child_status)
+        task.node.server.on(TASK_RETURN, self.on_child_return)
+        task.node.server.on(TASK_FAIL, self.on_child_fail)
+        task.node.server.on('__close', self.on_child_close)
 
         # forward child events to parent
         async def forward(conn, **msg):
             if msg.get('type', '__')[:2] == '__':
                 return
             await task.node.parent.send(msg)
-        task.node.children.on('*', forward)
+        task.node.server.on('*', forward)
 
     def watch(self, task, timeout=30):
         # set up init timeout check
@@ -110,5 +110,5 @@ class TaskManager(dict):
                 conn=conn, id=task.id, error=f'Lost connection to {task_id}')
 
     async def emit_child_error(self, id, error, conn=None):
-        await self.task.node.children.emit(type=TASK_STATUS, id=id, status=FAIL, conn=conn)
-        await self.task.node.children.emit(type=TASK_FAIL, id=id, conn=conn, error=error)
+        await self.task.node.server.emit(type=TASK_STATUS, id=id, status=FAIL, conn=conn)
+        await self.task.node.server.emit(type=TASK_FAIL, id=id, conn=conn, error=error)

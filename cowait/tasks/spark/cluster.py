@@ -50,7 +50,7 @@ class SparkCluster(Task):
         self.app_name = self.id
 
         # subscribe to logs
-        self.node.children.on(TASK_LOG, self.on_log)
+        self.node.server.on(TASK_LOG, self.on_log)
 
     async def on_log(self, id, file, data, **msg) -> None:
         if self.master and id == self.master.id:
@@ -94,7 +94,7 @@ class SparkCluster(Task):
         await super().after(inputs)
 
     async def setup_cluster(self, workers=2, **config) -> None:
-        print(f'~~ creating spark cluster...')
+        print('~~ creating spark cluster...')
         print(f'~~   workers = {workers}')
 
         # create spark master

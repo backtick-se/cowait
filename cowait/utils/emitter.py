@@ -3,11 +3,13 @@ class EventEmitter(object):
     def __init__(self):
         self.callbacks = {'*': []}
 
-    def on(self, type: str, callback: callable) -> None:
+    def on(self, type: str, callback: callable) -> callable:
         try:
             self.callbacks[type].insert(0, callback)
         except KeyError:
             self.callbacks[type] = [callback]
+
+        return callback
 
     def off(self, type: str, callback: callable) -> None:
         try:

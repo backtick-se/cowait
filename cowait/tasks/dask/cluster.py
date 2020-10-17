@@ -18,7 +18,7 @@ class DaskCluster(Task):
         self.running = False
 
         # subscribe to logs
-        self.node.children.on(TASK_LOG, self.on_log)
+        self.node.server.on(TASK_LOG, self.on_log)
 
     async def on_log(self, id, file, data, **msg) -> None:
         if self.scheduler and id == self.scheduler.id:
@@ -54,7 +54,7 @@ class DaskCluster(Task):
         await super().after(inputs)
 
     async def create_cluster(self, workers=1) -> None:
-        print(f'~~ creating dask cluster...')
+        print('~~ creating dask cluster...')
         print(f'~~   workers = {workers}')
 
         # create dask scheduler

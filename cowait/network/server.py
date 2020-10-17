@@ -1,14 +1,34 @@
 import aiohttp
+from asyncio import CancelledError
 from aiohttp import web
 from cowait.utils import EventEmitter
+from aiohttp_middlewares import cors_middleware
 from .conn import Conn
+from .auth_middleware import AuthMiddleware
 
 
 class Server(EventEmitter):
-    def __init__(self, node):
+    def __init__(self, port, middlewares: list = []):
         super().__init__()
         self.conns = []
-        node.http.add_get('/ws', self.handle_client)
+        self.port = port
+        self.auth = AuthMiddleware()
+
+        # create http app
+        self.app = web.Application(
+            middlewares=[
+                *middlewares,
+                cors_middleware(allow_all=True)
+            ],
+        )
+
+        # route shortcuts
+        self.add_routes = self.app.router.add_routes
+        self.add_route = self.app.router.add_route
+        self.add_post = self.app.router.add_post
+        self.add_get = self.app.router.add_get
+
+        self.add_get('/ws', self.handle_client)
 
     async def handle_client(self, request):
         ws = web.WebSocketResponse()
@@ -28,6 +48,9 @@ class Server(EventEmitter):
 
                     await self.emit(**event, conn=conn)
 
+        except CancelledError as e:
+            raise e
+
         except Exception as e:
             await self.emit(type='__error', conn=conn, error=str(type(e)))
 
@@ -40,6 +63,16 @@ class Server(EventEmitter):
         for ws in self.conns:
             await ws.send_json(msg)
 
+    async def serve(self):
+        self._runner = web.AppRunner(self.app, handle_signals=False)
+        await self._runner.setup()
+
+        site = web.TCPSite(self._runner, host='0.0.0.0', port=self.port)
+        await site.start()
+
     async def close(self):
         for conn in self.conns:
             await conn.close()
+
+        await self._runner.cleanup()
+        self._runner = None
