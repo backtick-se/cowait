@@ -1,4 +1,4 @@
-from cowait.network import Conn
+from cowait.network import Conn, ON_CLOSE
 from cowait.utils import EventEmitter
 
 
@@ -16,7 +16,7 @@ class Subscriptions(EventEmitter):
 
         task.node.server.on('subscribe', self.subscribe)
         task.node.server.on('unsubscribe', self.unsubscribe)
-        task.node.server.on('__close', self.unsubscribe)
+        task.node.server.on(ON_CLOSE, self.unsubscribe)
         task.node.server.on('*', self.forward)
 
     async def forward(self, conn: Conn, **msg):

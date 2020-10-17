@@ -1,5 +1,6 @@
 from aiohttp import web
 from cowait.utils import uuid
+from .const import WS_PATH, API_PATH, RPC_PATH, QUERY_TOKEN
 
 
 class AuthMiddleware(object):
@@ -25,11 +26,11 @@ class AuthMiddleware(object):
         if not self.enabled:
             return True
 
-        if path == '/ws':
+        if path == f'/{WS_PATH}':
             return False
-        if path.startswith('/api/'):
+        if path.startswith(f'/{API_PATH}/'):
             return False
-        if path.startswith('/rpc/'):
+        if path.startswith(f'/{RPC_PATH}/'):
             return False
 
         return True
@@ -52,8 +53,8 @@ class AuthMiddleware(object):
                 return await handler(request)
 
         # check for query token
-        if 'token' in request.query:
-            token = request.query['token']
+        if QUERY_TOKEN in request.query:
+            token = request.query[QUERY_TOKEN]
             if self.validate_token(token):
                 return await handler(request)
 

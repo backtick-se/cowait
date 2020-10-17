@@ -1,6 +1,7 @@
 import docker
 import requests.exceptions
 from docker.types import Mount
+from cowait.network import get_remote_url
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import json_stream
 from .cluster import ClusterProvider
@@ -221,7 +222,7 @@ class DockerProvider(ClusterProvider):
                 return None
 
             token = container.labels['http_token']
-            return f'ws://agent/ws?token={token}'
+            return get_remote_url('agent', token)
 
         except docker.errors.NotFound:
             return None
