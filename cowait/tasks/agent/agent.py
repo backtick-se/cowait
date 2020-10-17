@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from cowait.tasks import Task, TaskDefinition, sleep, rpc
-from cowait.network import Conn, get_local_connstr
+from cowait.network import Conn, get_local_url
 from cowait.tasks.status import WAIT, WORK, STOP
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS
 from .tasklist import TaskList
@@ -96,7 +96,7 @@ class Agent(Task):
 
     @rpc
     async def get_agent_url(self) -> str:
-        url = get_local_connstr()
+        url = get_local_url()
         return f'{url}?token={self.token}'
 
     @rpc
@@ -124,7 +124,7 @@ class Agent(Task):
             id=id,
             name=name,
             image=image,
-            upstream=get_local_connstr(),
+            upstream=get_local_url(),
             meta=meta,
             ports=ports,
             routes=routes,

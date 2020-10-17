@@ -1,5 +1,6 @@
 import asyncio
 from typing import Any
+from cowait.network import ON_CLOSE
 from cowait.utils import Version
 from ..status import WAIT, WORK, FAIL
 from ..messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN
@@ -19,7 +20,7 @@ class TaskManager(dict):
         task.node.server.on(TASK_STATUS, self.on_child_status)
         task.node.server.on(TASK_RETURN, self.on_child_return)
         task.node.server.on(TASK_FAIL, self.on_child_fail)
-        task.node.server.on('__close', self.on_child_close)
+        task.node.server.on(ON_CLOSE, self.on_child_close)
 
         # forward child events to parent
         async def forward(conn, **msg):

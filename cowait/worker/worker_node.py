@@ -1,5 +1,5 @@
 import asyncio
-from cowait.network import Server, get_local_ip
+from cowait.network import Server, get_local_ip, WS_PATH
 from cowait.utils import StreamCapturing
 from .io_thread import IOThread
 from .logger import Logger
@@ -24,7 +24,7 @@ class WorkerNode(object):
 
     def get_url(self):
         local_ip = get_local_ip()
-        return f'ws://{local_ip}:{self.server.port}/ws'
+        return f'ws://{local_ip}:{self.server.port}/{WS_PATH}'
 
     async def close(self) -> None:
         async def _close():

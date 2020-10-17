@@ -1,10 +1,11 @@
-import aiohttp
 from asyncio import CancelledError
-from aiohttp import web
-from cowait.utils import EventEmitter
+from aiohttp import web, WSMsgType
 from aiohttp_middlewares import cors_middleware
+from cowait.utils import EventEmitter
 from .conn import Conn
+from .const import WS_PATH, ON_CONNECT, ON_CLOSE, ON_ERROR
 from .auth_middleware import AuthMiddleware
+from .errors import SocketError
 
 
 class Server(EventEmitter):
@@ -18,6 +19,7 @@ class Server(EventEmitter):
         self.app = web.Application(
             middlewares=[
                 *middlewares,
+                self.auth.middleware,
                 cors_middleware(allow_all=True)
             ],
         )
@@ -28,49 +30,59 @@ class Server(EventEmitter):
         self.add_post = self.app.router.add_post
         self.add_get = self.app.router.add_get
 
-        self.add_get('/ws', self.handle_client)
+        self.add_get(f'/{WS_PATH}', self.handle_client)
 
     async def handle_client(self, request):
-        ws = web.WebSocketResponse()
+        ws = web.WebSocketResponse(
+            timeout=30.0,
+            autoping=True,
+            heartbeat=5.0,
+        )
         await ws.prepare(request)
 
         conn = Conn(ws, request.remote)
-        await self.emit(type='__connect', conn=conn)
+        await self.emit(type=ON_CONNECT, conn=conn)
         self.conns.append(conn)
 
         try:
-            async for msg in ws:
-                if msg.type == aiohttp.WSMsgType.TEXT:
-                    event = msg.json()
+            while not ws.closed:
+                msg = await ws.receive()
+                if msg.type == WSMsgType.CLOSE:
+                    break
+                elif msg.type == WSMsgType.ERROR:
+                    raise SocketError(ws.exception())
+                elif msg.type == WSMsgType.BINARY:
+                    raise SocketError('Unexpected binary message')
 
-                    if conn.rpc.intercept_event(**event):
-                        continue
+                event = msg.json()
+                if conn.rpc.intercept_event(**event):
+                    continue
+                await self.emit(**event, conn=conn)
 
-                    await self.emit(**event, conn=conn)
+            await self.emit(type=ON_CLOSE, conn=conn)
 
         except CancelledError as e:
             raise e
 
-        except Exception as e:
-            await self.emit(type='__error', conn=conn, error=str(type(e)))
+        except SocketError as e:
+            await self.emit(type=ON_ERROR, conn=conn, error=str(e))
 
         finally:
             # disconnected
             self.conns.remove(conn)
-            await self.emit(type='__close', conn=conn)
 
     async def send(self, msg: dict) -> None:
         for ws in self.conns:
             await ws.send_json(msg)
 
-    async def serve(self):
+    async def serve(self) -> None:
         self._runner = web.AppRunner(self.app, handle_signals=False)
         await self._runner.setup()
 
         site = web.TCPSite(self._runner, host='0.0.0.0', port=self.port)
         await site.start()
 
-    async def close(self):
+    async def close(self) -> None:
         for conn in self.conns:
             await conn.close()
 

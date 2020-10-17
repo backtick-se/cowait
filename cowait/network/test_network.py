@@ -1,46 +1,46 @@
 import asyncio
+from cowait.network.errors import AuthError
 import pytest
 from cowait.test import AsyncMock
 from .server import Server
 from .client import Client
+from .const import PORT, ON_CONNECT, ON_CLOSE, ON_ERROR, WS_PATH
 
 
 @pytest.mark.network
-@pytest.mark.async_timeout(20)
 async def test_network():
-    port = 12389
-    token = 'hello team'
+    token = 'hello_team'
 
     # client setup
     client = Client()
     on_client_greeting = client.on('greeting', AsyncMock())
-    on_client_connect = client.on('__connect', AsyncMock())
-    on_client_close = client.on('__close', AsyncMock())
+    on_client_connect = client.on(ON_CONNECT, AsyncMock())
+    on_client_close = client.on(ON_CLOSE, AsyncMock())
 
     # server setup
-    server = Server(port=port)
+    server = Server(port=PORT)
     server.auth.add_token(token)
 
-    on_server_connect = server.on('__connect', AsyncMock())
-    on_server_close = server.on('__close', AsyncMock())
-    on_server_error = server.on('__error', AsyncMock())
+    on_server_connect = server.on(ON_CONNECT, AsyncMock())
+    on_server_close = server.on(ON_CLOSE, AsyncMock())
+    on_server_error = server.on(ON_ERROR, AsyncMock())
     on_server_greeting = server.on('greeting', AsyncMock())
 
     # server should send a greeting to the client upon connection
     async def send_greeting(conn):
         await conn.send({'type': 'greeting', 'message': 'hello client'})
-    server.on('__connect', send_greeting)
+    server.on(ON_CONNECT, send_greeting)
 
     # actual test code
     asyncio.create_task(server.serve())
-    asyncio.create_task(client._connect(f'ws://localhost:{port}/ws', token))
+    asyncio.create_task(client._connect(f'ws://localhost:{PORT}/{WS_PATH}', token))
 
     for _ in range(10):
         await asyncio.sleep(0.1)
         if client.connected:
             break
 
-    await client.send({ 'type': 'greeting', 'message': 'hello server' })
+    await client.send({'type': 'greeting', 'message': 'hello server'})
     await client.close()
     await server.close()
 
@@ -57,3 +57,16 @@ async def test_network():
     assert on_client_greeting.called
     assert on_client_connect.called
     assert on_client_close.called
+
+
+@pytest.mark.network
+async def test_network_authentication():
+    client = Client()
+    server = Server(port=PORT)
+
+    asyncio.create_task(server.serve())
+
+    with pytest.raises(AuthError):
+        await client.connect(f'ws://localhost:{PORT}/{WS_PATH}', '')
+
+    await server.close()

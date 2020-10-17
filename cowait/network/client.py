@@ -1,12 +1,10 @@
 import os
 import asyncio
-import aiohttp
+from aiohttp import WSMsgType, ClientError, ClientSession
 from cowait.utils import EventEmitter
 from .rpc_client import RpcClient
-
-
-class AuthError(Exception):
-    pass
+from .const import ON_CONNECT, ON_CLOSE, ON_ERROR
+from .errors import AuthError, SocketError
 
 
 class Client(EventEmitter):
@@ -31,7 +29,7 @@ class Client(EventEmitter):
             retries += 1
             try:
                 await self._connect(url, token)
-            except aiohttp.ClientError as e:
+            except ClientError as e:
                 if hasattr(e, 'status') and e.status == 401:
                     raise AuthError('Upstream authentication failed')
                 else:
@@ -47,12 +45,17 @@ class Client(EventEmitter):
             os._exit(1)
 
     async def _connect(self, url: str, token: str) -> None:
-        headers = {'Authorization': f'Bearer {token}'}
-        async with aiohttp.ClientSession() as session:
-            async with session.ws_connect(url, headers=headers) as ws:
+        async with ClientSession() as session:
+            async with session.ws_connect(
+                url,
+                headers={'Authorization': f'Bearer {token}'},
+                autoping=True,
+                heartbeat=5.0,
+                timeout=30.0,
+            ) as ws:
                 self.ws = ws
                 self.rpc = RpcClient(ws)
-                await self.emit('__connect', conn=self)
+                await self.emit(ON_CONNECT, conn=self)
 
                 # send buffered messages
                 for msg in self.buffer:
@@ -60,28 +63,33 @@ class Client(EventEmitter):
                 self.buffer = []
 
                 # client loop
-                async for msg in ws:
-                    if msg.type == aiohttp.WSMsgType.TEXT:
-                        event = msg.json()
+                try:
+                    while not ws.closed:
+                        msg = await ws.receive()
+                        if msg.type == WSMsgType.CLOSING:
+                            break
+                        elif msg.type == WSMsgType.ERROR:
+                            raise SocketError(ws.exception())
+                        elif msg.type == WSMsgType.BINARY:
+                            raise SocketError('Unexpected binary message')
 
+                        event = msg.json()
                         if self.rpc.intercept_event(**event):
                             continue
-
                         await self.emit(**event, conn=self)
 
-                    elif msg.type == aiohttp.WSMsgType.CLOSE:
-                        break
+                    await self.emit(ON_CLOSE, conn=self)
 
-                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                        await self.emit('__error', conn=self, error=ws.exception())
-                        break
+                except SocketError as e:
+                    await self.emit(ON_ERROR, conn=self, error=str(e))
 
-                await self.emit('__close', conn=self)
+                finally:
+                    self.ws = None
 
     async def close(self):
         if self.connected:
             await self.ws.close()
-            self.ws = None
+        self.ws = None
 
     async def send(self, msg: dict) -> None:
         if not self.connected:
