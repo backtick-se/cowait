@@ -44,7 +44,7 @@ class EventLog(list):
         return self.count(**search) > 0
 
     def extract(self, key: str) -> list:
-        return [msg[key] for msg in self]
+        return [msg[key] for msg in self if key in msg]
 
     def unique(self, key) -> set:
         return set(self.extract(key))
