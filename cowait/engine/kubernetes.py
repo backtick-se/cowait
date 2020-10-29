@@ -12,6 +12,12 @@ from .routers import create_router
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
 
+VOLUME_SOURCES = {
+    'host_path': client.V1HostPathVolumeSource,
+    'persistent_volume_claim': client.V1PersistentVolumeClaimVolumeSource,
+    'nfs': client.V1NFSVolumeSource,
+}
+
 
 class KubernetesTask(RemoteTask):
     def __init__(
@@ -314,28 +320,21 @@ class KubernetesProvider(ClusterProvider):
         for target, volume in volumes.items():
             index += 1
             name = volume.get('name', f'volume{index}')
-            vol_source = {}
-            if 'host_path' in volume:
-                vol_source['host_path'] = client.V1HostPathVolumeSource(**volume['host_path'])
-            elif 'nfs' in volume:
-                vol_source['nfs'] = client.V1NFSVolumeSource(**volume['nfs'])
-            elif 'persistent_volume_claim' in volume:
-                vol_source['persistent_volume_claim'] = client.V1PersistentVolumeClaimVolumeSource(
-                    **volume['persistent_volume_claim']
-                )
-            else:
-                raise ProviderError(f'Unsupported volume type on volume {name}')
-            
-            vols.append(client.V1Volume(
-                name=name,
-                **vol_source,
-            ))
+            for source_type, VolumeSource in VOLUME_SOURCES.items():
+                if source_type not in volume:
+                    continue
 
-            mounts.append(client.V1VolumeMount(
-                name=name,
-                read_only=volume.get('read_only', False),
-                mount_path=target,
-            ))
+                volume_config = volume[source_type]
+                vols.append(client.V1Volume(**{
+                    'name': name,
+                    source_type: VolumeSource(**volume_config),
+                }))
+                mounts.append(client.V1VolumeMount(
+                    name=name,
+                    read_only=volume.get('read_only', False),
+                    mount_path=target,
+                ))
+
         return vols, mounts
 
 
