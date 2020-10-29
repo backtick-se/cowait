@@ -3,64 +3,18 @@ import kubernetes
 import urllib3.exceptions
 from kubernetes import client, config, watch
 from cowait.network import get_remote_url
-from cowait.tasks import TaskDefinition, RemoteTask
+from cowait.tasks import TaskDefinition
 from cowait.utils import json_stream
-from .const import LABEL_TASK_ID, LABEL_PARENT_ID
-from .cluster import ClusterProvider
-from .errors import TaskCreationError, ProviderError
-from .routers import create_router
+from cowait.engine.const import LABEL_TASK_ID, LABEL_PARENT_ID
+from cowait.engine.cluster import ClusterProvider
+from cowait.engine.errors import ProviderError, TaskCreationError
+from cowait.engine.routers import create_router
+from .task import KubernetesTask
+from .volumes import create_volumes
+from .utils import create_ports
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
-
-VOLUME_SOURCES = {
-    'aws_elastic_block_store': client.V1AWSElasticBlockStoreVolumeSource,
-    'azure_disk': client.V1AzureDiskVolumeSource,
-    'azure_file': client.V1AzureFileVolumeSource,
-    'cephfs': client.V1CephFSVolumeSource,
-    'cinder': client.V1CinderVolumeSource,
-    'config_map': client.V1ConfigMapVolumeSource,
-    'csi': client.V1CSIVolumeSource,
-    'downward_api': client.V1DownwardAPIVolumeSource,
-    'empty_dir': client.V1EmptyDirVolumeSource,
-    'fc': client.V1FCVolumeSource,
-    'flex_volume': client.V1FlexVolumeSource,
-    'flocker': client.V1FlockerVolumeSource,
-    'gce_persistent_disk': client.V1GCEPersistentDiskVolumeSource,
-    'git_repo': client.V1GitRepoVolumeSource,
-    'glusterfs': client.V1GlusterfsVolumeSource,
-    'host_path': client.V1HostPathVolumeSource,
-    'iscsi': client.V1ISCSIVolumeSource,
-    'nfs': client.V1NFSVolumeSource,
-    'persistent_volume_claim': client.V1PersistentVolumeClaimVolumeSource,
-    'photon_persistent_disk': client.V1PhotonPersistentDiskVolumeSource,
-    'portworx_volume': client.V1PortworxVolumeSource,
-    'projected': client.V1ProjectedVolumeSource,
-    'quobyte': client.V1QuobyteVolumeSource,
-    'rbd': client.V1RBDVolumeSource,
-    'scale_io': client.V1ScaleIOVolumeSource,
-    'secret': client.V1SecretVolumeSource,
-    'storageos': client.V1StorageOSVolumeSource,
-    'vsphere_volume': client.V1VsphereVirtualDiskVolumeSource,
-}
-
-
-class KubernetesTask(RemoteTask):
-    def __init__(
-        self,
-        cluster: ClusterProvider,
-        taskdef: TaskDefinition,
-        pod,
-    ):
-        super().__init__(
-            cluster=cluster,
-            taskdef=taskdef,
-        )
-        self.pod = pod
-        self.ip = self.pod.status.pod_ip
-
-    def __str__(self):
-        return f'KubernetesTask({self.id}, {self.status}, {self.inputs})'
 
 
 class KubernetesProvider(ClusterProvider):
@@ -108,7 +62,7 @@ class KubernetesProvider(ClusterProvider):
                 name=taskdef.id,
                 image=taskdef.image,
                 env=self.create_env(taskdef),
-                ports=self.create_ports(taskdef),
+                ports=create_ports(taskdef.ports),
                 image_pull_policy='Always',  # taskdef field??
                 resources=client.V1ResourceRequirements(
                     requests={
@@ -319,12 +273,6 @@ class KubernetesProvider(ClusterProvider):
             for name, value in env.items()
         ]
 
-    def create_ports(self, taskdef: TaskDefinition) -> list:
-        return [
-            client.V1ContainerPort(**convert_port(port, host_port))
-            for port, host_port in taskdef.ports.items()
-        ]
-
     def get_pull_secrets(self):
         secrets = self.args.get('pull_secrets', ['docker'])
         return [client.V1LocalObjectReference(name=s) for s in secrets]
@@ -338,45 +286,3 @@ class KubernetesProvider(ClusterProvider):
 
         token = pod.metadata.labels['http_token']
         return get_remote_url(pod.status.pod_ip, token)
-
-
-def create_volumes(task_volumes):
-    index = 0
-    mounts = []
-    volumes = []
-    for target, volume in task_volumes.items():
-        index += 1
-        name = volume.get('name', f'volume{index}')
-        for source_type, VolumeSource in VOLUME_SOURCES.items():
-            if source_type not in volume:
-                continue
-
-            volume_config = volume[source_type]
-            volumes.append(client.V1Volume(**{
-                'name': name,
-                source_type: VolumeSource(**volume_config),
-            }))
-            mounts.append(client.V1VolumeMount(
-                name=name,
-                read_only=volume.get('read_only', False),
-                mount_path=target,
-            ))
-
-    return volumes, mounts
-
-
-def convert_port(port, host_port: str = None):
-    protocol = 'TCP'
-    if isinstance(port, str) and '/' in port:
-        slash = port.find('/')
-        protocol = port[slash+1:]
-        port = port[:slash]
-
-    if host_port is None:
-        host_port = port
-
-    return {
-        'protocol': protocol.upper(),
-        'container_port': int(port),
-        'host_port': int(host_port),
-    }

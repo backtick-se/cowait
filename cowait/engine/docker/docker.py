@@ -1,33 +1,16 @@
 import docker
 import requests.exceptions
-from docker.types import Mount
 from cowait.network import get_remote_url
-from cowait.tasks import TaskDefinition, RemoteTask
+from cowait.tasks import TaskDefinition
 from cowait.utils import json_stream
-from .cluster import ClusterProvider
-from .const import LABEL_TASK_ID, LABEL_PARENT_ID
-from .errors import ProviderError
-from .routers import create_router
+from cowait.engine.const import LABEL_TASK_ID, LABEL_PARENT_ID
+from cowait.engine.cluster import ClusterProvider
+from cowait.engine.errors import ProviderError
+from cowait.engine.routers import create_router
+from .task import DockerTask
+from .volumes import create_volumes
 
 DEFAULT_NETWORK = 'cowait'
-
-
-class DockerTask(RemoteTask):
-    def __init__(
-        self,
-        cluster: ClusterProvider,
-        taskdef: TaskDefinition,
-        container
-    ):
-        super().__init__(
-            cluster=cluster,
-            taskdef=taskdef,
-        )
-        self.container = container
-        self.ip = taskdef.id  # id should be routable within docker
-
-    def __str__(self):
-        return f'DockerTask({self.id}, {self.status}, {self.inputs}, {self.container.id[:10]})'
 
 
 class DockerProvider(ClusterProvider):
@@ -57,7 +40,7 @@ class DockerProvider(ClusterProvider):
                 network=self.network,
                 ports=self.create_ports(taskdef),
                 environment=self.create_env(taskdef),
-                mounts=self.create_volumes(taskdef.volumes),
+                mounts=create_volumes(taskdef.volumes),
                 cpu_quota=int(cpu_quota),
                 cpu_period=int(cpu_period),
                 mem_reservation=str(taskdef.memory or 0),
@@ -234,60 +217,3 @@ class DockerProvider(ClusterProvider):
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
-
-    def create_volumes(self, volumes: dict) -> list:
-        mounts = [
-            # this is the secret sauce that allows us to create new
-            # tasks as sibling containers
-            create_bind_mount('/var/run/docker.sock', {
-                'src': '/var/run/docker.sock',
-                'mode': 'ro',
-            })
-        ]
-
-        for target, volume in volumes.items():
-            if 'bind' in volume:
-                mounts.append(create_bind_mount(target, volume['bind']))
-            elif 'tmpfs' in volume:
-                mounts.append(create_tmpfs_mount(target, volume['tmpfs']))
-            else:
-                # print(f'!! unsupported volume: {target}')
-                pass
-
-        return mounts
-
-
-def create_bind_mount(target: str, bind) -> Mount:
-    mode = 'rw'
-    src = None
-    if isinstance(bind, str):
-        src = bind
-    elif isinstance(bind, dict):
-        src = bind.get('src')
-        mode = bind.get('mode', 'rw')
-    else:
-        raise TypeError(f'Invalid bind volume definition {target}')
-
-    return Mount(
-        type='bind',
-        target=target,
-        source=src,
-        read_only=mode != 'rw',
-    )
-
-
-def create_tmpfs_mount(target: str, tmpfs) -> Mount:
-    size = 0
-    mode = 0
-    if isinstance(tmpfs, dict):
-        size = tmpfs.get('size')
-        mode = tmpfs.get('mode', 1777)
-    else:
-        raise TypeError(f'Invalid tmpfs volume definition {target}')
-
-    return Mount(
-        type='tmpfs',
-        target=target,
-        tmpfs_size=size,
-        tmpfs_mode=mode,
-    )
