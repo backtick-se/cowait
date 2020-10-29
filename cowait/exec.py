@@ -11,6 +11,7 @@ import json
 import asyncio
 import traceback
 import nest_asyncio
+from datetime import datetime
 from cowait.tasks.messages import TASK_FAIL
 from cowait.worker import execute, \
     env_get_cluster_provider, \
@@ -37,6 +38,7 @@ async def main():
             'id': taskdef.id,
             'type': TASK_FAIL,
             'error': traceback.format_exc(),
+            'ts': datetime.now().isoformat(),
         }))
         os._exit(1)
 
