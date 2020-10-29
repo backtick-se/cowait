@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from sty import fg, rs
 from time import time as ctime
@@ -36,11 +37,16 @@ class Logger(object):
             text += '\n'
         self.print(text)
 
-    def print_time(self):
+    def print_time(self, ts: str = None):
         if not self.time:
             return
-        elapsed = ctime() - self.start
-        self.print(f'{elapsed:05.1f} ')
+        if ts is None:
+            elapsed = ctime() - self.start
+            self.print(f'{elapsed:05.1f} ')
+        else:
+            dt = datetime.fromisoformat(ts)
+            timestamp = dt.strftime('%H:%M:%S')
+            self.print(f'{timestamp} ')
 
     def print_exception(self, error):
         self.header(f'error')
