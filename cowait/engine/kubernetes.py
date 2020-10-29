@@ -12,6 +12,37 @@ from .routers import create_router
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
 
+VOLUME_SOURCES = {
+    'aws_elastic_block_store': client.V1AWSElasticBlockStoreVolumeSource,
+    'azure_disk': client.V1AzureDiskVolumeSource,
+    'azure_file': client.V1AzureFileVolumeSource,
+    'cephfs': client.V1CephFSVolumeSource,
+    'cinder': client.V1CinderVolumeSource,
+    'config_map': client.V1ConfigMapVolumeSource,
+    'csi': client.V1CSIVolumeSource,
+    'downward_api': client.V1DownwardAPIVolumeSource,
+    'empty_dir': client.V1EmptyDirVolumeSource,
+    'fc': client.V1FCVolumeSource,
+    'flex_volume': client.V1FlexVolumeSource,
+    'flocker': client.V1FlockerVolumeSource,
+    'gce_persistent_disk': client.V1GCEPersistentDiskVolumeSource,
+    'git_repo': client.V1GitRepoVolumeSource,
+    'glusterfs': client.V1GlusterfsVolumeSource,
+    'host_path': client.V1HostPathVolumeSource,
+    'iscsi': client.V1ISCSIVolumeSource,
+    'nfs': client.V1NFSVolumeSource,
+    'persistent_volume_claim': client.V1PersistentVolumeClaimVolumeSource,
+    'photon_persistent_disk': client.V1PhotonPersistentDiskVolumeSource,
+    'portworx_volume': client.V1PortworxVolumeSource,
+    'projected': client.V1ProjectedVolumeSource,
+    'quobyte': client.V1QuobyteVolumeSource,
+    'rbd': client.V1RBDVolumeSource,
+    'scale_io': client.V1ScaleIOVolumeSource,
+    'secret': client.V1SecretVolumeSource,
+    'storageos': client.V1StorageOSVolumeSource,
+    'vsphere_volume': client.V1VsphereVirtualDiskVolumeSource,
+}
+
 
 class KubernetesTask(RemoteTask):
     def __init__(
@@ -69,8 +100,7 @@ class KubernetesProvider(ClusterProvider):
         try:
             self.emit_sync('prepare', taskdef=taskdef)
 
-            # if len(taskdef.volumes.keys()) > 0:
-            #     print('!! warning: kubernetes provider does not support volumes')
+            volumes, mounts = create_volumes(taskdef.volumes)
 
             # container definition
             container = client.V1Container(
@@ -89,6 +119,7 @@ class KubernetesProvider(ClusterProvider):
                         'memory': str(taskdef.memory_limit or '0'),
                     },
                 ),
+                volume_mounts=mounts,
             )
 
             pod = self.core.create_namespaced_pod(
@@ -107,6 +138,7 @@ class KubernetesProvider(ClusterProvider):
                         hostname=taskdef.id,
                         restart_policy='Never',
                         image_pull_secrets=self.get_pull_secrets(),
+                        volumes=volumes,
 
                         containers=[container],
                         service_account_name=self.service_account,
@@ -305,6 +337,31 @@ class KubernetesProvider(ClusterProvider):
 
         token = pod.metadata.labels['http_token']
         return f'ws://{pod.status.pod_ip}/ws?token={token}'
+
+
+def create_volumes(task_volumes):
+    index = 0
+    mounts = []
+    volumes = []
+    for target, volume in task_volumes.items():
+        index += 1
+        name = volume.get('name', f'volume{index}')
+        for source_type, VolumeSource in VOLUME_SOURCES.items():
+            if source_type not in volume:
+                continue
+
+            volume_config = volume[source_type]
+            volumes.append(client.V1Volume(**{
+                'name': name,
+                source_type: VolumeSource(**volume_config),
+            }))
+            mounts.append(client.V1VolumeMount(
+                name=name,
+                read_only=volume.get('read_only', False),
+                mount_path=target,
+            ))
+
+    return volumes, mounts
 
 
 def convert_port(port, host_port: str = None):
