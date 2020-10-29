@@ -69,8 +69,7 @@ class KubernetesProvider(ClusterProvider):
         try:
             self.emit_sync('prepare', taskdef=taskdef)
 
-            # if len(taskdef.volumes.keys()) > 0:
-            #     print('!! warning: kubernetes provider does not support volumes')
+            volumes, mounts = self.create_volumes(taskdef.volumes)
 
             # container definition
             container = client.V1Container(
@@ -89,6 +88,7 @@ class KubernetesProvider(ClusterProvider):
                         'memory': str(taskdef.memory_limit or '0'),
                     },
                 ),
+                volume_mounts=mounts,
             )
 
             pod = self.core.create_namespaced_pod(
@@ -107,6 +107,7 @@ class KubernetesProvider(ClusterProvider):
                         hostname=taskdef.id,
                         restart_policy='Never',
                         image_pull_secrets=self.get_pull_secrets(),
+                        volumes=volumes,
 
                         containers=[container],
                         service_account_name=self.service_account,
@@ -305,6 +306,31 @@ class KubernetesProvider(ClusterProvider):
 
         token = pod.metadata.labels['http_token']
         return f'ws://{pod.status.pod_ip}/ws?token={token}'
+
+    def create_volumes(self, volumes):
+        index = 0
+        vols = []
+        mounts = []
+        for target, volume in volumes.items():
+            index += 1
+            name = volume.get('name', f'volume{index}')
+            if 'host_path' in volume:
+                vols.append(client.V1Volume(
+                    name=name,
+                    host_path=client.V1HostPathVolumeSource(**volume['host_path'])))
+            elif 'nfs' in volume:
+                vols.append(client.V1Volume(
+                    name=name,
+                    nfs=client.V1NFSVolumeSource(**volume['nfs'])))
+            else:
+                raise ProviderError(f'Unsupported volume type on volume {name}')
+
+            mounts.append(client.V1VolumeMount(
+                name=name,
+                read_only=volume.get('read_only', False),
+                mount_path=target,
+            ))
+        return vols, mounts
 
 
 def convert_port(port, host_port: str = None):

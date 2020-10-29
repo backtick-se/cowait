@@ -56,7 +56,7 @@ class DockerProvider(ClusterProvider):
                 network=self.network,
                 ports=self.create_ports(taskdef),
                 environment=self.create_env(taskdef),
-                mounts=self.create_mounts(taskdef.volumes),
+                mounts=self.create_volumes(taskdef.volumes),
                 cpu_quota=int(cpu_quota),
                 cpu_period=int(cpu_period),
                 mem_reservation=str(taskdef.memory or 0),
@@ -224,7 +224,7 @@ class DockerProvider(ClusterProvider):
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 
-    def create_mounts(self, volumes: dict) -> list:
+    def create_volumes(self, volumes: dict) -> list:
         mounts = [
             # this is the secret sauce that allows us to create new
             # tasks as sibling containers
