@@ -314,16 +314,22 @@ class KubernetesProvider(ClusterProvider):
         for target, volume in volumes.items():
             index += 1
             name = volume.get('name', f'volume{index}')
+            vol_source = {}
             if 'host_path' in volume:
-                vols.append(client.V1Volume(
-                    name=name,
-                    host_path=client.V1HostPathVolumeSource(**volume['host_path'])))
+                vol_source['host_path'] = client.V1HostPathVolumeSource(**volume['host_path'])
             elif 'nfs' in volume:
-                vols.append(client.V1Volume(
-                    name=name,
-                    nfs=client.V1NFSVolumeSource(**volume['nfs'])))
+                vol_source['nfs'] = client.V1NFSVolumeSource(**volume['nfs'])
+            elif 'persistent_volume_claim' in volume:
+                vol_source['persistent_volume_claim'] = client.V1PersistentVolumeClaimVolumeSource(
+                    **volume['persistent_volume_claim']
+                )
             else:
                 raise ProviderError(f'Unsupported volume type on volume {name}')
+            
+            vols.append(client.V1Volume(
+                name=name,
+                **vol_source,
+            ))
 
             mounts.append(client.V1VolumeMount(
                 name=name,
