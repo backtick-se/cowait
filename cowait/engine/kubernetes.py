@@ -13,9 +13,34 @@ DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
 
 VOLUME_SOURCES = {
+    'aws_elastic_block_store': client.V1AWSElasticBlockStoreVolumeSource,
+    'azure_disk': client.V1AzureDiskVolumeSource,
+    'azure_file': client.V1AzureFileVolumeSource,
+    'cephfs': client.V1CephFSVolumeSource,
+    'cinder': client.V1CinderVolumeSource,
+    'config_map': client.V1ConfigMapVolumeSource,
+    'csi': client.V1CSIVolumeSource,
+    'downward_api': client.V1DownwardAPIVolumeSource,
+    'empty_dir': client.V1EmptyDirVolumeSource,
+    'fc': client.V1FCVolumeSource,
+    'flex_volume': client.V1FlexVolumeSource,
+    'flocker': client.V1FlockerVolumeSource,
+    'gce_persistent_disk': client.V1GCEPersistentDiskVolumeSource,
+    'git_repo': client.V1GitRepoVolumeSource,
+    'glusterfs': client.V1GlusterfsVolumeSource,
     'host_path': client.V1HostPathVolumeSource,
-    'persistent_volume_claim': client.V1PersistentVolumeClaimVolumeSource,
+    'iscsi': client.V1ISCSIVolumeSource,
     'nfs': client.V1NFSVolumeSource,
+    'persistent_volume_claim': client.V1PersistentVolumeClaimVolumeSource,
+    'photon_persistent_disk': client.V1PhotonPersistentDiskVolumeSource,
+    'portworx_volume': client.V1PortworxVolumeSource,
+    'projected': client.V1ProjectedVolumeSource,
+    'quobyte': client.V1QuobyteVolumeSource,
+    'rbd': client.V1RBDVolumeSource,
+    'scale_io': client.V1ScaleIOVolumeSource,
+    'secret': client.V1SecretVolumeSource,
+    'storageos': client.V1StorageOSVolumeSource,
+    'vsphere_volume': client.V1VsphereVirtualDiskVolumeSource,
 }
 
 
@@ -313,11 +338,11 @@ class KubernetesProvider(ClusterProvider):
         token = pod.metadata.labels['http_token']
         return f'ws://{pod.status.pod_ip}/ws?token={token}'
 
-    def create_volumes(self, volumes):
+    def create_volumes(self, task_volumes):
         index = 0
-        vols = []
         mounts = []
-        for target, volume in volumes.items():
+        volumes = []
+        for target, volume in task_volumes.items():
             index += 1
             name = volume.get('name', f'volume{index}')
             for source_type, VolumeSource in VOLUME_SOURCES.items():
@@ -325,7 +350,7 @@ class KubernetesProvider(ClusterProvider):
                     continue
 
                 volume_config = volume[source_type]
-                vols.append(client.V1Volume(**{
+                volumes.append(client.V1Volume(**{
                     'name': name,
                     source_type: VolumeSource(**volume_config),
                 }))
@@ -335,7 +360,7 @@ class KubernetesProvider(ClusterProvider):
                     mount_path=target,
                 ))
 
-        return vols, mounts
+        return volumes, mounts
 
 
 def convert_port(port, host_port: str = None):
