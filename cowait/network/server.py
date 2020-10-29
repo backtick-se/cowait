@@ -1,6 +1,7 @@
 from asyncio import CancelledError
 from aiohttp import web, WSMsgType
 from aiohttp_middlewares import cors_middleware
+from datetime import datetime
 from cowait.utils import EventEmitter
 from .conn import Conn
 from .const import WS_PATH, ON_CONNECT, ON_CLOSE, ON_ERROR
@@ -72,6 +73,10 @@ class Server(EventEmitter):
             self.conns.remove(conn)
 
     async def send(self, msg: dict) -> None:
+        msg['ts'] = datetime.now().isoformat()
+        if 'type' not in msg:
+            raise Exception('Messages must have a type field')
+
         for ws in self.conns:
             await ws.send_json(msg)
 

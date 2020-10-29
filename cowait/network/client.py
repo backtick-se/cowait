@@ -1,5 +1,6 @@
 import os
 import asyncio
+from datetime import datetime
 from aiohttp import WSMsgType, ClientError, ClientSession
 from cowait.utils import EventEmitter
 from .rpc_client import RpcClient
@@ -92,6 +93,10 @@ class Client(EventEmitter):
         self.ws = None
 
     async def send(self, msg: dict) -> None:
+        msg['ts'] = datetime.now().isoformat()
+        if 'type' not in msg:
+            raise Exception('Messages must have a type field')
+
         if not self.connected:
             # buffer messages while disconnected
             self.buffer.append(msg)
