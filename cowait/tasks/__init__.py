@@ -11,6 +11,6 @@ from .remote_task import RemoteTask
 from .definition import TaskDefinition
 from .instance import TaskInstance
 from .decorator import task
-from .ops import join
+from .ops import join, wait
 
 from .components.rpc import rpc
