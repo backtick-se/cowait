@@ -1,13 +1,6 @@
 import asyncio
 
 
-async def join(tasks):
+async def join(tasks: list) -> list:
+    """ Waits for a list of tasks to complete, returning a list containing their results. """
     return await asyncio.gather(*tasks)
-    done, pending = await asyncio.wait(tasks)
-    return list(done)
-
-
-async def gather(*tasks):
-    return await asyncio.gather(*tasks)
-    done, pending = await asyncio.wait(tasks)
-    return list(done)
