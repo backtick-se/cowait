@@ -27,7 +27,7 @@ setuptools.setup(
     install_requires=[
         'click',
         'docker',
-        'requests',
+        'requests < 2.25',
         'pyyaml',
         'dask',
         'distributed',
