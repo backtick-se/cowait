@@ -43,6 +43,7 @@ setuptools.setup(
         'nest-asyncio',
         'numpy',
         'sty',
+        'pyzmq<20.0.0',
         'jupyterlab',
         'dill',
         'python-dotenv',
