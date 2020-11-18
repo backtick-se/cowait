@@ -1,4 +1,4 @@
-from cowait.network import Conn
+from cowait.network import Conn, ON_CLOSE
 from cowait.utils import EventEmitter
 
 
@@ -14,10 +14,10 @@ class Subscriptions(EventEmitter):
         self.__getitem__ = self.subscribers.__getitem__
         self.__contains__ = self.subscribers.__contains__
 
-        task.node.children.on('subscribe', self.subscribe)
-        task.node.children.on('unsubscribe', self.unsubscribe)
-        task.node.children.on('__close', self.unsubscribe)
-        task.node.children.on('*', self.forward)
+        task.node.server.on('subscribe', self.subscribe)
+        task.node.server.on('unsubscribe', self.unsubscribe)
+        task.node.server.on(ON_CLOSE, self.unsubscribe)
+        task.node.server.on('*', self.forward)
 
     async def forward(self, conn: Conn, **msg):
         if conn in self.subscribers:

@@ -2,6 +2,7 @@ import time
 import kubernetes
 import urllib3.exceptions
 from kubernetes import client, config, watch
+from cowait.network import get_remote_url
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.utils import json_stream
 from .const import LABEL_TASK_ID, LABEL_PARENT_ID
@@ -336,7 +337,7 @@ class KubernetesProvider(ClusterProvider):
             return None
 
         token = pod.metadata.labels['http_token']
-        return f'ws://{pod.status.pod_ip}/ws?token={token}'
+        return get_remote_url(pod.status.pod_ip, token)
 
 
 def create_volumes(task_volumes):

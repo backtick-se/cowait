@@ -1,8 +1,11 @@
 import os
 import asyncio
-import aiohttp
+from datetime import datetime
+from aiohttp import WSMsgType, ClientError, ClientSession
 from cowait.utils import EventEmitter
 from .rpc_client import RpcClient
+from .const import ON_CONNECT, ON_CLOSE, ON_ERROR
+from .errors import AuthError, SocketError
 
 
 class Client(EventEmitter):
@@ -27,9 +30,12 @@ class Client(EventEmitter):
             retries += 1
             try:
                 await self._connect(url, token)
-            except aiohttp.ClientError as e:
-                print('Upstream connection failed:', str(e))
-                await asyncio.sleep(retries * 3)
+            except ClientError as e:
+                if hasattr(e, 'status') and e.status == 401:
+                    raise AuthError('Upstream authentication failed')
+                else:
+                    print('Upstream connection failed:', str(e))
+                    await asyncio.sleep(retries * 3)
             finally:
                 self.ws = None
 
@@ -40,11 +46,17 @@ class Client(EventEmitter):
             os._exit(1)
 
     async def _connect(self, url: str, token: str) -> None:
-        headers = {'Authorization': f'Bearer {token}'}
-        async with aiohttp.ClientSession() as session:
-            async with session.ws_connect(url, headers=headers) as ws:
+        async with ClientSession() as session:
+            async with session.ws_connect(
+                url,
+                headers={'Authorization': f'Bearer {token}'},
+                autoping=True,
+                heartbeat=5.0,
+                timeout=30.0,
+            ) as ws:
                 self.ws = ws
                 self.rpc = RpcClient(ws)
+                await self.emit(ON_CONNECT, conn=self)
 
                 # send buffered messages
                 for msg in self.buffer:
@@ -52,27 +64,39 @@ class Client(EventEmitter):
                 self.buffer = []
 
                 # client loop
-                async for msg in ws:
-                    if msg.type == aiohttp.WSMsgType.TEXT:
-                        event = msg.json()
+                try:
+                    while not ws.closed:
+                        msg = await ws.receive()
+                        if msg.type == WSMsgType.CLOSING:
+                            break
+                        elif msg.type == WSMsgType.ERROR:
+                            raise SocketError(ws.exception())
+                        elif msg.type == WSMsgType.BINARY:
+                            raise SocketError('Unexpected binary message')
 
+                        event = msg.json()
                         if self.rpc.intercept_event(**event):
                             continue
-
                         await self.emit(**event, conn=self)
 
-                    elif msg.type == aiohttp.WSMsgType.CLOSE:
-                        print('parent ws clean close')
+                    await self.emit(ON_CLOSE, conn=self)
 
-                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                        print('parent ws client error:', ws.exception())
+                except SocketError as e:
+                    await self.emit(ON_ERROR, conn=self, error=str(e))
+
+                finally:
+                    self.ws = None
 
     async def close(self):
         if self.connected:
             await self.ws.close()
-            self.ws = None
+        self.ws = None
 
     async def send(self, msg: dict) -> None:
+        msg['ts'] = datetime.now().isoformat()
+        if 'type' not in msg:
+            raise Exception('Messages must have a type field')
+
         if not self.connected:
             # buffer messages while disconnected
             self.buffer.append(msg)

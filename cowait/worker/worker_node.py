@@ -1,5 +1,5 @@
 import asyncio
-from cowait.network import Server, HttpServer, get_local_ip
+from cowait.network import Server, get_local_ip, WS_PATH
 from cowait.utils import StreamCapturing
 from .io_thread import IOThread
 from .logger import Logger
@@ -13,24 +13,23 @@ class WorkerNode(object):
         self.io = IOThread()
         self.io.start()
         self.upstream = upstream
-        self.http = HttpServer(port=port)
-        self.children = Server(self)
+        self.server = Server(port=port)
         self.parent = ParentClient(id, self.io, logger)
 
     async def connect(self) -> None:
         await self.parent.connect(self.upstream)
 
     def serve(self):
-        self.io.create_task(self.http.serve())
+        self.io.create_task(self.server.serve())
 
     def get_url(self):
         local_ip = get_local_ip()
-        return f'ws://{local_ip}:{self.http.port}/ws'
+        return f'ws://{local_ip}:{self.server.port}/{WS_PATH}'
 
     async def close(self) -> None:
         async def _close():
             await asyncio.sleep(0.01)
-            await self.children.close()
+            await self.server.close()
             await self.parent.close()
 
         await asyncio.sleep(0.01)
