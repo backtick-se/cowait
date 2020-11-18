@@ -112,6 +112,7 @@ class Task(object):
         memory: str = None,
         memory_limit: str = None,
         owner: str = '',
+        affinity: dict = {},
         **kwargs: dict,
     ) -> 'Task':
         """
@@ -141,6 +142,8 @@ class Task(object):
             if inspect.iscoroutine(value):
                 raise TypeError(f'Input {key} must be awaited first')
 
+            
+
         taskdef = TaskDefinition(
             id=id,
             name=name,
@@ -165,6 +168,7 @@ class Task(object):
                 **self.taskdef.env,
                 **env,
             },
+            affinity = affinity if affinity != {} else self.taskdef.affinity
         )
 
         # authorize id

@@ -58,6 +58,7 @@ class TaskDefinition(object):
         memory_limit: str = None,
         owner:        str = '',
         created_at:   datetime = None,
+        affinity:     dict = {},
     ):
         """
         Arguments:
@@ -95,6 +96,7 @@ class TaskDefinition(object):
         self.owner = owner
         self.volumes = volumes
         self.storage = storage
+        self.affinity = affinity
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -140,6 +142,7 @@ class TaskDefinitionSchema(Schema):
         values=fields.Mapping(),
         missing={}
     )
+    affinity = fields.Dict(missing={})
 
     @post_load
     def make_class(self, data: dict, **kwargs):

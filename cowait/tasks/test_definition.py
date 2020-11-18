@@ -21,6 +21,7 @@ def test_taskdef_serialization():
         'memory':       None,
         'memory_limit': None,
         'owner':        'santa',
+        "affinity" : {}
     }
 
     taskdef = TaskDefinition.deserialize(sample)

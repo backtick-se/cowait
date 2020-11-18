@@ -122,24 +122,86 @@ class KubernetesProvider(ClusterProvider):
                 volume_mounts=mounts,
             )
 
+            labels = {
+                        LABEL_TASK_ID: taskdef.id,
+                        LABEL_PARENT_ID: taskdef.parent,
+                        **taskdef.meta,
+                    }
+
+
+            if (taskdef.affinity is not None) and (taskdef.affinity != {}):
+                affinity_label = {}
+                if taskdef.affinity.get("label"):
+                    affinity_label[taskdef.affinity["label"]["key"]] = taskdef.affinity["label"]["value"]
+                else:
+                    affinity_label["cowait_default_affinity_key"] = "cowait_default_affinity_value"
+
+                if taskdef.affinity["type"] == 'spread':
+                    aff_def = client.V1PodAntiAffinity(
+                        preferred_during_scheduling_ignored_during_execution=[
+                            client.V1WeightedPodAffinityTerm(
+                                pod_affinity_term=client.V1PodAffinityTerm(
+                                    label_selector=client.V1LabelSelector(
+                                        match_expressions=[
+                                            client.V1LabelSelectorRequirement(
+                                                key=list(affinity_label.keys())[0],
+                                                operator="In",
+                                                values=[list(affinity_label.values())[0]],
+                                            )
+                                        ]
+
+                                    ),
+                                    topology_key="kubernetes.io/hostname",
+                                ),
+                                weight=50
+                            )
+                        ]
+                    )
+
+                elif taskdef.affinity["type"] == 'group':
+                    aff_def = client.V1PodAffinity(
+                        preferred_during_scheduling_ignored_during_execution=[
+                            client.V1WeightedPodAffinityTerm(
+                                pod_affinity_term=client.V1PodAffinityTerm(
+                                    label_selector=client.V1LabelSelector(
+                                        match_expressions=[
+                                            client.V1LabelSelectorRequirement(
+                                                key=list(affinity_label.keys())[0],
+                                                operator="In",
+                                                values=[list(affinity_label.values())[0]],
+                                            )
+                                        ]
+
+                                    ),
+                                    topology_key="kubernetes.io/hostname",
+                                ),
+                                weight=50
+                            )
+                        ]
+                    )
+                
+                else:
+                    aff_def = None
+                
+                affinity = client.V1Affinity(pod_anti_affinity=aff_def) if aff_def else None
+                
+                labels.updated(affinity_label)
+                
+
             pod = self.core.create_namespaced_pod(
                 namespace=self.namespace,
                 body=client.V1Pod(
                     metadata=client.V1ObjectMeta(
                         name=taskdef.id,
                         namespace=self.namespace,
-                        labels={
-                            LABEL_TASK_ID: taskdef.id,
-                            LABEL_PARENT_ID: taskdef.parent,
-                            **taskdef.meta,
-                        },
+                        labels=labels,
                     ),
                     spec=client.V1PodSpec(
                         hostname=taskdef.id,
                         restart_policy='Never',
                         image_pull_secrets=self.get_pull_secrets(),
                         volumes=volumes,
-
+                        affinity=affinity,
                         containers=[container],
                         service_account_name=self.service_account,
                     ),
