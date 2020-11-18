@@ -9,12 +9,12 @@ def get_global_config_path():
     return f'{home}/.{CONTEXT_FILE_NAME}'
 
 
-class CowaitConfig(SettingsDict):
+class Config(SettingsDict):
     def __init__(
         self, *,
         path: str = None,
         data: dict = None,
-        parent: 'CowaitConfig' = None,
+        parent: 'Config' = None,
     ):
         super().__init__(path=path, data=data, parent=parent)
 
@@ -43,17 +43,17 @@ class CowaitConfig(SettingsDict):
         return super().write(path)
 
     @staticmethod
-    def get_local(path: str = None) -> 'CowaitConfig':
-        return CowaitConfig(path=path, parent=CowaitConfig.get_global())
+    def get_local(path: str = None) -> 'Config':
+        return Config(path=path, parent=Config.get_global())
 
     @staticmethod
-    def get_global() -> 'CowaitConfig':
+    def get_global() -> 'Config':
         path = get_global_config_path()
-        return CowaitConfig(path=path, parent=CowaitConfig.get_default())
+        return Config(path=path, parent=Config.get_default())
 
     @staticmethod
-    def get_default() -> 'CowaitConfig':
-        return CowaitConfig(data={
+    def get_default() -> 'Config':
+        return Config(data={
             'default_cluster': 'docker',
             'clusters': {
                 'docker': {

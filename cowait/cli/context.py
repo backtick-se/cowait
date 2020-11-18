@@ -1,14 +1,14 @@
-from cowait.cli.config import CowaitConfig
 import os
 import os.path
 from dotenv import dotenv_values
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from .utils import find_file_in_parents
 from .const import CONTEXT_FILE_NAME
+from .config import Config
 
 
-class CowaitContext(CowaitConfig):
-    def __init__(self, root_path: str, *, path: str, parent: CowaitConfig):
+class Context(Config):
+    def __init__(self, root_path: str, *, path: str, parent: Config):
         super().__init__(
             path=path,
             parent=parent,
@@ -103,7 +103,7 @@ class CowaitContext(CowaitConfig):
         return context_file_path is not None
 
     @staticmethod
-    def open(config: CowaitConfig, path: str = None):
+    def open(config: Config, path: str = None):
         if path is None:
             path = os.getcwd()
 
@@ -116,7 +116,7 @@ class CowaitContext(CowaitConfig):
         if context_file_path is None:
             # use the current directory as the context
             # no local configuration exists
-            return CowaitContext(
+            return Context(
                 root_path=os.path.abspath(path),
                 parent=config,
                 path=None,
@@ -124,7 +124,7 @@ class CowaitContext(CowaitConfig):
 
         # context root path is the yml folder
         root_path = os.path.abspath(os.path.dirname(context_file_path))
-        return CowaitContext(
+        return Context(
             root_path=root_path,
             path=context_file_path,
             parent=config,
