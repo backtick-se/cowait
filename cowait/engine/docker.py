@@ -221,6 +221,11 @@ class DockerProvider(ClusterProvider):
         except docker.errors.NotFound:
             return None
 
+        except requests.exceptions.ChunkedEncodingError:
+            # workaround for a bug in docker on mac:
+            # https://github.com/docker/docker-py/issues/2696
+            return None
+
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 
