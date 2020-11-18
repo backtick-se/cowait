@@ -199,7 +199,7 @@ def ps(ctx, cluster: str):
     cowait.cli.list_tasks(ctx.obj)
 
 
-@cli.command(help='kill task')
+@cli.command(help='kill tasks by id')
 @click.option('-c', '--cluster',
               default=None,
               type=str,
