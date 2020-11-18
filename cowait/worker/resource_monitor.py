@@ -1,11 +1,9 @@
 import os
-import time
 import psutil
 
 
 class ResourceMonitor():
     def __init__(self):
-        self.last_time = time.time()
         self.process = psutil.Process(os.getpid())
         self.last_io = self.process.io_counters()
 
@@ -13,9 +11,7 @@ class ResourceMonitor():
         cpu = self.process.cpu_percent()
         mem = self.process.memory_full_info()
         io = self.process.io_counters()
-        ctime = time.time()
         stats = {
-            'dt': round(ctime - self.last_time, 3),
             'cpu': round(cpu / 100.0, 3),
             'mem': [
                 mem.uss,  # used
@@ -27,5 +23,4 @@ class ResourceMonitor():
             ],
         }
         self.last_io = io
-        self.last_time = ctime
         return stats
