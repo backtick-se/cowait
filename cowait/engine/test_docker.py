@@ -2,6 +2,7 @@ import json
 import time
 import pytest
 import docker
+import requests
 from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from cowait.tasks import TaskDefinition
 
@@ -79,7 +80,12 @@ def test_kill_docker_task():
 
     # ensure it no longer exists
     with pytest.raises(docker.errors.NotFound):
-        dp.docker.containers.get(task.container.id)
+        try:
+            dp.docker.containers.get(task.container.id)
+        except requests.exceptions.ChunkedEncodingError:
+            # workaround for docker for mac bug:
+            # https://github.com/docker/docker-py/issues/2696
+            raise docker.errors.NotFound('Not found')
 
 
 def test_docker_child_task():
