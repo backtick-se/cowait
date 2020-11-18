@@ -6,10 +6,16 @@ from cowait.utils.const import DEFAULT_BASE_IMAGE
 from ..task_image import TaskImage, BuildError
 from ..docker_file import Dockerfile
 from ..context import Context, CONTEXT_FILE_NAME
+from ..config import Config
 from ..logger import Logger
 
 
-def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> TaskImage:
+def build(
+    config: Config, *,
+    quiet: bool = False,
+    workdir: str = None,
+    image_name: str = None,
+) -> TaskImage:
     logger = Logger(quiet)
     try:
         if not Context.exists():
@@ -17,7 +23,7 @@ def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> T
                            f'Using default image: {DEFAULT_BASE_IMAGE}')
             return TaskImage.get(DEFAULT_BASE_IMAGE)
 
-        context = Context.open()
+        context = Context.open(config)
         context.override('workdir', workdir)
 
         if image_name is not None:

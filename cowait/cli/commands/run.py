@@ -15,7 +15,7 @@ from sty import fg, rs
 
 def run(
     config: Config,
-    task: str,
+    task: str, *,
     name: str = None,
     inputs: dict = {},
     env: dict = {},

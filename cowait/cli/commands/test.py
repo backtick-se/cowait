@@ -22,7 +22,7 @@ def test(
         if push:
             run_push()
         else:
-            run_build()
+            run_build(config)
 
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
