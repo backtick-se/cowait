@@ -17,8 +17,12 @@ setuptools.setup(
 
     url="https://github.com/backtick-se/cowait",
 
-    packages=setuptools.find_packages(),
-    scripts=['bin/cowait'],
+    packages=['cowait'],
+    entry_points={
+        'console_scripts': [
+            'cowait = cowait.__main__:main',
+        ],
+    },
 
     classifiers=[],
 
