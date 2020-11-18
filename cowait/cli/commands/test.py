@@ -1,8 +1,8 @@
 import sys
 from cowait.tasks import TaskDefinition, TASK_LOG
 from cowait.engine import ProviderError, TaskCreationError
-from ..config import CowaitConfig
-from ..context import CowaitContext
+from ..config import Config
+from ..context import Context
 from ..utils import ExitTrap
 from ..logger import Logger
 from .build import build as run_build
@@ -10,13 +10,13 @@ from .push import push as run_push
 
 
 def test(
-    config: CowaitConfig,
+    config: Config,
     push: bool,
     cluster_name: str = None,
 ):
     logger = TestLogger()
     try:
-        context = CowaitContext.open(config)
+        context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
 
         if push:

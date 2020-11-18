@@ -4,21 +4,21 @@ from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
 from ..errors import CliError
-from ..config import CowaitConfig
-from ..context import CowaitContext
+from ..config import Config
+from ..context import Context
 from ..utils import ExitTrap
 from .run import RunLogger
 
 
 def agent(
-    config: CowaitConfig,
+    config: Config,
     detach: bool = False,
     upstream: str = None,
     cluster_name: str = None,
 ) -> None:
     logger = RunLogger(quiet=False, raw=False)
     try:
-        context = CowaitContext.open(config)
+        context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
 
         if cluster.type == 'api':

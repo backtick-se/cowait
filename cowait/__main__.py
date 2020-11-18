@@ -4,7 +4,7 @@ import json
 import click
 import cowait.cli.commands
 from cowait.cli import CliError
-from cowait.cli.config import CowaitConfig
+from cowait.cli.config import Config
 from cowait.utils import version_string
 
 
@@ -329,7 +329,7 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    config = CowaitConfig.get_global()
+    config = Config.get_global()
     try:
         cli(obj=config)
     except CliError as e:

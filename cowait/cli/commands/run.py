@@ -5,8 +5,8 @@ from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
-from ..config import CowaitConfig
-from ..context import CowaitContext
+from ..config import Config
+from ..context import Context
 from ..utils import ExitTrap
 from ..logger import Logger
 from .build import build as build_cmd
@@ -14,7 +14,7 @@ from sty import fg, rs
 
 
 def run(
-    config: CowaitConfig,
+    config: Config,
     task: str,
     name: str = None,
     inputs: dict = {},
@@ -34,7 +34,7 @@ def run(
 ):
     logger = RunLogger(raw, quiet)
     try:
-        context = CowaitContext.open(config)
+        context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
 
         # figure out image name
