@@ -199,7 +199,7 @@ def ps(ctx, cluster: str):
     cowait.cli.list_tasks(ctx.obj)
 
 
-@cli.command(help='kill task')
+@cli.command(help='kill tasks by id')
 @click.option('-c', '--cluster',
               default=None,
               type=str,
@@ -210,19 +210,6 @@ def kill(ctx, cluster: str, task: str):
     if cluster is not None:
         ctx.obj.default_cluster = cluster
     cowait.cli.kill(ctx.obj, task)
-
-
-@cli.command(help='kill all tasks that matches with an "in" statement')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-@click.argument('partial_task_id', type=str)
-@click.pass_context
-def kill_name_search(ctx, cluster: str, partial_task_id: str):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.kill_name_search(ctx.obj, partial_task_id)
 
 
 @cli.command(help='deploy cowait agent')
