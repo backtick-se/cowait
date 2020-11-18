@@ -44,8 +44,13 @@ async def main():
 
     os._exit(0)
 
-# apply a patch that allows nested asyncio loops
-nest_asyncio.apply()
 
-# run asyncio loop
-asyncio.run(main())
+if __name__ == "__main__":
+    # apply a patch that allows nested asyncio loops
+    nest_asyncio.apply()
+
+    # run asyncio loop
+    asyncio.run(main())
+
+else:
+    raise ImportError('Worker.__main__ is not meant to be imported')

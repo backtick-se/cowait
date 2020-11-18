@@ -1,5 +1,4 @@
-#!/usr/bin/env python -u
-# flake8: noqa: F811
+import sys
 import yaml
 import json
 import click
@@ -338,9 +337,16 @@ def rm(ctx, name: str):
     cowait.cli.cluster_rm(ctx.obj, name)
 
 
-if __name__ == '__main__':
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
     config = CowaitConfig.load()
     try:
         cli(obj=config)
     except CliError as e:
         print(f'Error: {e}')
+
+
+if __name__ == "__main__":
+    sys.exit(main())
