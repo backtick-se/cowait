@@ -1,19 +1,22 @@
 from ..config import CowaitConfig
+from ..context import CowaitContext
 from cowait.engine import ProviderError
 
 
-def destroy(config: CowaitConfig) -> None:
+def destroy(config: CowaitConfig, *, cluster_name: str = None) -> None:
     try:
-        cluster = config.get_cluster()
+        context = CowaitContext.open(config)
+        cluster = context.get_cluster(cluster_name)
         cluster.destroy_all()
 
     except ProviderError as e:
         print('Provider error:', str(e))
 
 
-def list_tasks(config: CowaitConfig) -> None:
+def list_tasks(config: CowaitConfig, *, cluster_name: str = None) -> None:
     try:
-        cluster = config.get_cluster()
+        context = CowaitContext.open(config)
+        cluster = context.get_cluster(cluster_name)
         tasks = cluster.list_all()
         for task in tasks:
             print(task)

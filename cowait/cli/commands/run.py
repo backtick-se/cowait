@@ -30,11 +30,12 @@ def run(
     memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
+    cluster_name: str = None,
 ):
     logger = RunLogger(raw, quiet)
     try:
-        context = CowaitContext.open()
-        cluster = config.get_cluster()
+        context = CowaitContext.open(config)
+        cluster = context.get_cluster(cluster_name)
 
         # figure out image name
         remote_image = True

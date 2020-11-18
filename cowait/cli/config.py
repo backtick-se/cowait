@@ -4,7 +4,7 @@ from .const import CONTEXT_FILE_NAME
 from .settings_dict import SettingsDict
 
 
-def get_config_path():
+def get_global_config_path():
     home = os.path.expanduser('~')
     return f'{home}/.{CONTEXT_FILE_NAME}'
 
@@ -13,14 +13,10 @@ class CowaitConfig(SettingsDict):
     def __init__(
         self, *,
         path: str = None,
-        data: dict = None
+        data: dict = None,
+        parent: 'CowaitConfig' = None,
     ):
-        super().__init__(path=path, data=data)
-        self.set('clusters', {
-            'docker': {'type': 'docker'},
-            'kubernetes': {'type': 'kubernetes'},
-            **self.get('clusters', {}),
-        })
+        super().__init__(path=path, data=data, parent=parent)
 
     @property
     def clusters(self) -> list:
@@ -29,7 +25,7 @@ class CowaitConfig(SettingsDict):
     @property
     def default_cluster(self) -> str:
         return self.get('default_cluster', 'docker', False)
-    
+
     @default_cluster.setter
     def default_cluster(self, value):
         self.set("default_cluster", value)
@@ -42,17 +38,30 @@ class CowaitConfig(SettingsDict):
                 f'No configuration found for cluster {cluster_name}')
         return get_cluster_provider(**self.get(f'clusters.{cluster_name}'))
 
-    @staticmethod
-    def load(path: str = None) -> None:
-        if path is None:
-            path = get_config_path()
-
-        if not os.path.exists(path):
-            return CowaitConfig(data={})
-
-        return CowaitConfig(path=path)
-
-    def write(self, path: str = None) -> None:
-        if path is None:
-            path = get_config_path()
+    def write(self) -> None:
+        path = get_global_config_path()
         return super().write(path)
+
+    @staticmethod
+    def get_local(path: str = None) -> 'CowaitConfig':
+        return CowaitConfig(path=path, parent=CowaitConfig.get_global())
+
+    @staticmethod
+    def get_global() -> 'CowaitConfig':
+        path = get_global_config_path()
+        return CowaitConfig(path=path, parent=CowaitConfig.get_default())
+
+    @staticmethod
+    def get_default() -> 'CowaitConfig':
+        return CowaitConfig(data={
+            'default_cluster': 'docker',
+            'clusters': {
+                'docker': {
+                    'type': 'docker',
+                    'network': 'cowait',
+                },
+                'kubernetes': {
+                    'type': 'kubernetes',
+                },
+            },
+        })

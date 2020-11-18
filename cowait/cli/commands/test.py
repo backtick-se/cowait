@@ -12,11 +12,12 @@ from .push import push as run_push
 def test(
     config: CowaitConfig,
     push: bool,
+    cluster_name: str = None,
 ):
     logger = TestLogger()
     try:
-        context = CowaitContext.open()
-        cluster = config.get_cluster()
+        context = CowaitContext.open(config)
+        cluster = context.get_cluster(cluster_name)
 
         if push:
             run_push()

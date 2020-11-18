@@ -1,7 +1,7 @@
 from .run import run as run_cmd
 
 
-def notebook(config, build, image = None):
+def notebook(config, build: bool, image: str = None) -> None:
     task = 'cowait.notebook'
     if image is not None:
         task = f'{image}/{task}'
