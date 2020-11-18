@@ -48,8 +48,13 @@ class Config(SettingsDict):
 
     @staticmethod
     def get_global() -> 'Config':
+        default = Config.get_default()
         path = get_global_config_path()
-        return Config(path=path, parent=Config.get_default())
+
+        if not os.path.exists(path):
+            return Config(data={}, parent=default)
+
+        return Config(path=path, parent=default)
 
     @staticmethod
     def get_default() -> 'Config':
