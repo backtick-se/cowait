@@ -128,6 +128,7 @@ class KubernetesProvider(ClusterProvider):
                         **taskdef.meta,
                     }
 
+            affinity = None
 
             if (taskdef.affinity is not None) and (taskdef.affinity != {}):
                 affinity_label = {}
