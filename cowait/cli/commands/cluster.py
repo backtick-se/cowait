@@ -48,7 +48,7 @@ def cluster_rm(config: CowaitConfig, name: str) -> None:
         return 1
 
     if name == config.default_cluster:
-        print(f'Error: Cant remove the default cluster')
+        print('Error: Cant remove the default cluster')
         return 1
 
     if name == 'docker':

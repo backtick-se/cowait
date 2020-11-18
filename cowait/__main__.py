@@ -38,8 +38,10 @@ def cli(ctx):
 @click.argument('name', type=str, required=False)
 @click.option('--image', type=str, required=False, help='image name')
 @click.option('--base', type=str, required=False, help='base image name')
-def new(name: str, image: str, base: str):
+@click.pass_context
+def new(ctx, name: str, image: str, base: str):
     cowait.cli.new_context(
+        ctx.obj,
         name=name,
         image=image,
         base=base,
@@ -121,9 +123,6 @@ def run(
     cpu: str, cpu_limit: str, memory: str, memory_limit: str,
     file: str, raw: bool, quiet: bool
 ):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-
     file_inputs = {}
     if file is not None:
         try:
@@ -155,6 +154,7 @@ def run(
         cpu_limit=cpu_limit,
         memory=memory,
         memory_limit=memory_limit,
+        cluster_name=cluster,
     )
 
 
@@ -169,9 +169,7 @@ def run(
               default=False)
 @click.pass_context
 def test(ctx, cluster: str, push: bool):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.test(ctx.obj, push)
+    cowait.cli.test(ctx.obj, push, cluster_name=cluster)
 
 
 @cli.command(help='destroy tasks')
@@ -181,9 +179,7 @@ def test(ctx, cluster: str, push: bool):
               help='cluster name')
 @click.pass_context
 def rm(ctx, cluster: str):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.destroy(ctx.obj)
+    cowait.cli.destroy(ctx.obj, cluster_name=cluster)
 
 
 @cli.command(help='list tasks')
@@ -193,9 +189,7 @@ def rm(ctx, cluster: str):
               help='cluster name')
 @click.pass_context
 def ps(ctx, cluster: str):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.list_tasks(ctx.obj)
+    cowait.cli.list_tasks(ctx.obj, cluster_name=cluster)
 
 
 @cli.command(help='kill tasks by id')
@@ -206,9 +200,7 @@ def ps(ctx, cluster: str):
 @click.argument('task', type=str)
 @click.pass_context
 def kill(ctx, cluster: str, task: str):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.kill(ctx.obj, task)
+    cowait.cli.kill(ctx.obj, task, cluster_name=cluster)
 
 
 @cli.command(help='deploy cowait agent')
@@ -225,9 +217,7 @@ def kill(ctx, cluster: str, task: str):
               help='custom upstream uri')
 @click.pass_context
 def agent(ctx, cluster: str, detach: bool, upstream: str):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.agent(ctx.obj, detach, upstream)
+    cowait.cli.agent(ctx.obj, detach, upstream, cluster_name=cluster)
 
 
 @cli.command(help='start notebook')
@@ -245,9 +235,7 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
               help='default image')
 @click.pass_context
 def notebook(ctx, cluster, build, image):
-    if cluster is not None:
-        ctx.obj.default_cluster = cluster
-    cowait.cli.notebook(ctx.obj, build, image)
+    cowait.cli.notebook(ctx.obj, build, image, cluster_name=cluster)
 
 
 #
@@ -271,7 +259,7 @@ def notebook(ctx, cluster, build, image):
 def build(quiet: bool, workdir: str, image: str):
     cowait.cli.build(
         quiet=quiet,
-        workdir=workdir, 
+        workdir=workdir,
         image_name=image,
     )
 
@@ -341,7 +329,7 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    config = CowaitConfig.load()
+    config = CowaitConfig.get_global()
     try:
         cli(obj=config)
     except CliError as e:

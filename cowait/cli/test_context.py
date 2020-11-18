@@ -5,20 +5,20 @@ from .context import CowaitContext
 
 
 def test_create_context():
-    context = CowaitContext.open('test')
+    context = CowaitContext.open(None, 'test')
     assert context.root_path == os.path.join(os.getcwd(), 'test')
 
     # raise error if path is invalid
     with pytest.raises(ValueError):
-        context = CowaitContext.open('does_not_exist')
+        context = CowaitContext.open(None, 'does_not_exist')
 
-    # raise error if no context definition is found
-    local = CowaitContext.open()
+    # create empty context in current directory if no definition is found
+    local = CowaitContext.open(None)
     assert local.root_path == os.getcwd()
 
 
 def test_get_files():
-    context = CowaitContext.open('test')
+    context = CowaitContext.open(None, 'test')
 
     # context files
     path_abs = context.file('Dockerfile')
