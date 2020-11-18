@@ -15,8 +15,10 @@ import cowait.cli.commands
               default=None,
               type=str,
               help='image name')
-def build(quiet: bool, workdir: str, image: str):
+@click.pass_context
+def build(ctx, quiet: bool, workdir: str, image: str):
     cowait.cli.build(
+        ctx.obj,
         quiet=quiet,
         workdir=workdir,
         image_name=image,
@@ -24,5 +26,6 @@ def build(quiet: bool, workdir: str, image: str):
 
 
 @click.command(help='push a task to the registry')
-def push():
-    cowait.cli.push()
+@click.pass_context
+def push(ctx):
+    cowait.cli.push(ctx.obj)
