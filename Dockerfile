@@ -13,8 +13,7 @@ RUN mkdir /var/cowait && mkdir /var/task
 # install cowait
 WORKDIR /var/cowait
 COPY setup.py README.md ./
-COPY bin ./bin
-RUN pip install -e .
+RUN mkdir cowait && pip install -e .
 
 # jupyter mods
 COPY notebook/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
@@ -27,4 +26,4 @@ COPY . .
 WORKDIR /var/task
 
 ENV PYTHONPATH="/var/task:${PYTHONPATH}"
-CMD [ "python3", "-Bum", "cowait.exec" ]
+CMD [ "python3", "-Bum", "cowait.worker" ]

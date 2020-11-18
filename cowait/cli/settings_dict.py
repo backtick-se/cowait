@@ -2,13 +2,15 @@ import yaml
 
 
 class SettingsDict(object):
-    def __init__(self, *, path: str = None, data: dict = None):
+    def __init__(self, *, path: str = None, data: dict = None, parent: 'SettingsDict' = None):
         if path is not None:
             if data is not None:
                 raise ValueError('Pass either path or a data dict')
             self.read(path)
         else:
             self.data = {} if data is None else data
+
+        self.parent = parent
 
     def __getitem__(self, key: str) -> any:
         return self.get(key, required=True)
@@ -42,6 +44,8 @@ class SettingsDict(object):
         container = self.data
         for part in path[:-1]:
             if part not in container:
+                if self.parent:
+                    return self.parent.has(key)
                 return False
             if not isinstance(container, dict):
                 return False
@@ -57,12 +61,15 @@ class SettingsDict(object):
                 break
             value = value.get(part, default)
         if value is None:
+            if self.parent:
+                return self.parent.get(key, default, required)
             if default is None and required:
                 raise KeyError(f'{key} not set')
             return default
         return value
 
     def delete(self, key: str) -> None:
+        # TODO: propagate delete to parents
         path = split_key(key)
         container = self.data
         for part in path[:-1]:

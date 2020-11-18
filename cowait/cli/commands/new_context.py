@@ -1,10 +1,11 @@
 import os
 import os.path
 from ..const import CONTEXT_FILE_NAME
-from ..context import CowaitContext
+from ..config import Config
 
 
 def new_context(
+    config: Config,
     name: str,
     image: str,
     base: str,
@@ -18,7 +19,7 @@ def new_context(
         os.mkdir(path)
         print('Created context folder', path)
 
-    context = CowaitContext(root_path=name, data={})
+    context = Config(path=name, config=config)
 
     # image name
     if image is not None:
