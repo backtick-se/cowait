@@ -114,13 +114,18 @@ def new(name: str, image: str, base: str):
               type=bool, is_flag=True,
               help='no output except result',
               default=False)
+@click.option('-a', '--affinity',
+              type=str, is_flag=True,
+              help='Should tasks be grouped or spread? Use -a "spread" to spread tasks on the cluster, and -a "group" to group tasks together',
+              default='')
+
 @click.pass_context
 def run(
     ctx, task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
     cpu: str, cpu_limit: str, memory: str, memory_limit: str,
-    file: str, raw: bool, quiet: bool
+    file: str, raw: bool, quiet: bool, affinity: str,
 ):
     ctx.obj.load()
     if cluster is not None:
@@ -136,6 +141,29 @@ def run(
 
     if not isinstance(file_inputs, dict):
         raise CliError('Error: Expected input file to contain a dictionary')
+
+
+    if affinity.lower() == 'spread':
+        affinity = {
+                "type" : "spread",
+                "label" : {
+                    "key" :name + "-key",
+                    "value" :name + "-value"
+                }
+            }
+
+    elif affinity.lower() == 'group':
+
+        affinity = {
+                "type" : "group",
+                "label" : {
+                    "key" :name + "-key",
+                    "value" :name + "-value"
+                }
+            }
+
+    else:
+        affinity = {}
 
     cowait.cli.run(
         ctx.obj,
@@ -157,6 +185,7 @@ def run(
         cpu_limit=cpu_limit,
         memory=memory,
         memory_limit=memory_limit,
+        affinity=affinity
     )
 
 
