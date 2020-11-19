@@ -123,17 +123,18 @@ class KubernetesProvider(ClusterProvider):
             )
 
             labels = {
-                        LABEL_TASK_ID: taskdef.id,
-                        LABEL_PARENT_ID: taskdef.parent,
-                        **taskdef.meta,
-                    }
+                LABEL_TASK_ID: taskdef.id,
+                LABEL_PARENT_ID: taskdef.parent,
+                **taskdef.meta,
+            }
 
             affinity = None
 
             if (taskdef.affinity is not None) and (taskdef.affinity != {}):
                 affinity_label = {}
                 if taskdef.affinity.get("label"):
-                    affinity_label[taskdef.affinity["label"]["key"]] = taskdef.affinity["label"]["value"]
+                    affinity_label[taskdef.affinity["label"]["key"]
+                                   ] = taskdef.affinity["label"]["value"]
                 else:
                     affinity_label["cowait_default_affinity_key"] = "cowait_default_affinity_value"
 
@@ -180,14 +181,12 @@ class KubernetesProvider(ClusterProvider):
                             )
                         ]
                     )
-                
+
                 else:
                     aff_def = None
-                
+
                 affinity = client.V1Affinity(pod_anti_affinity=aff_def) if aff_def else None
-                
-                labels.updated(affinity_label)
-                
+                labels[list(affinity_label.keys())[0]] = list(affinity_label.values())[0]
 
             pod = self.core.create_namespaced_pod(
                 namespace=self.namespace,
