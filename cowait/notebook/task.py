@@ -2,6 +2,7 @@ import re
 from cowait.tasks.shell import ShellTask
 from cowait.engine import env_pack, \
     ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED
+from .kernel import ENV_KERNEL_TOKEN
 
 TOKEN_PATTERN = re.compile('\\/\\?token\\=([a-z0-9]+)')
 
@@ -19,7 +20,7 @@ class NotebookTask(ShellTask):
                 ENV_GZIP_ENABLED: '1',
                 ENV_TASK_DEFINITION: env_pack(self.taskdef.serialize()),
                 ENV_TASK_CLUSTER: env_pack(self.cluster.serialize()),
-                'KERNEL_TOKEN': self.node.http.auth.get_token(),
+                ENV_KERNEL_TOKEN: self.node.server.auth.get_token(),
             },
         )
 
