@@ -10,6 +10,8 @@ from .node import NotebookNode
 
 import cowait.notebook.html_repr  # noqa: F401
 
+ENV_KERNEL_TOKEN = 'COWAIT_KERNEL_TOKEN'
+
 
 class KernelTask(Task):
     pass
@@ -23,7 +25,7 @@ class CowaitKernel(IPythonKernel):
     async def init_node(self):
         cluster = env_get_cluster_provider()
         parent = env_get_task_definition()
-        token = os.getenv('KERNEL_TOKEN')
+        token = os.getenv(ENV_KERNEL_TOKEN)
 
         taskdef = TaskDefinition(
             name='kernel',
