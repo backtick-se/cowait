@@ -5,22 +5,34 @@ import psutil
 class ResourceMonitor():
     def __init__(self):
         self.process = psutil.Process(os.getpid())
-        self.last_io = self.process.io_counters()
+        self.cpu_cores = psutil.cpu_count()
+        self.total_memory = psutil.virtual_memory().total
+        self.process.cpu_percent()  # initial cpu reading
 
     def stats(self):
-        cpu = self.process.cpu_percent()
-        mem = self.process.memory_full_info()
-        io = self.process.io_counters()
+        with self.process.oneshot():
+            cpu = self.process.cpu_percent()
+            mem = self.process.memory_full_info()
+            io = self.process.io_counters()
+            fds = self.process.num_fds()
+
         stats = {
-            'cpu': round(cpu / 100.0, 3),
+            'cpu': [
+                round(cpu / 100.0, 3),
+                self.cpu_cores,
+            ],
             'mem': [
                 mem.uss,  # used
-                psutil.virtual_memory().total,  # total
+                self.total_memory,  # total
             ],
             'io': [
-                io.read_bytes - self.last_io.read_bytes,  # read
-                io.write_bytes - self.last_io.write_bytes,  # write
+                io.read_chars,  # read
+                io.write_chars,  # write
             ],
+            'iops': [
+                io.read_count,  # read
+                io.write_count,  # write
+            ],
+            'fds': fds,
         }
-        self.last_io = io
         return stats
