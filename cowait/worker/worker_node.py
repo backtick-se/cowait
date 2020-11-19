@@ -51,10 +51,10 @@ class WorkerNode(object):
         )
 
     def monitor_system(self, interval: float = 1.0):
-        async def monitor_loop(interval, parent):
+        async def monitor_loop():
             monitor = ResourceMonitor()
             while True:
                 await asyncio.sleep(interval)
-                await parent.send_stats(monitor.stats())
+                await self.parent.send_stats(monitor.stats())
 
-        self.io.create_task(monitor_loop(interval, self.parent))
+        self.io.create_task(monitor_loop())
