@@ -147,8 +147,8 @@ def run(
         affinity = {
                 "type" : "spread",
                 "label" : {
-                    "key" :name + "-key",
-                    "value" :name + "-value"
+                    "key" :task + "-key",
+                    "value" :task + "-value"
                 }
             }
 
@@ -157,8 +157,8 @@ def run(
         affinity = {
                 "type" : "group",
                 "label" : {
-                    "key" :name + "-key",
-                    "value" :name + "-value"
+                    "key" :task + "-key",
+                    "value" :task + "-value"
                 }
             }
 
