@@ -114,7 +114,7 @@ def new(name: str, image: str, base: str):
               type=bool, is_flag=True,
               help='no output except result',
               default=False)
-@click.option('-a', '--affinity',
+@click.option('--affinity','--aff',
               type=str,
               help='Should tasks be grouped or spread? Use -a "spread" to spread tasks on the cluster, and -a "group" to group tasks together',
               default='')
