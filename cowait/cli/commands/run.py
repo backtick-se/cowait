@@ -30,6 +30,7 @@ def run(
     memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
+    affinity: dict = {},
 ):
     logger = RunLogger(raw, quiet)
     try:
@@ -80,6 +81,7 @@ def run(
             memory=context.override('memory', memory),
             memory_limit=context.override('memory_limit', memory_limit),
             storage=context.get('storage', {}),
+            affinity=affinity
         )
 
         # print execution info
@@ -172,6 +174,9 @@ class RunLogger(Logger):
             self.println(f'   cpu:        {taskdef.cpu}/{taskdef.cpu_limit}')
         if taskdef.memory or taskdef.memory_limit:
             self.println(f'   memory:     {taskdef.memory}/{taskdef.memory_limit}')
+        if taskdef.affinity != {}:
+            self.println('   affinity:   ', self.json(taskdef.affinity))
+        
 
     def print(self, *args):
         if self.raw:

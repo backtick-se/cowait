@@ -78,6 +78,7 @@ class TaskDefinition(object):
             memory_limit (str): Memory limit
             owner (str): Owner name
             created_at (DateTime): Creation date
+            affinity (dict): Affinity
         """
         self.id = generate_task_id(name) if id is None else id
         self.name = name
