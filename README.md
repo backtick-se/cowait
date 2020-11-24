@@ -5,6 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/cowait.svg)](https://pypi.org/project/cowait/)
 [![](https://img.shields.io/static/v1?label=docs&message=gitbook&color=blue)](http://docs.cowait.io/)
 [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](http://cowait.io/)
+[![](https://img.shields.io/badge/chat-slack-blueviolet)](https://slack.cowait.io)
 
 Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called *Tasks*, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. Because of the loose definition of what a Task could be, and the integration with Docker & Kubernetes, Cowait can be used to easily build many types of distributed applications.
 
@@ -13,6 +14,12 @@ Check out the documentation at https://docs.cowait.io/
 ## Notice
 
 Cowait is still in fairly early development. We invite you to try it out and gladly accept your feedback and contributions, but please be aware that breaking API changes may be introduced.
+
+## Community
+
+Join the Cowait development Slack channel! 
+
+Get your invite at https://slack.cowait.io
 
 ## Getting Started
 
