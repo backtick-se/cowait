@@ -53,6 +53,7 @@ def build(
             base = TaskImage.build_image(
                 path=os.path.dirname(dockerfile),
                 dockerfile=str(basedf),
+                quiet=quiet,
             )
             if base is None:
                 raise RuntimeError('Failed to build base image')
