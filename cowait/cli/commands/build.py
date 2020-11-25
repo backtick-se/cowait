@@ -12,9 +12,10 @@ from ..logger import Logger
 
 def build(
     config: Config, *,
-    quiet: bool = False,
-    workdir: str = None,
-    image_name: str = None,
+    image_name: str = None, 
+    workdir: str = None, 
+    buildargs: dict = {},
+    quiet: bool = False, 
 ) -> TaskImage:
     logger = Logger(quiet)
     try:
@@ -34,6 +35,8 @@ def build(
         logger.println('Image:', image.name)
         logger.println('Context Root:', context.root_path)
         logger.println('Workdir:', context.workdir)
+        for arg, val in buildargs.items():
+            logger.println(f'Argument: {arg}={val}')
 
         # find task-specific requirements.txt
         # if it exists, it will be copied to the container, and installed
@@ -54,6 +57,7 @@ def build(
                 path=os.path.dirname(dockerfile),
                 dockerfile=str(basedf),
                 quiet=quiet,
+                buildargs=buildargs,
             )
             if base is None:
                 raise RuntimeError('Failed to build base image')
@@ -64,6 +68,7 @@ def build(
             base=base_image,
             requirements=requirements,
             quiet=quiet,
+            buildargs=buildargs,
         )
 
         return image
