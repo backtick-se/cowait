@@ -20,7 +20,7 @@ class TaskImage(object):
     def name(self):
         return self.context.image
 
-    def build(self, base: str, requirements: str = None, quiet: bool = False) -> None:
+    def build(self, base: str, requirements: str = None, buildargs: dict = {}, quiet: bool = False) -> None:
         """ Build task image """
 
         # create temporary dockerfile
@@ -43,6 +43,7 @@ class TaskImage(object):
             dockerfile=str(df),
             path=self.context.root_path,
             tag=f'{self.name}:latest',
+            buildargs=buildargs,
             quiet=quiet,
         )
 
