@@ -35,11 +35,15 @@ def build(
         logger.println('Image:', image.name)
         logger.println('Context Root:', context.root_path)
         logger.println('Workdir:', context.workdir)
-        for arg, val in buildargs.items():
-            logger.println(f'Argument: {arg}={val}')
+
+        if len(buildargs) > 0:
+            logger.println('Buildargs:')
+            for arg in buildargs.keys():
+                logger.println(f'  {arg}')
 
         # find task-specific requirements.txt
         # if it exists, it will be copied to the container, and installed
+        # custom requirements are ignored when using custom dockerfiles.
         requirements = context.file_rel('requirements.txt')
         if requirements:
             logger.println('* Found custom requirements.txt')
@@ -50,8 +54,17 @@ def build(
         dockerfile = context.file('Dockerfile')
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
-            logger.header('BASE')
 
+            # disable automatic requirements.txt install when using custom dockerfiles.
+            # notify user to avoid confusion
+            if requirements:
+                logger.println('! Warning: requirements.txt is not automatically installed when using custom dockerfiles.')
+                requirements = None
+
+            if not os.path.isfile('.dockerignore'):
+                logger.println('! Warning: No .dockerignore file found.')
+
+            logger.header('BASE')
             basedf = Dockerfile.read(dockerfile)
             base = TaskImage.build_image(
                 path=os.path.dirname(dockerfile),
@@ -70,6 +83,8 @@ def build(
             quiet=quiet,
             buildargs=buildargs,
         )
+
+        logger.header()
 
         return image
 
