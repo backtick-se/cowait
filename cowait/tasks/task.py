@@ -156,7 +156,6 @@ class Task(object):
             memory_limit=memory_limit if memory_limit else self.taskdef.memory_limit,
             owner=owner,
             inputs=serialize(inputs),
-            storage=self.taskdef.storage,
             volumes={
                 **self.taskdef.volumes,
                 **volumes,

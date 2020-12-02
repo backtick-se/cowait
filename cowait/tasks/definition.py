@@ -51,7 +51,6 @@ class TaskDefinition(object):
         ports:        dict = {},
         routes:       dict = {},
         volumes:      dict = {},
-        storage:      dict = {},
         cpu:          str = None,
         cpu_limit:    str = None,
         memory:       str = None,
@@ -94,7 +93,6 @@ class TaskDefinition(object):
         self.memory_limit = memory_limit
         self.owner = owner
         self.volumes = volumes
-        self.storage = storage
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -134,7 +132,6 @@ class TaskDefinitionSchema(Schema):
     memory_limit = fields.Str(allow_none=True)
     owner = fields.Str(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
-    storage = fields.Dict(missing={})
     volumes = fields.Mapping(
         keys=fields.Str(),
         values=fields.Mapping(),

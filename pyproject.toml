@@ -22,8 +22,6 @@ nest-asyncio = "^1.4.3"
 numpy = "^1.19.4"
 sty = "^1.0.0-beta.12"
 python-dotenv = "^0.15.0"
-fsspec = "^0.8.4"
-s3fs = "^0.5.1"
 aiohttp-middlewares = "^1.1.0"
 alt-pytest-asyncio = "^0.5.3"
 

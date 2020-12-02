@@ -80,7 +80,6 @@ def run(
             cpu_limit=context.override('cpu_limit', cpu_limit),
             memory=context.override('memory', memory),
             memory_limit=context.override('memory_limit', memory_limit),
-            storage=context.get('storage', {}),
         )
 
         # print execution info
@@ -167,8 +166,6 @@ class RunLogger(Logger):
             self.println('   inputs:    ', self.json(taskdef.inputs))
         if len(taskdef.volumes) > 0:
             self.println('   volumes:   ', self.json(taskdef.volumes))
-        if len(taskdef.storage) > 0:
-            self.println('   storage:   ', ', '.join(taskdef.storage.keys()))
         if taskdef.cpu or taskdef.cpu_limit:
             self.println(f'   cpu:        {taskdef.cpu}/{taskdef.cpu_limit}')
         if taskdef.memory or taskdef.memory_limit:
