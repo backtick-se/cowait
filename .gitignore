@@ -10,3 +10,4 @@ htmlcov/
 .DS_Store
 .vscode
 .ipynb_checkpoints/
+.venv/
