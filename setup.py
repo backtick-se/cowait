@@ -36,8 +36,6 @@ setup(
         'pytest>=6',
         'alt-pytest-asyncio>=0.5.3',  # would be nice to move to the widely used pytest-asyncio
         'python-dotenv>=0.15',
-        'fsspec',
-        's3fs',
         'aiobotocore[boto3]',
 
         # cli
