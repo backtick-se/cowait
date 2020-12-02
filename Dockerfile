@@ -12,7 +12,7 @@ RUN mkdir /var/cowait && mkdir /var/task
 
 # install cowait
 WORKDIR /var/cowait
-COPY setup.py README.md ./
+COPY setup.py requirements.txt README.md ./
 RUN mkdir cowait && pip install -e .
 
 # jupyter mods

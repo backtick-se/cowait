@@ -1,4 +1,5 @@
 .git/
+.venv/
 **dist/
 **/node_modules/
 cowait.egg-info/
