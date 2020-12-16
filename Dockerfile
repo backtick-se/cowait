@@ -12,8 +12,8 @@ RUN mkdir /var/cowait && mkdir /var/task
 
 # install cowait
 WORKDIR /var/cowait
-COPY setup.py requirements.txt README.md ./
-RUN mkdir cowait && pip install -e .
+COPY setup.py README.md ./
+RUN mkdir cowait && pip install -e . --use-feature=2020-resolver
 
 # jupyter mods
 COPY notebook/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
