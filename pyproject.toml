@@ -5,6 +5,9 @@ description = ""
 authors = ["Backtick Technologies <johan@backtick.se>"]
 license = "Apache License v2.0"
 
+[tool.poetry.scripts]
+cowait = 'cowait.__main__:main'
+
 [tool.poetry.dependencies]
 # core -- unlikely to collide with data science projects
 python = "^3.7"
