@@ -182,7 +182,7 @@ class RunLogger(Logger):
     def print_id(self, id, ts=None, short=True, pad=True):
         color = fg(hash(id) % 214 + 17)
         if short and '-' in id:
-            id = id[:id.find('-')]
+            id = id[:id.rfind('-')]
             self.idlen = max(self.idlen, len(id))
         self.print(color + id.ljust(self.idlen if pad else 0) + rs.all)
 
