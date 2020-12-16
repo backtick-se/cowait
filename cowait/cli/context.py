@@ -32,7 +32,7 @@ class Context(Config):
     def environment(self):
         return {
             **self.get('environment', {}, False),
-            **dotenv_values(),
+            **dotenv_values(self.file('.env')),
         }
 
     def file(self, file_name: str) -> str:
