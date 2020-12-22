@@ -2,7 +2,7 @@ import yaml
 import click
 import cowait.cli.commands
 from cowait.cli import CliError
-from .utils import option_dict
+from .utils import parse_input_list
 
 
 @click.command(help='run a task')
@@ -16,16 +16,16 @@ from .utils import option_dict
               default=None,
               help='specific task name')
 @click.option('-i', '--input',
-              type=(str, str),
+              type=str,
               multiple=True,
               help='specify task input')
 @click.option('-e', '--env',
-              type=(str, str),
+              type=str,
               multiple=True,
               help='define enviornment variable')
 @click.option('-p', '--port', type=int, multiple=True, help='open a port')
 @click.option('-r', '--route',
-              type=(str, str),
+              type=str,
               multiple=True,
               help='add an ingress route')
 @click.option('-u', '--upstream',
@@ -92,11 +92,11 @@ def run(
         name=name,
         inputs={
             **file_inputs,
-            **option_dict(input),
+            **parse_input_list(input),
         },
-        env=option_dict(env),
+        env=parse_input_list(env),
         ports={p: p for p in port},
-        routes=option_dict(route),
+        routes=parse_input_list(route),
         upstream=upstream,
         build=build,
         detach=detach,
