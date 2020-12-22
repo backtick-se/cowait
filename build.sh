@@ -3,7 +3,7 @@ cd "${0%/*}" || exit
 set -e
 
 image="cowait/task"
-version=$(grep 'VERSION.*=.*".*"' setup.py | sed -E 's/.*"(.*)"/\1/g')
+version=$(grep 'version.*=.*".*"' cowait/version.py | sed -E 's/.*"(.*)"/\1/g')
 minor=$(echo $version | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+/\1/g')
 
 if [ -n "$GITHUB_REF" ]; then

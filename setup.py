@@ -1,13 +1,13 @@
 import setuptools
 
-VERSION = "0.4.0"
+exec(open('cowait/version.py').read())
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='cowait',
-    version=VERSION,
+    version=version,
     author='Backtick Technologies',
     description='Cowait is a framework for creating ' +
                 'containerized workflows with asynchronous Python.',

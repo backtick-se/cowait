@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-import pkg_resources
+from cowait.version import version
 
 VERSION_FORMAT = re.compile('([0-9]+)\\.([0-9]+)\\.([0-9]+)')
 
@@ -21,7 +21,7 @@ class Version(object):
 
     @staticmethod
     def current():
-        return Version.parse(version_string())
+        return Version.parse(version)
 
     @staticmethod
     def parse(version: str) -> Version:
@@ -30,6 +30,3 @@ class Version(object):
         major, minor, rev = map(lambda v: int(v), version.split('.'))
         return Version(major, minor, rev)
 
-
-def version_string():
-    return pkg_resources.require("cowait")[0].version
