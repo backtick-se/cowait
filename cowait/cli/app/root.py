@@ -1,12 +1,12 @@
 import click
-from cowait.utils import version_string
+from cowait.version import version
 from . import task, image, context
 from .cluster import cluster
 
 
 def new_cli_app():
     @click.group()
-    @click.version_option(version_string())
+    @click.version_option(version)
     @click.pass_context
     def cli(ctx):
         pass
