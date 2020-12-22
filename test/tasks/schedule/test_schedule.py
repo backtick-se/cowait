@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from .schedule_definition import ScheduleDefinition, schedule_match
+from cowait.tasks.schedule.schedule_definition import ScheduleDefinition, schedule_match
 
 
 def test_is_value():

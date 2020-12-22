@@ -1,15 +1,7 @@
 import pytest
-from .loader import load_task_class
+from cowait.worker.loader import load_task_class
 from cowait.tasks import Task, TaskNotFoundError
 from cowait.tasks.shell import ShellTask
-
-
-class TaskOne(Task):
-    pass
-
-
-class TaskTwo(Task):
-    pass
 
 
 def test_illegal_class_name():
@@ -37,4 +29,5 @@ def test_no_defined_tasks():
 
 def test_multiple_defined_tasks():
     with pytest.raises(TaskNotFoundError, match=r'.*multiple*.'):
-        load_task_class('cowait.worker.test_loader')
+        load_task_class('cowait.test.utils.double_task_def')
+

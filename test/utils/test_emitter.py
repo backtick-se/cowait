@@ -1,6 +1,6 @@
 from asyncio import coroutine
 from unittest.mock import Mock
-from .emitter import EventEmitter
+from cowait.utils.emitter import EventEmitter
 
 
 async def test_emitter():

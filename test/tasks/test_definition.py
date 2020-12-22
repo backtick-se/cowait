@@ -1,4 +1,4 @@
-from .definition import TaskDefinition
+from cowait.tasks.definition import TaskDefinition
 
 
 def test_taskdef_serialization():

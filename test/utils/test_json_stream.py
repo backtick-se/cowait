@@ -1,4 +1,4 @@
-from .json_stream import json_stream
+from cowait.utils.json_stream import json_stream
 
 
 def test_json_stream():

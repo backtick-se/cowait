@@ -1,9 +1,9 @@
-from .dict import Dict
-from .list import List
-from .custom import CustomType
-from .simple import Int, String
-from .mapping import TypeAlias
-from .utils import type_from_description
+from cowait.types.dict import Dict
+from cowait.types.list import List
+from cowait.types.custom import CustomType
+from cowait.types.simple import Int, String
+from cowait.types.mapping import TypeAlias
+from cowait.types.utils import type_from_description
 
 
 def test_deserialize_dict_type():

@@ -2,9 +2,9 @@ import asyncio
 from cowait.network.errors import AuthError
 import pytest
 from cowait.test import AsyncMock
-from .server import Server
-from .client import Client
-from .const import PORT, ON_CONNECT, ON_CLOSE, ON_ERROR, WS_PATH
+from cowait.network.server import Server
+from cowait.network.client import Client
+from cowait.network.const import PORT, ON_CONNECT, ON_CLOSE, ON_ERROR, WS_PATH
 
 
 @pytest.mark.network

@@ -1,12 +1,12 @@
 import os
 import os.path
 import pytest
-from .context import Context
+from cowait.cli.context import Context
 
 
 def test_create_context():
-    context = Context.open(None, 'test')
-    assert context.root_path == os.path.join(os.getcwd(), 'test')
+    context = Context.open(None, 'test/_context')
+    assert context.root_path == os.path.join(os.getcwd(), 'test/_context')
 
     # raise error if path is invalid
     with pytest.raises(ValueError):
@@ -18,7 +18,7 @@ def test_create_context():
 
 
 def test_get_files():
-    context = Context.open(None, 'test')
+    context = Context.open(None, 'test/_context')
 
     # context files
     path_abs = context.file('Dockerfile')
