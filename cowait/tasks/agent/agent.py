@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from cowait.tasks import Task, TaskDefinition, sleep, rpc
-from cowait.network import Conn, get_local_connstr
+from cowait.network import Conn, get_local_url
 from cowait.tasks.status import WAIT, WORK, STOP
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS
 from .tasklist import TaskList
@@ -26,13 +26,13 @@ class Agent(Task):
 
         self.token = self.meta['http_token']
         if self.token is None or self.token == '':
-            self.node.http.auth.enabled = False
+            self.node.server.auth.enabled = False
             self.token = 'none'
 
         # create http server
-        self.node.http.add_routes(TaskAPI(self).routes('/api/1/tasks'))
-        self.node.http.add_routes(Dashboard().routes())
-        self.node.http.auth.add_token(self.token)
+        self.node.server.add_routes(TaskAPI(self).routes('/api/1/tasks'))
+        self.node.server.add_routes(Dashboard().routes())
+        self.node.server.auth.add_token(self.token)
 
     async def run(self, **inputs) -> dict:
         if '/' in self.taskdef.routes:
@@ -96,7 +96,7 @@ class Agent(Task):
 
     @rpc
     async def get_agent_url(self) -> str:
-        url = get_local_connstr()
+        url = get_local_url()
         return f'{url}?token={self.token}'
 
     @rpc
@@ -124,7 +124,7 @@ class Agent(Task):
             id=id,
             name=name,
             image=image,
-            upstream=get_local_connstr(),
+            upstream=get_local_url(),
             meta=meta,
             ports=ports,
             routes=routes,
@@ -139,7 +139,7 @@ class Agent(Task):
         ))
 
         # authorize id
-        self.node.http.auth.add_token(id)
+        self.node.server.auth.add_token(id)
 
         # register with subtask manager
         self.subtasks.watch(task)
@@ -147,4 +147,4 @@ class Agent(Task):
         return task.serialize()
 
     async def emulate_stop(self, task_id: str):
-        await self.node.children.emit(type=TASK_STATUS, id=task_id, status=STOP, conn=None)
+        await self.node.server.emit(type=TASK_STATUS, id=task_id, status=STOP, conn=None)

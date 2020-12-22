@@ -5,8 +5,8 @@ from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
-from ..config import CowaitConfig
-from ..context import CowaitContext
+from ..config import Config
+from ..context import Context
 from ..utils import ExitTrap
 from ..logger import Logger
 from .build import build as build_cmd
@@ -14,8 +14,8 @@ from sty import fg, rs
 
 
 def run(
-    config: CowaitConfig,
-    task: str,
+    config: Config,
+    task: str, *,
     name: str = None,
     inputs: dict = {},
     env: dict = {},
@@ -30,11 +30,12 @@ def run(
     memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
+    cluster_name: str = None,
 ):
     logger = RunLogger(raw, quiet)
     try:
-        context = CowaitContext.open()
-        cluster = config.get_cluster()
+        context = Context.open(config)
+        cluster = context.get_cluster(cluster_name)
 
         # figure out image name
         remote_image = True
@@ -178,15 +179,15 @@ class RunLogger(Logger):
             return
         super().print(*args)
 
-    def print_id(self, id, short=True, pad=True):
+    def print_id(self, id, ts=None, short=True, pad=True):
         color = fg(hash(id) % 214 + 17)
         if short and '-' in id:
-            id = id[:id.find('-')]
+            id = id[:id.rfind('-')]
             self.idlen = max(self.idlen, len(id))
         self.print(color + id.ljust(self.idlen if pad else 0) + rs.all)
 
-    def on_init(self, task: dict, version: str, **msg):
-        self.print_time()
+    def on_init(self, task: dict, version: str, ts: str = None, **msg):
+        self.print_time(ts)
         self.print_id(task['id'])
         self.print(
             f' {fg.yellow}*{rs.all} started with',
@@ -199,22 +200,22 @@ class RunLogger(Logger):
         else:
             self.println()
 
-    def on_status(self, id, status, **msg):
-        self.print_time()
+    def on_status(self, id: str, status: str, ts: str = None, **msg):
+        self.print_time(ts)
         self.print_id(id)
         self.println(f'{fg.yellow} ~ {status}{rs.all}')
 
-    def on_fail(self, id, error, **msg):
-        self.print_time()
+    def on_fail(self, id: str, error: str, ts: str = None, **msg):
+        self.print_time(ts)
         self.print_id(id)
         self.println(f'{fg.red} ! {rs.all}ERROR: {error}')
 
-    def on_return(self, id, result, **msg):
-        self.print_time()
+    def on_return(self, id: str, result: any, ts: str = None, **msg):
+        self.print_time(ts)
         self.print_id(id)
         self.println(f'{fg.green} ={rs.all} returned', self.json(result, indent=2))
 
-    def on_log(self, id, file, data, **msg):
-        self.print_time()
+    def on_log(self, id: str, file: str, data: str, ts: str = None, **msg):
+        self.print_time(ts)
         self.print_id(id)
         self.println('  ', data)

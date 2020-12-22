@@ -2,11 +2,12 @@ import sys
 import json
 from ..task_image import TaskImage
 from ..const import CONTEXT_FILE_NAME
+from ..config import Config
 from .build import build
 
 
-def push() -> TaskImage:
-    image = build()
+def push(config: Config) -> TaskImage:
+    image = build(config)
 
     if image is None or '/' not in image.name:
         print(f'Error: You must specify a full image name in '
@@ -37,6 +38,6 @@ def push() -> TaskImage:
             sys.stdout.write(f'\rpushing... {pct:0.2f}%  ')
             sys.stdout.flush()
 
-    sys.stdout.write(f'\rpushing... done       \n')
+    sys.stdout.write('\rpushing... done       \n')
     sys.stdout.flush()
     return image

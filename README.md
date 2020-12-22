@@ -167,7 +167,7 @@ $ cowait run docker.io/username/cowait-task --cluster kubernetes
 **Requirements**
 - docker
 - python 3.6+
-- pipenv/virtualenv (optional)
+- poetry (recommended)
 
 **Installation**
 

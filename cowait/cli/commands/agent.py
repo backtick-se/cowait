@@ -4,19 +4,22 @@ from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils.const import DEFAULT_BASE_IMAGE
 from cowait.utils import uuid
 from ..errors import CliError
-from ..config import CowaitConfig
+from ..config import Config
+from ..context import Context
 from ..utils import ExitTrap
 from .run import RunLogger
 
 
 def agent(
-    config: CowaitConfig,
+    config: Config,
     detach: bool = False,
     upstream: str = None,
+    cluster_name: str = None,
 ) -> None:
     logger = RunLogger(quiet=False, raw=False)
     try:
-        cluster = config.get_cluster()
+        context = Context.open(config)
+        cluster = context.get_cluster(cluster_name)
 
         if cluster.type == 'api':
             raise CliError('Error: Cant deploy agent using an API cluster')

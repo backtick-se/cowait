@@ -15,10 +15,10 @@ class RpcComponent():
 
         # listen for websocket rpc
         task.node.parent.on(RPC_CALL, self.on_rpc)
-        task.node.children.on(RPC_CALL, self.on_rpc)
+        task.node.server.on(RPC_CALL, self.on_rpc)
 
         # register http handler
-        task.node.http.add_post('/rpc/{method}', self.http_rpc_handler)
+        task.node.server.add_post('/rpc/{method}', self.http_rpc_handler)
 
     def get_method(self, method: str) -> callable:
         if method not in self.methods:
@@ -39,6 +39,7 @@ class RpcComponent():
 
             await conn.send({
                 'type': RPC_RESULT,
+                'id': self.task.id,
                 'nonce': nonce,
                 'method': method,
                 'args': args,
@@ -50,6 +51,7 @@ class RpcComponent():
             traceback.print_exc()
             await conn.send({
                 'type': RPC_ERROR,
+                'id': self.task.id,
                 'nonce': nonce,
                 'method': method,
                 'args': args,

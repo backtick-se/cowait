@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "cowait"
+version = "0.4.0"
+description = ""
+authors = ["Backtick Technologies <johan@backtick.se>"]
+license = "Apache License v2.0"
+
+[tool.poetry.scripts]
+cowait = 'cowait.__main__:main'
+
+[tool.poetry.dependencies]
+# core -- unlikely to collide with data science projects
+python = "^3.7"
+docker = "^4"
+kubernetes = "=>11, <=12"
+nest-asyncio = "^1.4.1"
+aiohttp = "^3"
+aiohttp-middlewares = "^1"
+pytest = "^6"
+alt-pytest-asyncio = "^0.5.3" # would be nice to move to the widely used pytest-asyncio
+python-dotenv = "^0.15"
+
+# cli
+click = "^7"
+PyYAML = "^5"
+sty = "^1.0.0-beta.12" # tty coloring, seems to be stuck in beta. remove/replace
+
+# convenient, but easy to get rid of
+marshmallow = "^3" 
+fsspec = "^0.8"
+s3fs = "^0.5"
+
+# utilities, not actually required
+numpy = "^1" # provides typing for numpy. unlikely to break
+pytest-sugar = "^0.9"
+pytest-cov = "^2"
+
+# extract to cowait-dask
+dask = "^2"
+distributed = "^2"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.8"
+autopep8 = "^1.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools"]
+build-backend = "poetry.core.masonry.api"

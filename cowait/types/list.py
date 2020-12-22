@@ -4,6 +4,7 @@ from .mapping import is_cowait_type, convert_type, TypeAlias
 
 
 @TypeAlias(list)
+@TypeAlias(tuple)
 class List(Type):
     """ List type """
 

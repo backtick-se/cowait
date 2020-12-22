@@ -1,10 +1,10 @@
-from ..config import CowaitConfig
+from ..config import Config
 
 
 ADDABLE_PROVIDERS = ['api']
 
 
-def cluster_get(config: CowaitConfig, name: str) -> None:
+def cluster_get(config: Config, name: str) -> None:
     if name not in config.clusters:
         print('Unknown cluster', name)
         return 1
@@ -17,13 +17,13 @@ def cluster_get(config: CowaitConfig, name: str) -> None:
         print(f'    {key}: {value}')
 
 
-def cluster_ls(config: CowaitConfig) -> None:
+def cluster_ls(config: Config) -> None:
     for name in config.clusters:
         cluster_get(config, name)
         print()
 
 
-def cluster_add(config: CowaitConfig, name: str, type: str, **options) -> None:
+def cluster_add(config: Config, name: str, type: str, **options) -> None:
     if name in config.clusters:
         print(f'Error: Cluster {name} already exists')
         return 1
@@ -42,13 +42,13 @@ def cluster_add(config: CowaitConfig, name: str, type: str, **options) -> None:
     cluster_get(config, name)
 
 
-def cluster_rm(config: CowaitConfig, name: str) -> None:
+def cluster_rm(config: Config, name: str) -> None:
     if name not in config.clusters:
         print(f'Error: Cluster {name} does not exist')
         return 1
 
     if name == config.default_cluster:
-        print(f'Error: Cant remove the default cluster')
+        print('Error: Cant remove the default cluster')
         return 1
 
     if name == 'docker':
@@ -63,11 +63,11 @@ def cluster_rm(config: CowaitConfig, name: str) -> None:
     config.write()
 
 
-def cluster_default(config: CowaitConfig) -> None:
+def cluster_default(config: Config) -> None:
     print(config.default_cluster)
 
 
-def cluster_set_default(config: CowaitConfig, name: str) -> None:
+def cluster_set_default(config: Config, name: str) -> None:
     if name not in config.clusters:
         print(f'Error: Cluster {name} does not exist')
         return 1

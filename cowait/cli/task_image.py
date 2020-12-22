@@ -1,7 +1,7 @@
 import os
 import os.path
 import docker
-from .context import CowaitContext
+from .context import Context
 from .docker_file import Dockerfile
 
 client = docker.from_env()
@@ -20,7 +20,7 @@ class TaskImage(object):
     def name(self):
         return self.context.image
 
-    def build(self, base: str, requirements: str = None, quiet: bool = False) -> None:
+    def build(self, base: str, requirements: str = None, buildargs: dict = {}, quiet: bool = False) -> None:
         """ Build task image """
 
         # create temporary dockerfile
@@ -43,6 +43,7 @@ class TaskImage(object):
             dockerfile=str(df),
             path=self.context.root_path,
             tag=f'{self.name}:latest',
+            buildargs=buildargs,
             quiet=quiet,
         )
 
@@ -66,10 +67,10 @@ class TaskImage(object):
         return logs
 
     @staticmethod
-    def open(context: CowaitContext = None):
+    def open(context: Context = None):
         # automatically create context
         if context is None:
-            context = CowaitContext.open()
+            context = Context.open()
 
         return TaskImage(
             context=context,

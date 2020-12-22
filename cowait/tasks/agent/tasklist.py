@@ -7,11 +7,11 @@ class TaskList(dict):
     """ In-memory database containing all seen tasks and logs """
 
     def __init__(self, task):
-        task.node.children.on(TASK_INIT, self.on_init)
-        task.node.children.on(TASK_STATUS, self.on_status)
-        task.node.children.on(TASK_RETURN, self.on_return)
-        task.node.children.on(TASK_FAIL, self.on_fail)
-        task.node.children.on(TASK_LOG, self.on_log)
+        task.node.server.on(TASK_INIT, self.on_init)
+        task.node.server.on(TASK_STATUS, self.on_status)
+        task.node.server.on(TASK_RETURN, self.on_return)
+        task.node.server.on(TASK_FAIL, self.on_fail)
+        task.node.server.on(TASK_LOG, self.on_log)
 
     async def on_init(self, conn: Conn, id: str, task: dict, **msg):
         self[id] = TaskInstance.deserialize(task)
