@@ -1,6 +1,6 @@
 import click
 import cowait.cli.commands
-from .utils import option_dict
+from .utils import parse_input_list
 
 
 @click.command(help='build a task')
@@ -17,7 +17,7 @@ from .utils import option_dict
               type=str,
               help='image name')
 @click.option('-a', '--arg',
-              type=(str, str),
+              type=str,
               multiple=True,
               help='docker build argument')
 @click.pass_context
@@ -27,7 +27,7 @@ def build(ctx, quiet: bool, workdir: str, image: str, arg: dict):
         quiet=quiet,
         workdir=workdir,
         image_name=image,
-        buildargs=option_dict(arg),
+        buildargs=parse_input_list(arg),
     )
 
 

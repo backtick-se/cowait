@@ -1,6 +1,6 @@
 import click
 import cowait.cli.commands
-from .utils import option_dict
+from .utils import parse_input_list
 
 
 @click.group(help='cluster management')
@@ -39,12 +39,12 @@ def set_default(ctx, name: str):
 @click.argument('name', type=str)
 @click.option('--type', type=str, help='cluster provider type')
 @click.option('-o', '--option',
-              type=(str, str),
+              type=str,
               multiple=True,
               help='specify cluster provider option')
 @click.pass_context
 def add(ctx, name: str, type: str, option: dict = {}):
-    cowait.cli.cluster_add(ctx.obj, name, type.lower(), **option_dict(option))
+    cowait.cli.cluster_add(ctx.obj, name, type.lower(), **parse_input_list(option))
 
 
 @cluster.command(help='remove cluster')

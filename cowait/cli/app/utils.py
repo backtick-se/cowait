@@ -4,20 +4,6 @@ import re
 identifier = re.compile(r"^[^\d\W]\w*\Z", re.UNICODE)
 
 
-def option_val(val):
-    try:
-        return json.loads(val)
-    except json.JSONDecodeError:
-        return val
-
-
-def option_dict(opts):
-    options = {}
-    for [key, val] in opts:
-        options[key] = option_val(val)
-    return options
-
-
 def parse_input(value: str) -> tuple:
     if '=' not in value:
         raise ValueError('Input is not on key=value format')
