@@ -3,7 +3,7 @@ import time
 import pytest
 import docker
 import requests
-from .docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
+from cowait.engine.docker.docker import DockerProvider, LABEL_TASK_ID, LABEL_PARENT_ID
 from cowait.tasks import TaskDefinition
 
 TEST_IMAGE = 'cowait/task'

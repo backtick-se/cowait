@@ -1,5 +1,5 @@
 import pytest
-from .settings_dict import SettingsDict
+from cowait.cli.settings_dict import SettingsDict
 
 
 def test_get_values():

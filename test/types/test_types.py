@@ -1,8 +1,8 @@
 import pytest
-from .mapping import is_cowait_type, convert_type, get_type
-from .simple import Any, String, Int, Float, Bool
-from .dict import Dict
-from .list import List
+from cowait.types.mapping import is_cowait_type, convert_type, get_type
+from cowait.types.simple import Any, String, Int, Float, Bool
+from cowait.types.dict import Dict
+from cowait.types.list import List
 
 
 class TestType(Any):

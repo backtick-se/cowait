@@ -1,6 +1,6 @@
 import pytest
 from kubernetes import client
-from .volumes import create_volumes
+from cowait.engine.kubernetes.volumes import create_volumes
 
 
 @pytest.mark.kubernetes

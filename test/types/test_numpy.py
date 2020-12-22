@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from .utils import serialize, deserialize
+from cowait.types.utils import serialize, deserialize
 
 
 def test_serialize_np_int():

@@ -1,7 +1,7 @@
 import pytest
-from .const import MAX_ENV_LENGTH
-from .cluster import ClusterProvider
-from .errors import ProviderError
+from cowait.engine.const import MAX_ENV_LENGTH
+from cowait.engine.cluster import ClusterProvider
+from cowait.engine.errors import ProviderError
 from cowait.tasks import TaskDefinition
 from cowait.utils import uuid
 

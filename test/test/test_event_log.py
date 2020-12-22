@@ -1,4 +1,4 @@
-from .event_log import EventLog
+from cowait.test.event_log import EventLog
 
 
 def test_push_output():
