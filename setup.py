@@ -1,11 +1,11 @@
-import setuptools
+from setuptools import setup, find_packages
 
 exec(open('cowait/version.py').read())
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-setuptools.setup(
+setup(
     name='cowait',
     version=version,
     author='Backtick Technologies',
@@ -17,7 +17,7 @@ setuptools.setup(
 
     url='https://github.com/backtick-se/cowait',
 
-    packages=['cowait'],
+    packages=find_packages(exclude=["test.*", "test"]),
     entry_points={
         'console_scripts': [
             'cowait = cowait.__main__:main',
