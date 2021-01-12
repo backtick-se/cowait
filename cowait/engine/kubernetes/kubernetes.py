@@ -274,7 +274,7 @@ class KubernetesProvider(ClusterProvider):
         ]
 
     def get_pull_secrets(self):
-        secrets = self.args.get('pull_secrets', ['docker'])
+        secrets = self.args.get('pull_secrets', [])
         return [client.V1LocalObjectReference(name=s) for s in secrets]
 
     def find_agent(self):
