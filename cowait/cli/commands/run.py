@@ -42,7 +42,7 @@ def run(
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
-                build_cmd(quiet=quiet or raw)
+                build_cmd(config, quiet=quiet or raw)
             image = context.image
             remote_image = False
 
