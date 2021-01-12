@@ -28,7 +28,7 @@ class KubernetesProvider(ClusterProvider):
             # load local config
             config.load_kube_config(context=self.args.get('context', None))
 
-        self.client = kubernetes.client.ApiClient(client.Configuration())
+        self.client = kubernetes.client.ApiClient(client.Configuration().get_default_copy())
         self.core = client.CoreV1Api(self.client)
         self.ext = client.ExtensionsV1beta1Api(self.client)
         self.custom = client.CustomObjectsApi(self.client)
@@ -224,7 +224,7 @@ class KubernetesProvider(ClusterProvider):
             ids = map(lambda pod: pod.metadata.name, running)
             return ids
 
-        except urllib3.exceptions.MaxRetryError:
+        except urllib3.exceptions.MaxRetryError as e:
             raise ProviderError('Kubernetes engine unavailable')
 
     def destroy(self, task_id) -> list:

@@ -47,18 +47,16 @@ class TaskImage(object):
             quiet=quiet,
         )
 
-    def push(self):
-        """
-        Push context image to a remote registry.
-        """
-        if not self.image:
-            raise RuntimeError('Task must be built first')
-
+        # tag the image
         self.image.tag(
             repository=self.name,
             tag='latest',
         )
 
+    def push(self):
+        """
+        Push context image to a remote registry.
+        """
         logs = client.images.push(
             repository=self.name,
             tag='latest',
