@@ -48,5 +48,11 @@ def load_task_class(task_name: str) -> TypeVar:
         _, Class = classes[0]
         return Class
 
-    except ModuleNotFoundError:
-        raise TaskNotFoundError(f'Task module {task_name} not found')
+    except ModuleNotFoundError as e:
+        # if its not the module we were trying to import, the error
+        # originates from the task code
+        if e.name != task_name:
+            raise e
+
+        raise TaskNotFoundError(f'Task module {task_name} not found') from None
+

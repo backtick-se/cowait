@@ -42,7 +42,7 @@ def run(
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
-                build_cmd(quiet=quiet or raw)
+                build_cmd(config, quiet=quiet or raw)
             image = context.image
             remote_image = False
 
@@ -84,7 +84,7 @@ def run(
         )
 
         # print execution info
-        logger.print_info(taskdef, config.default_cluster)
+        logger.print_info(taskdef, cluster)
 
         # submit task to cluster
         task = cluster.spawn(taskdef)
@@ -154,12 +154,12 @@ class RunLogger(Logger):
             return
         super().header(title)
 
-    def print_info(self, taskdef, cluster_name):
+    def print_info(self, taskdef, cluster):
         self.id = taskdef.id
 
         self.header('task')
         self.println('   task:      ', self.json(taskdef.id))
-        self.println('   cluster:   ', self.json(cluster_name))
+        self.println('   cluster:   ', self.json(cluster.type), self.json(cluster.args))
         if taskdef.upstream:
             self.println('   upstream:  ', self.json(taskdef.upstream))
         self.println('   image:     ', self.json(taskdef.image))
