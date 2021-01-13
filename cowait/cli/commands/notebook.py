@@ -2,9 +2,10 @@ from .run import run as run_cmd
 
 
 def notebook(config, build: bool, image: str = None, cluster_name: str = None) -> None:
-    task = 'cowait.notebook'
-    if image is not None:
-        task = f'{image}/{task}'
+    if image is None:
+        image = 'cowait/notebook'
+
+    task = f'{image}/cowait.notebook'
     return run_cmd(
         config=config,
         task=task,

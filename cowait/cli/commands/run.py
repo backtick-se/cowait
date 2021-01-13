@@ -1,6 +1,7 @@
 import sys
 import json
 import getpass
+import docker.errors
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
@@ -9,6 +10,7 @@ from ..config import Config
 from ..context import Context
 from ..utils import ExitTrap
 from ..logger import Logger
+from ..task_image import TaskImage
 from .build import build as build_cmd
 from sty import fg, rs
 
@@ -42,13 +44,16 @@ def run(
         image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
-                build_cmd(quiet=quiet or raw)
+                build_cmd(config, quiet=quiet or raw)
             image = context.image
             remote_image = False
 
         volumes = context.get('volumes', {})
         if not isinstance(volumes, dict):
             raise TaskCreationError('Invalid volume configuration')
+
+        # if we are using the image of the current context, automatically mount the working directory
+        # todo: add an option to disable this
         if not remote_image:
             volumes['/var/task'] = {
                 'bind': {
@@ -84,7 +89,11 @@ def run(
         )
 
         # print execution info
-        logger.print_info(taskdef, config.default_cluster)
+        logger.print_info(taskdef, cluster)
+
+        # when running in docker, attempt to pull images if they dont exist locally
+        if cluster.type == "docker":
+            TaskImage.pull(image, tag='latest')
 
         # submit task to cluster
         task = cluster.spawn(taskdef)
@@ -107,8 +116,10 @@ def run(
 
         logger.header()
 
+    except docker.errors.NotFound as e:
+        logger.print_exception(f'Docker Error: {e.explanation}')
+
     except ProviderError as e:
-        print('Provider error:', str(e))
         logger.print_exception(f'Provider Error: {e}')
 
     except TaskCreationError as e:
@@ -154,12 +165,12 @@ class RunLogger(Logger):
             return
         super().header(title)
 
-    def print_info(self, taskdef, cluster_name):
+    def print_info(self, taskdef, cluster):
         self.id = taskdef.id
 
         self.header('task')
         self.println('   task:      ', self.json(taskdef.id))
-        self.println('   cluster:   ', self.json(cluster_name))
+        self.println('   cluster:   ', self.json(cluster.type), self.json(cluster.args))
         if taskdef.upstream:
             self.println('   upstream:  ', self.json(taskdef.upstream))
         self.println('   image:     ', self.json(taskdef.image))
