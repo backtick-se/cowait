@@ -1,6 +1,7 @@
 import sys
 import json
 import getpass
+import docker.errors
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
@@ -115,8 +116,10 @@ def run(
 
         logger.header()
 
+    except docker.errors.NotFound as e:
+        logger.print_exception(f'Docker Error: {e.explanation}')
+
     except ProviderError as e:
-        print('Provider error:', str(e))
         logger.print_exception(f'Provider Error: {e}')
 
     except TaskCreationError as e:
