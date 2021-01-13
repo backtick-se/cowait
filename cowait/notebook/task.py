@@ -4,7 +4,7 @@ from cowait.engine import env_pack, \
     ENV_TASK_CLUSTER, ENV_TASK_DEFINITION, ENV_GZIP_ENABLED
 from .kernel import ENV_KERNEL_TOKEN
 
-TOKEN_PATTERN = re.compile('\\/\\?token\\=([a-z0-9]+)')
+TOKEN_PATTERN = re.compile('\\?token\\=([a-z0-9]+)')
 
 
 class NotebookTask(ShellTask):
@@ -35,9 +35,12 @@ class NotebookTask(ShellTask):
             print('Warning: No route set')
 
     def filter_stdout(self, line):
-        return False
+        return self.filter_jupyter_token(line)
 
     def filter_stderr(self, line):
+        return self.filter_jupyter_token(line)
+
+    def filter_jupyter_token(self, line):
         if self.jupyter_token is None:
             match = re.search(TOKEN_PATTERN, line)
             if match is not None:

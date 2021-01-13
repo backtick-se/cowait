@@ -3,3 +3,8 @@ services:
   spark:
     build: './spark'
     image: 'cowait/spark'
+
+  notebook:
+    build: './notebook'
+    image: 'cowait/notebook'
+
