@@ -1,5 +1,7 @@
 import os
 import os.path
+import sys
+import json
 import docker
 from .context import Context
 from .docker_file import Dockerfile
@@ -97,3 +99,41 @@ class TaskImage(object):
 
         if image_hash is not None:
             return TaskImage.get(image_hash)
+
+    @staticmethod
+    def pull(name: str, tag: str = 'latest') -> None:
+        try:
+            # if the image already exists, just return it
+            # todo: add a policy setting for this, similar to kubernetes
+            return TaskImage.get(f'{name}:{tag}')
+        except docker.errors.ImageNotFound:
+            # we expect this error. pull the image
+            pass
+
+        logs = client.api.pull(repository=name, tag=tag, stream=True, decode=True)
+        sys.stdout.write('   pulling image...')
+        sys.stdout.flush()
+
+        progress = {}
+        for update in logs:
+            if 'id' in update and 'progressDetail' in update:
+                id = update['id']
+                progress[id] = update['progressDetail']
+            if 'errorDetail' in update:
+                print('\rError:', update['error'])
+                return
+
+            current = 0
+            total = 0
+            for detail in progress.values():
+                current += detail.get('current', 0)
+                total += detail.get('total', 0)
+
+            if total > 0:
+                pct = 100 * min(current / total, 1.0)
+                sys.stdout.write(f'\r   pulling image... {pct:0.2f}%  ')
+                sys.stdout.flush()
+
+        sys.stdout.write('\r   pulling image... done   \n')
+        sys.stdout.flush()
+
