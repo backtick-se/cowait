@@ -14,27 +14,35 @@ class GraphTask(Task):
 
         # run until all nodes complete
         pending = []
+        node_tasks = {}
         while not g.completed:
             # launch tasks for each node that is ready for execution
             while True:
-                ready_node = g.next()
-                if ready_node is None:
+                node = g.next()
+                if node is None:
                     break
 
                 # spawn task for node...
-                ready_task = self.spawn(ready_node.task, inputs=ready_node.inputs)
-                pending.append(ready_task)
+                task = self.spawn(node.task, inputs=node.inputs)
+                node_tasks[task] = node
+                pending.append(task)
 
             # if everything is completed, exit
             if len(pending) == 0:
                 break
 
             # wait until any task finishes
-            done, _ = asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            done, _ = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
             # mark finished nodes as completed
             for task in done:
-                g.complete(task, task.result())
+                node = node_tasks[task]
+
+                try:
+                    g.complete(node, task.result())
+                except Exception as e:
+                    g.fail(node, e)
+
                 pending.remove(task)
 
         # return what?
