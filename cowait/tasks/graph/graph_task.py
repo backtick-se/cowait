@@ -5,12 +5,13 @@ from .graph import Graph
 
 class GraphTask(Task):
     async def define(self, graph, **inputs):
-        # override in subclasses
+        # this is where you would define your graph nodes
+        # to create a dag, override this function in a subclass
         pass
 
     async def run(self, **inputs):
         g = Graph()
-        self.define(g, **inputs)
+        await self.define(g, **inputs)
 
         # run until all nodes complete
         pending = []
@@ -22,9 +23,13 @@ class GraphTask(Task):
                 if node is None:
                     break
 
-                # spawn task for node...
                 task = self.spawn(node.task, inputs=node.inputs)
+
+                # wrap the task in a future and store it in a mapping from futures -> node
+                # so we can find the node once the task completes
+                task = asyncio.ensure_future(task)
                 node_tasks[task] = node
+
                 pending.append(task)
 
             # if everything is completed, exit
@@ -44,6 +49,9 @@ class GraphTask(Task):
                     g.fail(node, e)
 
                 pending.remove(task)
+
+        if not g.completed:
+            raise Exception('Some tasks failed to finish')
 
         # return what?
         return True
