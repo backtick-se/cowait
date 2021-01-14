@@ -1,35 +1,11 @@
+from .node import Node
+from .result import Result
 
 
-class Node(object):
-    """ Represents a node in a task DAG """
-
-    def __init__(self, task: str, inputs: dict = {}):
-        self.task = task
-        self.inputs = inputs
-
-    def with_inputs(self, inputs):
-        return Node(self.task, inputs)
-
-    def output(self, accessor):
-        return Result(self, accessor)
-
-
-class Result(object):
-    def __init__(self, node, accessor):
-        self.node = node
-        self.accessor = accessor
-
-    def get(self, outputs):
-        if callable(self.accessor):
-            return self.accessor(outputs)
-        else:
-            return outputs[self.accessor]
-
-    @staticmethod
-    def wrap_input(input) -> 'Result':
-        if isinstance(input, Node):
-            return Result(input, lambda x: x)
-        return input
+def wrap_input(input) -> Result:
+    if isinstance(input, Node):
+        return Result(input, lambda output: output)
+    return input
 
 
 class Graph(object):
@@ -45,7 +21,7 @@ class Graph(object):
 
     def node(self, task: str, inputs: dict = {}):
         node = Node(task, {
-            key: Result.wrap_input(input)
+            key: wrap_input(input)
             for key, input in inputs.items()
         })
         self.nodes.append(node)
@@ -54,12 +30,16 @@ class Graph(object):
 
     def has_missing_input(self, node: Node) -> bool:
         for _, input in node.inputs.items():
+            if not isinstance(input, Result):
+                continue
             if input.node not in self.results:
                 return True
         return False
 
     def has_upstream_failure(self, node: Node) -> bool:
         for _, input in node.inputs.items():
+            if not isinstance(input, Result):
+                continue
             if input.node in self.errors:
                 return True
         return False
@@ -68,7 +48,6 @@ class Graph(object):
         idx = 0
         while idx < len(self.todo):
             node = self.todo[idx]
-
             # check for upstream failures
             if self.has_upstream_failure(node):
                 self.fail(node, Exception('Upstream dependency failure'))
@@ -102,6 +81,8 @@ class Graph(object):
         self.results = {}
 
     def complete(self, node, result):
+        if node not in self.nodes:
+            raise Exception('Unknown node', node)
         if node in self.errors:
             raise Exception('Node already failed')
         if node in self.todo:
@@ -109,6 +90,8 @@ class Graph(object):
         self.results[node] = result
 
     def fail(self, node, exception):
+        if node not in self.nodes:
+            raise Exception('Unknown node', node)
         if node in self.errors:
             raise Exception('Node already completed')
         if node in self.todo:
