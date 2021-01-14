@@ -10,16 +10,16 @@ class GraphTask(Task):
         pass
 
     async def run(self, **inputs):
-        g = Graph()
-        await self.define(g, **inputs)
+        graph = Graph()
+        await self.define(graph, **inputs)
 
         # run until all nodes complete
         pending = []
         node_tasks = {}
-        while not g.completed:
+        while not graph.completed:
             # launch tasks for each node that is ready for execution
             while True:
-                node = g.next()
+                node = graph.next()
                 if node is None:
                     break
 
@@ -44,13 +44,14 @@ class GraphTask(Task):
                 node = node_tasks[task]
 
                 try:
-                    g.complete(node, task.result())
+                    # unpacking the result will throw an exception if the task failed
+                    graph.complete(node, task.result())
                 except Exception as e:
-                    g.fail(node, e)
+                    graph.fail(node, e)
 
                 pending.remove(task)
 
-        if not g.completed:
+        if not graph.completed:
             raise Exception('Some tasks failed to finish')
 
         # return what?
