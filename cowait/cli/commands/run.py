@@ -5,7 +5,7 @@ import docker.errors
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.utils import parse_task_image_name
-from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
+from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG, TASK_STATE
 from ..config import Config
 from ..context import Context
 from ..utils import ExitTrap
@@ -158,6 +158,8 @@ class RunLogger(Logger):
                 self.on_fail(**msg)
             elif type == TASK_STATUS:
                 pass
+            elif type == TASK_STATE:
+                self.on_state(**msg)
             elif type == TASK_LOG:
                 self.on_log(**msg)
 
@@ -229,3 +231,9 @@ class RunLogger(Logger):
         self.print_time(ts)
         self.print_id(id)
         self.println('  ', data)
+
+    def on_state(self, id: str, state: dict):
+        self.print_time(ts)
+        self.print_id(id)
+        self.json(state)
+

@@ -32,9 +32,8 @@ class Task(object):
         self.parent = ParentTask(self.node)
         self.subtasks = TaskManager(self)
         self.rpc = RpcComponent(self)
-
-        # Set this task as the current active task
-        Task.set_current(self)
+        self.state = {}
+        self.ui = []
 
     def __new__(cls, *args, **inputs):
         current = Task.get_current()
@@ -65,8 +64,8 @@ class Task(object):
     def __str__(self) -> str:
         return f'Task({self.id}, {self.name})'
 
-    def init(self):
-        pass
+    def init(self) -> dict:
+        return {}
 
     async def before(self, inputs: dict) -> dict:
         return inputs
@@ -182,6 +181,13 @@ class Task(object):
 
     def exit(self, result):
         raise StoppedError(result)
+
+    async def set_state(self, state: dict) -> None:
+        self.state = {
+            **self.state,
+            **state,
+        }
+        await self.node.parent.send_state(self.state)
 
     @staticmethod
     def get_current() -> 'Task':

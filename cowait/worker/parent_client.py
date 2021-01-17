@@ -108,3 +108,7 @@ class ParentClient(Client):
 
     async def send_stats(self, stats: dict) -> None:
         await self.msg(TASK_STATS, **stats)
+
+    async def send_state(self, state: dict) -> None:
+        await self.msg(TASK_STATE, state)
+
