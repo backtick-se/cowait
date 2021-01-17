@@ -32,11 +32,15 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
                 node=node,
             )
 
+            Task.set_current(task)
+
             # monitor system resources
             node.monitor_system(interval=2)
 
-            # initialize task
-            task.init()
+            # initialize task & send initial state
+            state = task.init()
+            if state is not None:
+                await task.set_state(state)
 
             # start http server
             # this must happen after task.init() so that tasks have a chance
