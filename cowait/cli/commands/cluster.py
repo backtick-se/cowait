@@ -1,7 +1,10 @@
 from ..config import Config
 
 
-ADDABLE_PROVIDERS = ['api']
+ADDABLE_PROVIDERS = {
+    'api': ['url', 'token'],
+    'kubernetes': ['context'],
+}
 
 
 def cluster_get(config: Config, name: str) -> None:
@@ -31,6 +34,12 @@ def cluster_add(config: Config, name: str, type: str, **options) -> None:
     if type not in ADDABLE_PROVIDERS:
         print(f'Error: Cant add cluster of type {type}')
         return 1
+
+    required_fields = ADDABLE_PROVIDERS[type]
+    for field in required_fields:
+        if field not in options:
+            print(f'Error: {field} option must be provided when creating {type} clusters.')
+            return 1
 
     config.set(['clusters', name], {
         'type': type,
