@@ -25,32 +25,3 @@ def convert_port(port, host_port: str = None):
         'host_port': int(host_port),
     }
 
-
-def create_affinity(affinity: str):
-    if affinity not in [None, 'stack', 'spread']:
-        raise ValueError(f'Unknown affinity mode `{affinity}`')
-
-    affinity_term = client.V1WeightedPodAffinityTerm(
-        weight=100,
-        pod_affinity_term=client.V1PodAffinityTerm(
-            topology_key='kubernetes.io/hostname',
-            label_selector=client.V1LabelSelector(
-                match_expressions=[
-                    client.V1LabelSelectorRequirement(
-                        key=LABEL_TASK_ID,
-                        operator='Exists',
-                    ),
-                ]
-            )
-        )
-    )
-    return client.V1Affinity(
-        pod_affinity=client.V1PodAntiAffinity(
-            preferred_during_scheduling_ignored_during_execution=[affinity_term]
-        ) if affinity == 'stack' else None,
-
-        pod_anti_affinity=client.V1PodAntiAffinity(
-            preferred_during_scheduling_ignored_during_execution=[affinity_term]
-        ) if affinity == 'spread' else None,
-    )
-

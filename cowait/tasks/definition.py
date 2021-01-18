@@ -135,7 +135,7 @@ class TaskDefinitionSchema(Schema):
     cpu_limit = fields.Str(allow_none=True)
     memory = fields.Str(allow_none=True)
     memory_limit = fields.Str(allow_none=True)
-    affinity = fields.Str(allow_none=True)
+    affinity = fields.Raw(allow_none=True)
     owner = fields.Str(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
     storage = fields.Dict(missing={})
