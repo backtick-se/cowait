@@ -4,7 +4,6 @@ from ..task_image import TaskImage
 from ..const import CONTEXT_FILE_NAME
 from ..config import Config
 from ..context import Context
-from .build import build
 
 
 def push(config: Config, **kwargs) -> TaskImage:
@@ -12,7 +11,7 @@ def push(config: Config, **kwargs) -> TaskImage:
     image = TaskImage.open(context)
 
     if image is None:
-        print(f'Error: Failed to resolve task image')
+        print('Error: Failed to resolve task image')
         return
 
     if '/' not in image.name:
