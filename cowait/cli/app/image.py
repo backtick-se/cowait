@@ -20,14 +20,19 @@ from .utils import parse_input_list
               type=str,
               multiple=True,
               help='docker build argument')
+@click.option('-p', '--push',
+              type=bool, is_flag=True,
+              help='push image after building',
+              default=False)
 @click.pass_context
-def build(ctx, quiet: bool, workdir: str, image: str, arg: dict):
+def build(ctx, quiet: bool, workdir: str, image: str, arg: dict, push: bool):
     cowait.cli.build(
         ctx.obj,
         quiet=quiet,
         workdir=workdir,
         image_name=image,
         buildargs=parse_input_list(arg),
+        push=push,
     )
 
 
