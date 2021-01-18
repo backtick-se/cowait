@@ -56,6 +56,7 @@ class TaskDefinition(object):
         cpu_limit:    str = None,
         memory:       str = None,
         memory_limit: str = None,
+        affinity:     str = None,
         owner:        str = '',
         created_at:   datetime = None,
     ):
@@ -75,6 +76,7 @@ class TaskDefinition(object):
             cpu_limit (str): CPU limit
             memory (str): Memory request
             memory_limit (str): Memory limit
+            affinity (str): Affinity Mode (None/stack/spread)
             owner (str): Owner name
             created_at (DateTime): Creation date
         """
@@ -95,6 +97,7 @@ class TaskDefinition(object):
         self.owner = owner
         self.volumes = volumes
         self.storage = storage
+        self.affinity = affinity
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -132,6 +135,7 @@ class TaskDefinitionSchema(Schema):
     cpu_limit = fields.Str(allow_none=True)
     memory = fields.Str(allow_none=True)
     memory_limit = fields.Str(allow_none=True)
+    affinity = fields.Str(allow_none=True)
     owner = fields.Str(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
     storage = fields.Dict(missing={})
