@@ -73,11 +73,11 @@ class Client(EventEmitter):
                             raise SocketError(ws.exception())
                         elif msg.type == WSMsgType.BINARY:
                             raise SocketError('Unexpected binary message')
-
-                        event = msg.json()
-                        if self.rpc.intercept_event(**event):
-                            continue
-                        await self.emit(**event, conn=self)
+                        elif msg.type == WSMsgType.TEXT:
+                            event = msg.json()
+                            if self.rpc.intercept_event(**event):
+                                continue
+                            await self.emit(**event, conn=self)
 
                     await self.emit(ON_CLOSE, conn=self)
 
