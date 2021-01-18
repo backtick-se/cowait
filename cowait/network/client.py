@@ -50,7 +50,7 @@ class Client(EventEmitter):
             async with session.ws_connect(
                 url,
                 headers={'Authorization': f'Bearer {token}'},
-                autoping=True,
+                autoping=False,
                 heartbeat=5.0,
                 timeout=30.0,
             ) as ws:

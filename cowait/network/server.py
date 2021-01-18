@@ -36,7 +36,7 @@ class Server(EventEmitter):
     async def handle_client(self, request):
         ws = web.WebSocketResponse(
             timeout=30.0,
-            autoping=True,
+            autoping=False,
             heartbeat=5.0,
         )
         await ws.prepare(request)
