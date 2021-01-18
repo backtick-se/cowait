@@ -15,10 +15,13 @@ def parse_input(value: str) -> tuple:
     if identifier.match(key) is None:
         raise ValueError('Input key must be a valid identifier')
 
+    if len(value) == 0:
+        raise ValueError('Input value can not be empty')
+
     try:
         value = json.loads(value)
     except json.JSONDecodeError:
-        raise ValueError('Input value is not valid JSON')
+        pass
 
     return key, value
 
