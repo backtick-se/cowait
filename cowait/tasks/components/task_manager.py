@@ -36,8 +36,17 @@ class TaskManager(dict):
 
     def set_init_timeout(self, task, timeout):
         async def timeout_check(task, timeout):
+            await task.wait_for_scheduling()
             await asyncio.sleep(timeout)
             if not task.future.done() and task.id not in self.conns.values():
+                # make sure this task is killed and cant connect after the failure
+                # note: there is a race condition here.
+                # the kill command might arrive after the error has been sent
+                # perhaps we should note that this task has failed, and ignore any
+                # further communication from it?
+                self.task.cluster.kill(task.id)
+
+                # emit a timeout error
                 await self.emit_child_error(
                     id=task.id, error=f'{task.id} timed out before initialization')
 
