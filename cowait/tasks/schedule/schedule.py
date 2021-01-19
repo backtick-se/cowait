@@ -5,19 +5,39 @@ from cowait.utils import parse_task_image_name
 from .schedule_definition import ScheduleDefinition
 
 
+def scheduled_task_id(name: str, date: datetime):
+    name = name.replace('.', '-')
+    name = name.replace('_', '-')
+    name = name.lower()
+    timestamp = date.strftime('%Y%m%d%H%M')
+    return f'{name}-{timestamp}'
+
+
 class ScheduleTask(Task):
-    async def run(self, schedule, target, **inputs):
-        image, name = parse_task_image_name(target)
+    """
+    ScheduleTask runs another task on a specified cron-style schedule.
+
+    Inputs:
+        schedule (str): Cron-style scheduling string, e.g. '0 8 * * *' for every day at 8am.
+        target (str): Task to run.
+        kwargs: All other inputs will be forwarded to the target task.
+
+    Returns:
+        Nothing. Runs forever.
+    """
+
+    async def run(self, schedule: str, target: str, **inputs):
+        image, name = parse_task_image_name(target, default_image=self.image)
 
         # instantiate schedule
         self.schedule = ScheduleDefinition(schedule)
 
         print(f'Scheduled {name} ({image}) at {schedule}')
-        print(f'The current time is', datetime.now())
+        print('The current time is', datetime.now())
 
         last_run = datetime(1970, 1, 1)
         while True:
-            await sleep(0.5)
+            await sleep(1)
 
             now = datetime.now()
             if self.schedule.is_now():
@@ -28,16 +48,13 @@ class ScheduleTask(Task):
                 last_run = now
                 await self.execute(name, image, inputs)
 
-    async def execute(self, name, image, inputs):
+    async def execute(self, name: str, image: str, inputs: dict):
         now = datetime.now()
-        print(f'{now} | Execution triggered')
+        print('Execution triggered')
 
         try:
-            id = f'{name}-' + \
-                 f'{now.year}{now.month:02d}{now.day:02d}' + \
-                 f'{now.hour:02d}{now.minute:02d}'
             result = await self.spawn(
-                id=id,
+                id=scheduled_task_id(name, now),
                 name=name,
                 image=image,
                 inputs=inputs,
@@ -45,13 +62,13 @@ class ScheduleTask(Task):
 
             end = datetime.now()
             duration = end - now
-            print(f'{end} | Finished in {duration}. Result:')
+            print(f'Finished in {duration}. Result:')
             print(result)
 
         except TaskError:
             end = datetime.now()
             duration = end - now
-            print(f'{end} | Error after {duration}. Exception:')
+            print(f'Error after {duration}. Exception:')
             traceback.print_exc()
 
     @rpc
