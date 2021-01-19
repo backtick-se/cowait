@@ -8,14 +8,16 @@ from ..docker_file import Dockerfile
 from ..context import Context, CONTEXT_FILE_NAME
 from ..config import Config
 from ..logger import Logger
+from .push import push as push_command
 
 
 def build(
     config: Config, *,
-    image_name: str = None, 
-    workdir: str = None, 
+    image_name: str = None,
+    workdir: str = None,
     buildargs: dict = {},
-    quiet: bool = False, 
+    quiet: bool = False,
+    push: bool = False,
 ) -> TaskImage:
     logger = Logger(quiet)
     try:
@@ -85,6 +87,9 @@ def build(
         )
 
         logger.header()
+
+        if push:
+            push_command(config)
 
         return image
 

@@ -8,8 +8,6 @@ def test_parse_parse_input():
     with pytest.raises(ValueError):
         parse_input('key=')
     with pytest.raises(ValueError):
-        parse_input('key==')
-    with pytest.raises(ValueError):
         parse_input('=""')
     with pytest.raises(ValueError):
         parse_input('123=""')
@@ -21,8 +19,9 @@ def test_parse_parse_input():
         'hello': 'world',
         'number': 123,
     })
-    assert parse_input('list=[1, 2, 3]') == ('list', [1,2,3])
+    assert parse_input('list=[1, 2, 3]') == ('list', [1, 2, 3])
     assert parse_input(' trim = " " ') == ('trim', ' ')
+    assert parse_input('key=abc') == ('key', 'abc')
 
 
 def test_parse_input_list():

@@ -4,7 +4,6 @@ from ..task_image import TaskImage
 from ..const import CONTEXT_FILE_NAME
 from ..config import Config
 from ..context import Context
-from .build import build
 
 
 def push(config: Config, **kwargs) -> TaskImage:
@@ -12,7 +11,7 @@ def push(config: Config, **kwargs) -> TaskImage:
     image = TaskImage.open(context)
 
     if image is None:
-        print(f'Error: Failed to resolve task image')
+        print('Error: Failed to resolve task image')
         return
 
     if '/' not in image.name:
@@ -20,7 +19,7 @@ def push(config: Config, **kwargs) -> TaskImage:
               f'{CONTEXT_FILE_NAME} before you can push')
         return
 
-    sys.stdout.write('Pushing...')
+    sys.stdout.write('pushing...')
     logs = image.push()
     progress = {}
     for log in logs:
@@ -44,9 +43,8 @@ def push(config: Config, **kwargs) -> TaskImage:
 
         if total > 0:
             pct = 100 * min(current / total, 1.0)
-            sys.stdout.write(f'\rPushing... {pct:0.2f}%  ')
+            sys.stdout.write(f'\rpushing... {pct:0.2f}%  ')
             sys.stdout.flush()
 
-    sys.stdout.write('\rpushing... done       \n')
-    sys.stdout.flush()
+    print()
     return image

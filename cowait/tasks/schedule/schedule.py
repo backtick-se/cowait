@@ -41,9 +41,6 @@ class ScheduleTask(Task):
                 name=name,
                 image=image,
                 inputs=inputs,
-                owner=self.owner,
-                env=self.env,
-                meta=self.meta,
             )
 
             end = datetime.now()
