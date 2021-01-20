@@ -12,6 +12,7 @@ from cowait.engine.routers import create_router
 from .task import KubernetesTask
 from .volumes import create_volumes
 from .utils import create_ports
+from .affinity import create_affinity
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
@@ -97,6 +98,7 @@ class KubernetesProvider(ClusterProvider):
 
                         containers=[container],
                         service_account_name=self.service_account,
+                        affinity=create_affinity(taskdef.affinity),
                     ),
                 ),
             )

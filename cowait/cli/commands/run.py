@@ -32,6 +32,7 @@ def run(
     memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
+    affinity: str = None,
     cluster_name: str = None,
 ):
     logger = RunLogger(raw, quiet)
@@ -85,6 +86,7 @@ def run(
             cpu_limit=context.override('cpu_limit', cpu_limit),
             memory=context.override('memory', memory),
             memory_limit=context.override('memory_limit', memory_limit),
+            affinity=context.override('affinity', affinity),
             storage=context.get('storage', {}),
         )
 

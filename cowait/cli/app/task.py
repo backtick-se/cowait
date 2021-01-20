@@ -67,13 +67,17 @@ from .utils import parse_input_list
               type=bool, is_flag=True,
               help='no output except result',
               default=False)
+@click.option('-a', '--affinity',
+              help='task affinity (stack/spread)',
+              type=str,
+              default=None)
 @click.pass_context
 def run(
     ctx, task: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
     cpu: str, cpu_limit: str, memory: str, memory_limit: str,
-    file: str, raw: bool, quiet: bool
+    file: str, raw: bool, quiet: bool, affinity: str
 ):
     file_inputs = {}
     if file is not None:
@@ -106,6 +110,7 @@ def run(
         cpu_limit=cpu_limit,
         memory=memory,
         memory_limit=memory_limit,
+        affinity=affinity,
         cluster_name=cluster,
     )
 
