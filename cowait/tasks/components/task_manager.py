@@ -16,6 +16,7 @@ class TaskManager(dict):
         self.conns = {}
 
         # subscribe to child task status updates
+        # maybe move it out?
         task.node.server.on(TASK_INIT, self.on_child_init)
         task.node.server.on(TASK_STATUS, self.on_child_status)
         task.node.server.on(TASK_RETURN, self.on_child_return)
@@ -23,6 +24,7 @@ class TaskManager(dict):
         task.node.server.on(ON_CLOSE, self.on_child_close)
 
         # forward child events to parent
+        # this probably belongs somewhere else...
         async def forward(conn, **msg):
             if msg.get('type', '__')[:2] == '__':
                 return
@@ -30,62 +32,72 @@ class TaskManager(dict):
         task.node.server.on('*', forward)
 
     def watch(self, task, timeout=30):
-        # set up init timeout check
-        self.set_init_timeout(task, timeout)
+        """
+        Watch for a newly created task. Registers it with the task manager and sets up an
+        initialization timeout check.
+        """
         self[task.id] = task
+        self.task.node.io.create_task(self._init_timeout_check(task, timeout))
 
-    def set_init_timeout(self, task, timeout):
-        async def timeout_check(task, timeout):
-            await task.wait_for_scheduling()
-            await asyncio.sleep(timeout)
-            if not task.future.done() and task.id not in self.conns.values():
-                # make sure this task is killed and cant connect after the failure
-                # note: there is a race condition here.
-                # the kill command might arrive after the error has been sent
-                # perhaps we should note that this task has failed, and ignore any
-                # further communication from it?
-                self.task.cluster.kill(task.id)
+    async def _init_timeout_check(self, task, timeout):
+        await task.wait_for_scheduling()
+        await asyncio.sleep(timeout)
+        if not task.future.done() and task.id not in self.conns.values():
+            # make sure this task is killed and cant connect after the failure
+            # note: there is a race condition here.
+            # the kill command might arrive after the error has been sent
+            # perhaps we should note that this task has failed, and ignore any
+            # further communication from it?
+            self.task.cluster.kill(task.id)
 
-                # emit a timeout error
-                await self.emit_child_error(
-                    id=task.id, error=f'{task.id} timed out before initialization')
+            # emit a timeout error
+            await self.emit_child_error(
+                id=task.id, error=f'{task.id} timed out before initialization')
 
-        self.task.node.io.create_task(timeout_check(task, timeout))
 
     async def on_child_init(self, conn, id: str, task: dict, version: str, **msg: dict):
         # version check
         try:
             version = Version.parse(version)
             if not version.is_compatible():
-                raise RuntimeError(f'{id} runs an incompatible library version: {version}')
-        except Exception as e:
-            await self.emit_child_error(id=task.id, error=str(e))
+                raise ValueError(f'{id} runs an incompatible library version: {version}')
+
+        except ValueError as e:
+            # illegal version string or incompatible version
+            await self.reject(id, str(e), conn)
+            return
+
+        # register child task
+        self.register(conn, id, task)
+
+    async def reject(self, id, reason: str, conn=None):
+        await self.emit_child_error(id=id, error=reason)
+        if id in self:
+            del self[id]
+        if conn is not None:
             await conn.close()
             if conn in self.conns:
                 del self.conns[conn]
-            if id in self:
-                del self[id]
-            return
 
+    def register(self, conn, id, task: dict):
         # register connection if its not yet known
         if conn not in self.conns:
             self.conns[conn] = id
 
         if id in self:
-            # we have seen this task before. thats strange and might indicate an error.
-            # set task connection reference
+            # we know about the task - this should mean that its a child of the current task.
+            # if not, something weird is going on.
             task = self[id]
             task.conn = conn
         else:
-            # this task is not known - its either a virtual task or a child of a child.
+            # this task is not yet known - its either a virtual task or a child of a child.
             # check if it has the running task set as its parent, if so, try to adopt it.
             taskdef = TaskInstance.deserialize(task)
-            if taskdef.parent != self.task.id:
-                return
-
-            task = RemoteTask(taskdef, self.task.cluster)
-            task.conn = conn
-            self[id] = task
+            if taskdef.parent == self.task.id:
+                # its a virtual task
+                task = RemoteTask(taskdef, self.task.cluster)
+                task.conn = conn
+                self[id] = task
 
     async def on_child_status(self, conn, id: str, status: str, **msg: dict):
         if id in self:
