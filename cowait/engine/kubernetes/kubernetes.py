@@ -13,8 +13,8 @@ from .task import KubernetesTask
 from .volumes import create_volumes
 from .utils import create_ports
 from .affinity import create_affinity
-from .pod import pod_is_running, pod_is_terminated, pod_is_creating, \
-    pod_is_unschedulable, pod_image_pull_failed
+from .pod import pod_is_ready
+from .errors import PodUnschedulableError, PodTerminatedError, ImagePullError
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
@@ -156,23 +156,22 @@ class KubernetesProvider(ClusterProvider):
             time.sleep(poll_interval)
             pod = self.get_task_pod(task_id)
 
-            if pod_is_running(pod):
-                break
+            try:
+                if pod_is_ready(pod):
+                    break
+                else:
+                    poll_interval = 1
 
-            if pod_is_creating(pod):
-                continue
-            
-            if pod_is_terminated(pod):
-                raise TaskCreationError('Task terminated')
-            
-            if pod_image_pull_failed(pod):
-                self.kill(task_id)
-                raise TaskCreationError('Image pull failed')
-
-            if pod_is_unschedulable(pod):
+            except PodUnschedulableError as e:
                 poll_interval = 10
-                print(f'warning: task {task_id} is unschedulable')
-                continue
+                print('warning: task', task_id, 'is unschedulable:', str(e))
+
+            except PodTerminatedError:
+                raise TaskCreationError('Task terminated') from None
+            
+            except ImagePullError:
+                self.kill(task_id)
+                raise TaskCreationError('Image pull failed') from None
 
     def logs(self, task: KubernetesTask):
         if not isinstance(task, KubernetesTask):

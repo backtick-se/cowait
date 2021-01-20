@@ -2,8 +2,8 @@ import asyncio
 from cowait.tasks import TaskDefinition, RemoteTask
 from cowait.engine.cluster import ClusterProvider
 from cowait.engine.errors import TaskCreationError
-from .pod import pod_is_running, pod_is_terminated, pod_is_creating, \
-    pod_is_unschedulable, pod_image_pull_failed
+from .pod import pod_is_ready
+from .errors import PodUnschedulableError, PodTerminatedError, ImagePullError
 
 
 class KubernetesTask(RemoteTask):
@@ -29,22 +29,20 @@ class KubernetesTask(RemoteTask):
             await asyncio.sleep(poll_interval)
             pod = self.cluster.get_task_pod(self.id)
 
-            if pod_is_running(pod):
-                break
+            try:
+                if pod_is_ready(pod):
+                    break
+                else:
+                    poll_interval = 1
 
-            if pod_is_creating(pod):
-                poll_interval = 1
-                continue
+            except PodUnschedulableError as e:
+                poll_interval = 10
+                print('warning: task', self.id, 'is unschedulable:', str(e))
+
+            except PodTerminatedError:
+                raise TaskCreationError('Task terminated') from None
             
-            if pod_is_terminated(pod):
-                raise TaskCreationError('Task terminated')
-            
-            if pod_image_pull_failed(pod):
+            except ImagePullError:
                 self.cluster.kill(self.id)
                 raise TaskCreationError('Image pull failed')
-
-            if pod_is_unschedulable(pod):
-                poll_interval = 10
-                print('warning: task', self.id, 'is unschedulable')
-                continue
 
