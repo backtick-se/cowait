@@ -57,7 +57,7 @@ def cluster_rm(config: Config, name: str) -> None:
         return 1
 
     if name == config.default_cluster:
-        print('Error: Cant remove the default cluster')
+        print('Error: Cant remove the current default cluster')
         return 1
 
     if name == 'docker':
