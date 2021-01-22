@@ -38,7 +38,7 @@ class ClusterProvider(EventEmitter):
         raise NotImplementedError()
 
     @abstractmethod
-    def logs(self, task: RemoteTask) -> Iterable[str]:
+    def logs(self, task_id: str) -> Iterable[str]:
         """ Stream logs from task """
         raise NotImplementedError()
 
@@ -53,33 +53,6 @@ class ClusterProvider(EventEmitter):
             **self.args,
         }
 
-    def create_env(self, taskdef: TaskDefinition) -> dict:
-        """
-        Create a container environment dict from a task definition.
-
-        Arguments:
-            taskdef (TaskDefinition): Task definition
-
-        Returns:
-            env (dict): Environment variable dict
-        """
-
-        env = {
-            **taskdef.env,
-            ENV_GZIP_ENABLED:    '1',
-            ENV_TASK_CLUSTER:    env_pack(self.serialize()),
-            ENV_TASK_DEFINITION: env_pack(taskdef.serialize()),
-        }
-
-        # check total length of environment data
-        length = 0
-        for key, value in env.items():
-            length += len(str(key)) + len(str(value))
-
-        if length > MAX_ENV_LENGTH:
-            raise ProviderError(f'Task environment too long. Was {length}, max: {MAX_ENV_LENGTH}')
-
-        return env
-
     def find_agent(self):
         return None
+

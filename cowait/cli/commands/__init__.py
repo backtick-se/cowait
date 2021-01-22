@@ -9,4 +9,4 @@ from .test import test
 from .notebook import notebook
 from .cluster import *
 
-from .misc import *
+from .task import *

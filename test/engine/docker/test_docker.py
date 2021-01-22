@@ -111,8 +111,9 @@ def test_docker_child_task():
 
     # test list tasks
     tasks = dp.list_all()
-    assert task.id in tasks
-    assert child.labels[LABEL_TASK_ID] in tasks
+    task_ids = list(map(lambda t: t.id, tasks))
+    assert task.id in task_ids
+    assert child.labels[LABEL_TASK_ID] in task_ids
 
     # kill the whole family
     dp.destroy(task.id)

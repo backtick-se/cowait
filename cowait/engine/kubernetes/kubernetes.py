@@ -11,9 +11,9 @@ from cowait.engine.errors import ProviderError, TaskCreationError
 from cowait.engine.routers import create_router
 from .task import KubernetesTask
 from .volumes import create_volumes
-from .utils import create_ports
+from .utils import create_env, create_ports
 from .affinity import create_affinity
-from .pod import pod_is_ready
+from .pod import pod_is_ready, extract_pod_taskdef
 from .errors import PodUnschedulableError, PodTerminatedError, ImagePullError
 
 DEFAULT_NAMESPACE = 'default'
@@ -64,7 +64,7 @@ class KubernetesProvider(ClusterProvider):
             container = client.V1Container(
                 name=taskdef.id,
                 image=taskdef.image,
-                env=self.create_env(taskdef),
+                env=create_env(self, taskdef),
                 ports=create_ports(taskdef.ports),
                 image_pull_policy='Always',  # taskdef field??
                 resources=client.V1ResourceRequirements(
@@ -148,13 +148,12 @@ class KubernetesProvider(ClusterProvider):
         except urllib3.exceptions.MaxRetryError:
             raise ProviderError('Kubernetes engine unavailable')
 
-    def wait(self, task: KubernetesTask) -> bool:
-        raise NotImplementedError()
-
     def wait_until_ready(self, task_id: str, poll_interval: float = 1):
         while True:
             time.sleep(poll_interval)
             pod = self.get_task_pod(task_id)
+            if not pod:
+                raise ProviderError(f'No such task: {task_id}')
 
             try:
                 if pod_is_ready(pod):
@@ -173,29 +172,26 @@ class KubernetesProvider(ClusterProvider):
                 self.kill(task_id)
                 raise TaskCreationError('Image pull failed') from None
 
-    def logs(self, task: KubernetesTask):
-        if not isinstance(task, KubernetesTask):
-            raise TypeError('Expected a valid KubernetesTask')
-
+    def logs(self, task_id: str):
         # wait for pod to become ready
-        self.wait_until_ready(task.id)
+        self.wait_until_ready(task_id)
 
         try:
             w = watch.Watch()
             logs = w.stream(
                 self.core.read_namespaced_pod_log,
-                name=task.id,
+                name=task_id,
                 namespace=self.namespace,
             )
 
-            def add_newline_stream(task):
+            def add_newline_stream():
                 for log in logs:
                     yield log + '\n'
 
-            return json_stream(add_newline_stream(task))
+            return json_stream(add_newline_stream())
 
         except Exception:
-            return self.logs(task)
+            return self.logs(task_id)
 
     def destroy_all(self) -> list:
         try:
@@ -214,8 +210,10 @@ class KubernetesProvider(ClusterProvider):
                 label_selector=LABEL_TASK_ID,
             )
             running = filter(lambda pod: pod.status.phase == 'Running', res.items)
-            ids = map(lambda pod: pod.metadata.name, running)
-            return ids
+            return [
+                KubernetesTask(self, extract_pod_taskdef(pod), pod)
+                for pod in running
+            ]
 
         except urllib3.exceptions.MaxRetryError as e:
             raise ProviderError('Kubernetes engine unavailable')
@@ -259,13 +257,6 @@ class KubernetesProvider(ClusterProvider):
         except urllib3.exceptions.MaxRetryError:
             raise ProviderError('Kubernetes engine unavailable')
 
-    def create_env(self, taskdef: TaskDefinition):
-        env = super().create_env(taskdef)
-        return [
-            client.V1EnvVar(str(name), str(value))
-            for name, value in env.items()
-        ]
-
     def get_pull_secrets(self):
         secrets = self.args.get('pull_secrets', [])
         return [client.V1LocalObjectReference(name=s) for s in secrets]
@@ -279,3 +270,4 @@ class KubernetesProvider(ClusterProvider):
 
         token = pod.metadata.labels['http_token']
         return get_remote_url(pod.status.pod_ip, token)
+
