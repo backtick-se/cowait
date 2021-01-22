@@ -1,3 +1,7 @@
+import json
+from cowait.tasks import TaskDefinition
+from cowait.engine.const import ENV_TASK_DEFINITION
+from cowait.engine.utils import env_unpack
 from .errors import PodTerminatedError, PodUnschedulableError, ImagePullError
 
 
@@ -31,4 +35,13 @@ def pod_is_ready(pod):
                 raise ImagePullError(state.waiting.message)
 
     return False
+
+
+def extract_pod_taskdef(pod) -> TaskDefinition:
+    for container in pod.spec.containers:
+        for env in container.env:
+            if env.name == ENV_TASK_DEFINITION:
+                taskdef = env_unpack(env.value)
+                return TaskDefinition(**taskdef)
+    raise Exception('Failed to extract pod task definition')
 

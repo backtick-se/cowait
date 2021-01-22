@@ -4,6 +4,7 @@ from cowait.engine.cluster import ClusterProvider
 from cowait.engine.errors import ProviderError
 from cowait.tasks import TaskDefinition
 from cowait.utils import uuid
+from cowait.engine.docker.utils import create_env
 
 
 def test_max_env_length():
@@ -12,10 +13,11 @@ def test_max_env_length():
 
     with pytest.raises(ProviderError):
         cp = ClusterProvider('test')
-        cp.create_env(TaskDefinition(
+        create_env(cp, TaskDefinition(
             'test-task',
             image='imaginary-image',
             inputs={
                 'ohshit': random_data,
             },
         ))
+

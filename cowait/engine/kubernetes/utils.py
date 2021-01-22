@@ -1,5 +1,15 @@
 from kubernetes import client
+from cowait.tasks import TaskDefinition
 from cowait.engine.const import LABEL_TASK_ID
+from cowait.engine.utils import base_environment
+
+
+def create_env(cluster, taskdef: TaskDefinition):
+    env = base_environment(cluster, taskdef)
+    return [
+        client.V1EnvVar(str(name), str(value))
+        for name, value in env.items()
+    ]
 
 
 def create_ports(ports: dict) -> list:

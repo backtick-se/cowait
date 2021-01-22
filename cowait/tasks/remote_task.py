@@ -98,7 +98,7 @@ class RemoteTask(TaskInstance):
         await self.call('stop')
 
     def logs(self):
-        return self.cluster.logs(self)
+        return self.cluster.logs(self.id)
 
     def __getattr__(self, method):
         async def magic_rpc(*args, **kwargs):

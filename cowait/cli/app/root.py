@@ -19,6 +19,7 @@ def new_cli_app():
     cli.add_command(task.agent)
     cli.add_command(task.notebook)
     cli.add_command(task.test)
+    cli.add_command(task.logs)
 
     # image commands
     cli.add_command(image.build)
