@@ -111,6 +111,7 @@ class Task(object):
         cpu_limit: str = None,
         memory: str = None,
         memory_limit: str = None,
+        affinity: str = None,
         owner: str = '',
         **kwargs: dict,
     ) -> 'Task':
@@ -154,6 +155,7 @@ class Task(object):
             cpu_limit=cpu_limit if cpu_limit else self.taskdef.cpu_limit,
             memory=memory if memory else self.taskdef.memory,
             memory_limit=memory_limit if memory_limit else self.taskdef.memory_limit,
+            affinity=affinity if affinity else self.taskdef.affinity,
             owner=owner,
             inputs=serialize(inputs),
             storage=self.taskdef.storage,

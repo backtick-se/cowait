@@ -15,7 +15,8 @@ class Version(object):
         return f'{self.major}.{self.minor}.{self.revision}'
 
     def is_compatible(self):
-        if self.minor < 3:
+        # 0.3 and below are not compatible.
+        if self.minor < 4:
             return False
         return True
 
@@ -29,4 +30,3 @@ class Version(object):
             raise ValueError(f'Illegal version string {version}')
         major, minor, rev = map(lambda v: int(v), version.split('.'))
         return Version(major, minor, rev)
-

@@ -16,10 +16,11 @@ def test_taskdef_serialization():
         'storage':      {},
         'upstream':     None,
         'created_at':   '2020-02-02T20:00:02+00:00',
-        'cpu':          None,
-        'cpu_limit':    None,
-        'memory':       None,
-        'memory_limit': None,
+        'cpu':          '0.5',
+        'cpu_limit':    '2000m',
+        'memory':       '128m',
+        'memory_limit': '256m',
+        'affinity':     'stack',
         'owner':        'santa',
     }
 
