@@ -139,11 +139,7 @@ class TaskDefinitionSchema(Schema):
     owner = fields.Str(missing='')
     created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
     storage = fields.Dict(missing={})
-    volumes = fields.Mapping(
-        keys=fields.Str(),
-        values=fields.Mapping(),
-        missing={}
-    )
+    volumes = fields.Dict(missing={})
 
     @post_load
     def make_class(self, data: dict, **kwargs):
