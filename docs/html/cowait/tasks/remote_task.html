@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>cowait.tasks.remote_task API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>cowait.tasks.remote_task</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from __future__ import annotations
+import asyncio
+from concurrent.futures import Future
+from cowait.types import type_from_description
+from .errors import TaskError, StoppedError
+from .instance import TaskInstance
+from .definition import TaskDefinition
+from .status import WAIT, WORK, FAIL, DONE, STOP
+
+
+class RemoteTask(TaskInstance):
+    def __init__(self, taskdef: TaskDefinition, cluster):
+        kwargs = taskdef.serialize()
+        super().__init__(**kwargs)
+        self.conn = None
+        self.nonce = 0
+        self.cluster = cluster
+        self.future = Future()
+        self.awaitable = asyncio.wrap_future(self.future)
+
+    def __await__(self):
+        return self.awaitable.__await__()
+
+    @property
+    def done(self) -&gt; bool:
+        return self.future.done()
+
+    def destroy(self) -&gt; None:
+        self.cluster.destroy(self.id)
+
+    def set_status(self, status: str) -&gt; None:
+        # sanity checks
+        if self.status == FAIL and status == DONE:
+            raise RuntimeError(&#39;Cant complete a failed task&#39;)
+
+        if self.status == DONE and status == FAIL:
+            raise RuntimeError(&#39;Cant fail a completed task&#39;)
+
+        if status == STOP and not self.future.done():
+            self.future.set_exception(StoppedError(f&#39;Remote task {self.id} was stopped&#39;))
+
+        # update status
+        self.status = status
+
+    def set_error(self, error: str) -&gt; None:
+        self.set_status(FAIL)
+        self.error = error
+        if not self.future.done():
+            self.future.set_exception(TaskError(error))
+
+    def set_result(self, result: any, result_type: any = &#39;any&#39;) -&gt; None:
+        # unpack type &amp; deserialize result
+        result_type = type_from_description(result_type)
+        result = result_type.deserialize(result)
+
+        self.set_status(DONE)
+        self.result = result
+        if not self.future.done():
+            self.future.set_result(result)
+
+    async def wait_for_init(self, timeout=30) -&gt; None:
+        if self.status != WAIT:
+            raise RuntimeError(f&#39;Cant await task with status {self.status}&#39;)
+
+        slept = 0
+        interval = 0.2
+        while True:
+            if self.status == WORK:
+                return
+            if self.status == FAIL:
+                raise RuntimeError(
+                    f&#39;Awaited task failed with error: {self.error}&#39;)
+
+            if slept &gt; timeout:
+                raise TimeoutError(&#39;Task took to long to initialize&#39;)
+
+            await asyncio.sleep(interval)
+            slept += interval
+
+    async def call(self, method, args={}) -&gt; any:
+        if self.status == WAIT:
+            await self.wait_for_init()
+        elif self.status != WORK:
+            raise RuntimeError(
+                f&#39;RPC is only available when status = WORK, was {self.status}. &#39;
+                f&#39;Attempted to call {method}&#39;)
+
+        return await self.conn.rpc.call(method, args)
+
+    async def stop(self) -&gt; None:
+        if self.status == STOP:
+            return
+        await self.call(&#39;stop&#39;)
+
+    def logs(self):
+        return self.cluster.logs(self)
+
+    def __getattr__(self, method):
+        async def magic_rpc(*args, **kwargs):
+            if len(args) &gt; 0:
+                raise TypeError(&#39;Positional arguments are not supported for RPC methods&#39;)
+            return await self.call(method, kwargs)
+        return magic_rpc
+
+    def __str__(self):
+        return f&#39;RemoteTask({self.id}, {self.status}, {self.inputs})&#39;
+
+    def __repr__(self):
+        return self.__str__()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="cowait.tasks.remote_task.RemoteTask"><code class="flex name class">
+<span>class <span class="ident">RemoteTask</span></span>
+<span>(</span><span>taskdef: TaskDefinition, cluster)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines a Task :)</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Task import name.</dd>
+<dt><strong><code>image</code></strong> :&ensp;<code>str</code></dt>
+<dd>Task image.</dd>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>Task id. If None, an id will be autogenerated.</dd>
+<dt><strong><code>upstream</code></strong> :&ensp;<code>str</code></dt>
+<dd>Upstream connection string. Defaults to None.</dd>
+<dt><strong><code>inputs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Input values</dd>
+<dt><strong><code>meta</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Freeform metadata</dd>
+<dt><strong><code>env</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Environment variables</dd>
+<dt><strong><code>ports</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Port forwards</dd>
+<dt><strong><code>routes</code></strong> :&ensp;<code>dict</code></dt>
+<dd>HTTP Ingresses</dd>
+<dt><strong><code>volumes</code></strong> :&ensp;<code>dict</code></dt>
+<dd>List of volumes</dd>
+<dt><strong><code>cpu</code></strong> :&ensp;<code>str</code></dt>
+<dd>CPU request</dd>
+<dt><strong><code>cpu_limit</code></strong> :&ensp;<code>str</code></dt>
+<dd>CPU limit</dd>
+<dt><strong><code>memory</code></strong> :&ensp;<code>str</code></dt>
+<dd>Memory request</dd>
+<dt><strong><code>memory_limit</code></strong> :&ensp;<code>str</code></dt>
+<dd>Memory limit</dd>
+<dt><strong><code>owner</code></strong> :&ensp;<code>str</code></dt>
+<dd>Owner name</dd>
+<dt><strong><code>created_at</code></strong> :&ensp;<code>DateTime</code></dt>
+<dd>Creation date</dd>
+</dl>
+<h2 id="arguments">Arguments</h2>
+<p>name (str): Task import name.
+image (str): Task image.
+id (str): Task id. If None, an id will be autogenerated.
+upstream (str): Upstream connection string. Defaults to None.
+inputs (dict): Input values
+meta (dict): Freeform metadata
+env (dict): Environment variables
+ports (dict): Port forwards
+routes (dict): HTTP Ingresses
+volumes (dict): List of volumes
+cpu (str): CPU request
+cpu_limit (str): CPU limit
+memory (str): Memory request
+memory_limit (str): Memory limit
+affinity (str): Affinity Mode (None/stack/spread)
+owner (str): Owner name
+created_at (DateTime): Creation date</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RemoteTask(TaskInstance):
+    def __init__(self, taskdef: TaskDefinition, cluster):
+        kwargs = taskdef.serialize()
+        super().__init__(**kwargs)
+        self.conn = None
+        self.nonce = 0
+        self.cluster = cluster
+        self.future = Future()
+        self.awaitable = asyncio.wrap_future(self.future)
+
+    def __await__(self):
+        return self.awaitable.__await__()
+
+    @property
+    def done(self) -&gt; bool:
+        return self.future.done()
+
+    def destroy(self) -&gt; None:
+        self.cluster.destroy(self.id)
+
+    def set_status(self, status: str) -&gt; None:
+        # sanity checks
+        if self.status == FAIL and status == DONE:
+            raise RuntimeError(&#39;Cant complete a failed task&#39;)
+
+        if self.status == DONE and status == FAIL:
+            raise RuntimeError(&#39;Cant fail a completed task&#39;)
+
+        if status == STOP and not self.future.done():
+            self.future.set_exception(StoppedError(f&#39;Remote task {self.id} was stopped&#39;))
+
+        # update status
+        self.status = status
+
+    def set_error(self, error: str) -&gt; None:
+        self.set_status(FAIL)
+        self.error = error
+        if not self.future.done():
+            self.future.set_exception(TaskError(error))
+
+    def set_result(self, result: any, result_type: any = &#39;any&#39;) -&gt; None:
+        # unpack type &amp; deserialize result
+        result_type = type_from_description(result_type)
+        result = result_type.deserialize(result)
+
+        self.set_status(DONE)
+        self.result = result
+        if not self.future.done():
+            self.future.set_result(result)
+
+    async def wait_for_init(self, timeout=30) -&gt; None:
+        if self.status != WAIT:
+            raise RuntimeError(f&#39;Cant await task with status {self.status}&#39;)
+
+        slept = 0
+        interval = 0.2
+        while True:
+            if self.status == WORK:
+                return
+            if self.status == FAIL:
+                raise RuntimeError(
+                    f&#39;Awaited task failed with error: {self.error}&#39;)
+
+            if slept &gt; timeout:
+                raise TimeoutError(&#39;Task took to long to initialize&#39;)
+
+            await asyncio.sleep(interval)
+            slept += interval
+
+    async def call(self, method, args={}) -&gt; any:
+        if self.status == WAIT:
+            await self.wait_for_init()
+        elif self.status != WORK:
+            raise RuntimeError(
+                f&#39;RPC is only available when status = WORK, was {self.status}. &#39;
+                f&#39;Attempted to call {method}&#39;)
+
+        return await self.conn.rpc.call(method, args)
+
+    async def stop(self) -&gt; None:
+        if self.status == STOP:
+            return
+        await self.call(&#39;stop&#39;)
+
+    def logs(self):
+        return self.cluster.logs(self)
+
+    def __getattr__(self, method):
+        async def magic_rpc(*args, **kwargs):
+            if len(args) &gt; 0:
+                raise TypeError(&#39;Positional arguments are not supported for RPC methods&#39;)
+            return await self.call(method, kwargs)
+        return magic_rpc
+
+    def __str__(self):
+        return f&#39;RemoteTask({self.id}, {self.status}, {self.inputs})&#39;
+
+    def __repr__(self):
+        return self.__str__()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="cowait.tasks.instance.TaskInstance" href="instance.html#cowait.tasks.instance.TaskInstance">TaskInstance</a></li>
+<li><a title="cowait.tasks.definition.TaskDefinition" href="definition.html#cowait.tasks.definition.TaskDefinition">TaskDefinition</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="cowait.engine.docker.task.DockerTask" href="../engine/docker/task.html#cowait.engine.docker.task.DockerTask">DockerTask</a></li>
+<li><a title="cowait.engine.kubernetes.task.KubernetesTask" href="../engine/kubernetes/task.html#cowait.engine.kubernetes.task.KubernetesTask">KubernetesTask</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="cowait.tasks.remote_task.RemoteTask.done"><code class="name">var <span class="ident">done</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def done(self) -&gt; bool:
+    return self.future.done()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="cowait.tasks.remote_task.RemoteTask.call"><code class="name flex">
+<span>async def <span class="ident">call</span></span>(<span>self, method, args={}) ‑> <built-in function any></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def call(self, method, args={}) -&gt; any:
+    if self.status == WAIT:
+        await self.wait_for_init()
+    elif self.status != WORK:
+        raise RuntimeError(
+            f&#39;RPC is only available when status = WORK, was {self.status}. &#39;
+            f&#39;Attempted to call {method}&#39;)
+
+    return await self.conn.rpc.call(method, args)</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.destroy"><code class="name flex">
+<span>def <span class="ident">destroy</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def destroy(self) -&gt; None:
+    self.cluster.destroy(self.id)</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.logs"><code class="name flex">
+<span>def <span class="ident">logs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def logs(self):
+    return self.cluster.logs(self)</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.set_error"><code class="name flex">
+<span>def <span class="ident">set_error</span></span>(<span>self, error: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_error(self, error: str) -&gt; None:
+    self.set_status(FAIL)
+    self.error = error
+    if not self.future.done():
+        self.future.set_exception(TaskError(error))</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.set_result"><code class="name flex">
+<span>def <span class="ident">set_result</span></span>(<span>self, result: any, result_type: any = 'any') ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_result(self, result: any, result_type: any = &#39;any&#39;) -&gt; None:
+    # unpack type &amp; deserialize result
+    result_type = type_from_description(result_type)
+    result = result_type.deserialize(result)
+
+    self.set_status(DONE)
+    self.result = result
+    if not self.future.done():
+        self.future.set_result(result)</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.set_status"><code class="name flex">
+<span>def <span class="ident">set_status</span></span>(<span>self, status: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_status(self, status: str) -&gt; None:
+    # sanity checks
+    if self.status == FAIL and status == DONE:
+        raise RuntimeError(&#39;Cant complete a failed task&#39;)
+
+    if self.status == DONE and status == FAIL:
+        raise RuntimeError(&#39;Cant fail a completed task&#39;)
+
+    if status == STOP and not self.future.done():
+        self.future.set_exception(StoppedError(f&#39;Remote task {self.id} was stopped&#39;))
+
+    # update status
+    self.status = status</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.stop"><code class="name flex">
+<span>async def <span class="ident">stop</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def stop(self) -&gt; None:
+    if self.status == STOP:
+        return
+    await self.call(&#39;stop&#39;)</code></pre>
+</details>
+</dd>
+<dt id="cowait.tasks.remote_task.RemoteTask.wait_for_init"><code class="name flex">
+<span>async def <span class="ident">wait_for_init</span></span>(<span>self, timeout=30) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def wait_for_init(self, timeout=30) -&gt; None:
+    if self.status != WAIT:
+        raise RuntimeError(f&#39;Cant await task with status {self.status}&#39;)
+
+    slept = 0
+    interval = 0.2
+    while True:
+        if self.status == WORK:
+            return
+        if self.status == FAIL:
+            raise RuntimeError(
+                f&#39;Awaited task failed with error: {self.error}&#39;)
+
+        if slept &gt; timeout:
+            raise TimeoutError(&#39;Task took to long to initialize&#39;)
+
+        await asyncio.sleep(interval)
+        slept += interval</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="cowait.tasks.instance.TaskInstance" href="instance.html#cowait.tasks.instance.TaskInstance">TaskInstance</a></b></code>:
+<ul class="hlist">
+<li><code><a title="cowait.tasks.instance.TaskInstance.deserialize" href="definition.html#cowait.tasks.definition.TaskDefinition.deserialize">deserialize</a></code></li>
+<li><code><a title="cowait.tasks.instance.TaskInstance.serialize" href="definition.html#cowait.tasks.definition.TaskDefinition.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="cowait.tasks" href="index.html">cowait.tasks</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="cowait.tasks.remote_task.RemoteTask" href="#cowait.tasks.remote_task.RemoteTask">RemoteTask</a></code></h4>
+<ul class="two-column">
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.call" href="#cowait.tasks.remote_task.RemoteTask.call">call</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.destroy" href="#cowait.tasks.remote_task.RemoteTask.destroy">destroy</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.done" href="#cowait.tasks.remote_task.RemoteTask.done">done</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.logs" href="#cowait.tasks.remote_task.RemoteTask.logs">logs</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.set_error" href="#cowait.tasks.remote_task.RemoteTask.set_error">set_error</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.set_result" href="#cowait.tasks.remote_task.RemoteTask.set_result">set_result</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.set_status" href="#cowait.tasks.remote_task.RemoteTask.set_status">set_status</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.stop" href="#cowait.tasks.remote_task.RemoteTask.stop">stop</a></code></li>
+<li><code><a title="cowait.tasks.remote_task.RemoteTask.wait_for_init" href="#cowait.tasks.remote_task.RemoteTask.wait_for_init">wait_for_init</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
