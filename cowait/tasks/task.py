@@ -158,7 +158,6 @@ class Task(object):
             affinity=affinity if affinity else self.taskdef.affinity,
             owner=owner,
             inputs=serialize(inputs),
-            storage=self.taskdef.storage,
             volumes={
                 **self.taskdef.volumes,
                 **volumes,
