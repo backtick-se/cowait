@@ -43,9 +43,6 @@ setup(
         'PyYAML>=5',
         'sty==1.0.0-beta.12',  # tty coloring, seems to be stuck in beta. remove/replace
 
-        # convenient, but easy to get rid of
-        'marshmallow >= 3',
-
         # utilities, not actually required
         'numpy >= 1',  # provides typing for numpy. unlikely to break
         'pytest-sugar >= 0.9',
