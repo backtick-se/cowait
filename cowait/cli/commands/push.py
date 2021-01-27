@@ -4,6 +4,7 @@ from ..task_image import TaskImage
 from ..const import CONTEXT_FILE_NAME
 from ..config import Config
 from ..context import Context
+from ..utils import ProgressBars
 
 
 def push(config: Config, **kwargs) -> TaskImage:
@@ -19,32 +20,22 @@ def push(config: Config, **kwargs) -> TaskImage:
               f'{CONTEXT_FILE_NAME} before you can push')
         return
 
-    sys.stdout.write('pushing...')
+    print('Pushing image')
+
+    progress = ProgressBars()
     logs = image.push()
-    progress = {}
-    for log in logs:
-        rows = log.decode('utf-8').split('\r\n')
-        for data in rows:
-            if len(data) == 0:
-                continue
-            update = json.loads(data.strip())
-            if 'id' in update and 'progressDetail' in update:
-                id = update['id']
-                progress[id] = update['progressDetail']
-            if 'errorDetail' in update:
-                print('\rError:', update['error'])
-                return
+    for update in logs:
+        if 'id' in update and 'progressDetail' in update:
+            id = update['id']
+            detail = update['progressDetail']
+            if not progress.has(id):
+                progress.add(id, id, 0, 0)
+            if 'total' in detail:
+                progress.set(id, detail['current'], detail['total'])
+            progress.refresh()
 
-        current = 0
-        total = 0
-        for detail in progress.values():
-            current += detail.get('current', 0)
-            total += detail.get('total', 0)
+        if 'errorDetail' in update:
+            print('Error:', update['error'])
+            return None
 
-        if total > 0:
-            pct = 100 * min(current / total, 1.0)
-            sys.stdout.write(f'\rpushing... {pct:0.2f}%  ')
-            sys.stdout.flush()
-
-    print()
     return image

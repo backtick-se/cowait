@@ -62,7 +62,8 @@ class TaskImage(object):
         logs = client.images.push(
             repository=self.name,
             tag='latest',
-            stream=True
+            stream=True,
+            decode=True,
         )
         return logs
 

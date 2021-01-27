@@ -58,9 +58,14 @@ class RemoteTask(TaskInstance):
         if not self.future.done():
             self.future.set_result(result)
 
+    async def wait_for_scheduling(self) -> None:
+        pass
+
     async def wait_for_init(self, timeout=30) -> None:
         if self.status != WAIT:
             raise RuntimeError(f'Cant await task with status {self.status}')
+
+        await self.wait_for_scheduling()
 
         slept = 0
         interval = 0.2

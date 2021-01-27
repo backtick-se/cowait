@@ -13,6 +13,8 @@ from .task import KubernetesTask
 from .volumes import create_volumes
 from .utils import create_ports
 from .affinity import create_affinity
+from .pod import pod_is_ready
+from .errors import PodUnschedulableError, PodTerminatedError, ImagePullError
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
@@ -149,38 +151,27 @@ class KubernetesProvider(ClusterProvider):
     def wait(self, task: KubernetesTask) -> bool:
         raise NotImplementedError()
 
-    def wait_until_ready(self, task_id: str, poll_interval: float = 0.5):
-        timeout = self.timeout
+    def wait_until_ready(self, task_id: str, poll_interval: float = 1):
         while True:
             time.sleep(poll_interval)
             pod = self.get_task_pod(task_id)
 
-            statuses = pod.status.container_statuses
-            if statuses is not None and len(statuses) > 0:
-                state = statuses[0].state
-
-                # check for termination errors
-                if state.terminated is not None:
-                    raise TaskCreationError(
-                        f'Pod terminated: {state.terminated.reason}\n'
-                        f'{state.terminated.message}')
-
-                # check waiting state
-                if state.waiting is not None:
-                    # abort if the image is not available
-                    if state.waiting.reason == 'ErrImagePull':
-                        self.kill(task_id)
-                        raise TaskCreationError(
-                            f'Image pull failed\n'
-                            f'{state.waiting.message}')
-
-                # we are go
-                if state.running is not None:
+            try:
+                if pod_is_ready(pod):
                     break
+                else:
+                    poll_interval = 1
 
-            timeout -= poll_interval
-            if timeout <= 0:
-                raise TimeoutError(f'Could not find pod for {task_id}')
+            except PodUnschedulableError as e:
+                poll_interval = 10
+                print('warning: task', task_id, 'is unschedulable:', str(e))
+
+            except PodTerminatedError:
+                raise TaskCreationError('Task terminated') from None
+            
+            except ImagePullError:
+                self.kill(task_id)
+                raise TaskCreationError('Image pull failed') from None
 
     def logs(self, task: KubernetesTask):
         if not isinstance(task, KubernetesTask):
