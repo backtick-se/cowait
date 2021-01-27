@@ -36,17 +36,12 @@ setup(
         'pytest>=6',
         'alt-pytest-asyncio>=0.5.3',  # would be nice to move to the widely used pytest-asyncio
         'python-dotenv>=0.15',
-        'fsspec',
-        's3fs',
         'aiobotocore[boto3]',
 
         # cli
         'click>=7',
         'PyYAML>=5',
         'sty==1.0.0-beta.12',  # tty coloring, seems to be stuck in beta. remove/replace
-
-        # convenient, but easy to get rid of
-        'marshmallow >= 3',
 
         # utilities, not actually required
         'numpy >= 1',  # provides typing for numpy. unlikely to break

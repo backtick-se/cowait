@@ -1,6 +1,5 @@
 from __future__ import annotations
 from datetime import datetime, timezone
-from marshmallow import Schema, fields, post_load
 from ..utils import uuid
 
 
@@ -51,7 +50,6 @@ class TaskDefinition(object):
         ports:        dict = {},
         routes:       dict = {},
         volumes:      dict = {},
-        storage:      dict = {},
         cpu:          str = None,
         cpu_limit:    str = None,
         memory:       str = None,
@@ -96,7 +94,6 @@ class TaskDefinition(object):
         self.memory_limit = memory_limit
         self.owner = owner
         self.volumes = volumes
-        self.storage = storage
         self.affinity = affinity
 
         if created_at is None:
@@ -110,40 +107,48 @@ class TaskDefinition(object):
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
-        return TaskDefinitionSchema().dump(self)
+        return {
+            'id': self.id,
+            'name': self.name,
+            'image': self.image,
+            'upstream': self.upstream,
+            'parent': self.parent,
+            'inputs': self.inputs,
+            'meta': self.meta,
+            'env': self.env,
+            'ports': self.ports,
+            'routes': self.routes,
+            'cpu': self.cpu,
+            'cpu_limit': self.cpu_limit,
+            'memory': self.memory,
+            'memory_limit': self.memory_limit,
+            'affinity': self.affinity,
+            'owner': self.owner,
+            'created_at': self.created_at.isoformat(),
+            'volumes': self.volumes,
+        }
 
     @staticmethod
     def deserialize(taskdef: dict) -> TaskDefinition:
         """ Deserialize task definition from a dict """
-        return TaskDefinitionSchema().load(taskdef)
+        return TaskDefinition(
+            id = taskdef.get('id'),
+            name = taskdef.get('name'),
+            image = taskdef.get('image'),
+            upstream = taskdef.get('upstream', None),
+            parent = taskdef.get('parent', None),
+            inputs = taskdef.get('inputs', {}),
+            meta = taskdef.get('meta', {}),
+            env = taskdef.get('env', {}),
+            ports = taskdef.get('ports', {}),
+            routes = taskdef.get('routes', {}),
+            cpu = taskdef.get('cpu', None),
+            cpu_limit = taskdef.get('cpu_limit', None),
+            memory = taskdef.get('memory', None),
+            memory_limit = taskdef.get('memory_limit', None),
+            affinity = taskdef.get('affinity', None),
+            owner = taskdef.get('owner', None),
+            created_at = datetime.fromisoformat(taskdef.get('created_at', datetime.now().isoformat())),
+            volumes = taskdef.get('volumes', {}),
+        )
 
-
-class TaskDefinitionSchema(Schema):
-    """ TaskDefinition serialization schema. """
-
-    id = fields.Str(required=True)
-    name = fields.Str(required=True)
-    image = fields.Str(required=True)
-    upstream = fields.Str(allow_none=True)
-    parent = fields.Str(allow_none=True)
-    inputs = fields.Dict(missing={})
-    meta = fields.Dict(missing={})
-    env = fields.Dict(missing={})
-    ports = fields.Dict(missing={})
-    routes = fields.Dict(missing={})
-    cpu = fields.Str(allow_none=True)
-    cpu_limit = fields.Str(allow_none=True)
-    memory = fields.Str(allow_none=True)
-    memory_limit = fields.Str(allow_none=True)
-    affinity = fields.Raw(allow_none=True)
-    owner = fields.Str(missing='')
-    created_at = fields.DateTime('iso', default=lambda: datetime.now(timezone.utc))
-    storage = fields.Dict(missing={})
-    volumes = fields.Dict(missing={})
-
-    @post_load
-    def make_class(self, data: dict, **kwargs):
-        return self.make_instance(data)
-
-    def make_instance(self, data: dict) -> TaskDefinition:
-        return TaskDefinition(**data)

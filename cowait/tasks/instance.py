@@ -1,7 +1,6 @@
 from __future__ import annotations
-from marshmallow import fields, post_load
 from .status import WAIT
-from .definition import TaskDefinition, TaskDefinitionSchema
+from .definition import TaskDefinition
 
 
 class TaskInstance(TaskDefinition):
@@ -21,19 +20,24 @@ class TaskInstance(TaskDefinition):
 
     def serialize(self) -> dict:
         """ Serialize task definition to a dict """
-        return TaskInstanceSchema().dump(self)
+        taskdef = super().serialize()
+        return {
+            **taskdef,
+            'status': self.status,
+            'error': self.error,
+            'result': self.result,
+            'log': self.log,
+        }
 
     @staticmethod
     def deserialize(instance: dict) -> TaskInstance:
         """ Deserialize task definition from a dict """
-        return TaskInstanceSchema().load(instance)
+        taskdef = TaskDefinition.deserialize(instance).serialize()
+        return TaskInstance(**{
+            **taskdef,
+            'status': instance.get('status', WAIT),
+            'error': instance.get('error', None),
+            'result': instance.get('result', None),
+            'log': instance.get('log', None),
+        })
 
-
-class TaskInstanceSchema(TaskDefinitionSchema):
-    status = fields.Str(missing=WAIT)
-    error = fields.Str(allow_none=True)
-    result = fields.Raw(allow_none=True)
-    log = fields.Str(allow_none=True)
-
-    def make_instance(self, data: dict) -> TaskInstance:
-        return TaskInstance(**data)

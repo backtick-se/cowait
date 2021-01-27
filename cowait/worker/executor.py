@@ -2,7 +2,6 @@ import traceback
 from cowait.engine import ClusterProvider
 from cowait.tasks import Task, TaskDefinition, TaskError
 from cowait.types import typed_arguments, typed_return, get_parameter_defaults
-from cowait.storage import StorageBackends
 from .worker_node import WorkerNode
 from .loader import load_task_class
 
@@ -32,9 +31,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
                 cluster=cluster,
                 node=node,
             )
-
-            # initialize storage
-            setattr(task, 'storage', StorageBackends(taskdef.storage))
 
             # monitor system resources
             node.monitor_system(interval=2)
