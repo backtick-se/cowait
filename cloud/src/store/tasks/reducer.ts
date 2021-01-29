@@ -134,6 +134,20 @@ const reducer: Reducer<TaskState> = (state = initialState, action) => {
         }
     }
 
+    case TaskActionTypes.STATE: {
+        const { id, state: taskState } = action.payload
+        return {
+            ...state,
+            items: {
+                ...state.items,
+                [id]: {
+                    ...state.items[id],
+                    state: taskState,
+                },
+            },
+        }
+    }
+
     case TaskActionTypes.CLEAR: {
         return initialState
     }

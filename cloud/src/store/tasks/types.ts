@@ -3,6 +3,7 @@ export enum TaskActionTypes {
   STATUS = '@@task/STATUS',
   RETURN = '@@task/RETURN',
   FAIL = '@@task/FAIL',
+  STATE = '@@task/STATE',
   LOG = '@@task/LOG',
   CLEAR = '@@task/CLEAR',
   STOP_REQUEST = '@@task/STOP_REQUEST',
@@ -28,7 +29,8 @@ export interface Task {
   routes: object,
   status: string,
   upstream: string,
-  sub_tasks: string[]
+  sub_tasks: string[],
+  state: object,
 }
 
 export interface TaskState {
