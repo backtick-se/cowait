@@ -6,7 +6,7 @@ import tasks from './store/tasks'
 import { Store } from 'redux'
 
 const defaultStoreConfig: StoreConfig = {
-    logging: false // redux-logger
+    logging: true // redux-logger
 }
 
 export class PipeClientStore extends PipeClient {
