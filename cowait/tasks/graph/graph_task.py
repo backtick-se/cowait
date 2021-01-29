@@ -13,9 +13,25 @@ class GraphTask(Task):
         graph = Graph()
         await self.define(graph, **inputs)
 
-        # run until all nodes complete
         pending = []
+        task_nodes = {}
         node_tasks = {}
+
+        async def send_state():
+            state = {}
+            for node in graph.nodes:
+                task = node_tasks.get(node, None)
+                state[node.id] = {
+                    'id': node.id,
+                    'task': node.task if not issubclass(node.task, Task) else node.task.__module__,
+                    'depends_on': [edge.id for edge in node.edges],
+                    'task_id': None if not task else task.id,
+                }
+            await self.set_state(state)
+
+        await send_state()
+
+        # run until all nodes complete
         while not graph.completed:
             # launch tasks for each node that is ready for execution
             while True:
@@ -24,13 +40,16 @@ class GraphTask(Task):
                     break
 
                 task = self.spawn(node.task, inputs=node.inputs)
+                node_tasks[node] = task
 
                 # wrap the task in a future and store it in a mapping from futures -> node
                 # so we can find the node once the task completes
                 task = asyncio.ensure_future(task)
-                node_tasks[task] = node
+                task_nodes[task] = node
 
                 pending.append(task)
+
+            await send_state()
 
             # if everything is completed, exit
             if len(pending) == 0:
@@ -41,7 +60,7 @@ class GraphTask(Task):
 
             # mark finished nodes as completed
             for task in done:
-                node = node_tasks[task]
+                node = task_nodes[task]
 
                 try:
                     # unpacking the result will throw an exception if the task failed
@@ -53,6 +72,8 @@ class GraphTask(Task):
 
         if not graph.completed:
             raise Exception('Some tasks failed to finish')
+
+        await send_state()
 
         # return what?
         return True

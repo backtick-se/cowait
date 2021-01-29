@@ -9,6 +9,7 @@ class Node(object):
         self.id = Node.next_id() if id is None else id
         self.task = task
         self.inputs = inputs
+        self.edges = [result.node for result in inputs.values() if isinstance(result, Result)]
 
     def __eq__(self, other):
         if not isinstance(other, Node):

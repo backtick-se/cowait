@@ -97,3 +97,4 @@ class Graph(object):
         if node in self.todo:
             self.todo.remove(node)
         self.errors[node] = exception
+
