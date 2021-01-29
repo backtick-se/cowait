@@ -20,7 +20,7 @@ class Task(object):
         # (at least less confusing) when invoking subtasks using constructor syntax.
         # However, subtasks will actually never be instantiated. The constructor call is
         # diverted by the runtime in Task.__new__().
-        # Tasks should only be constructed by the executor, and it will these 3 arguments:
+        # Tasks should only be constructed by the executor, and it will use these 3 arguments:
         if 'taskdef' not in inputs or 'node' not in inputs or \
            'cluster' not in inputs or len(inputs) != 3:
             raise RuntimeError('Invalid task class instantiation')
