@@ -1,6 +1,6 @@
 from cowait.network import Conn
 from ..instance import TaskInstance
-from ..messages import TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_FAIL, TASK_LOG
+from ..messages import TASK_INIT, TASK_STATUS, TASK_RETURN, TASK_STATE, TASK_FAIL, TASK_LOG
 
 
 class TaskList(dict):
@@ -10,6 +10,7 @@ class TaskList(dict):
         task.node.server.on(TASK_INIT, self.on_init)
         task.node.server.on(TASK_STATUS, self.on_status)
         task.node.server.on(TASK_RETURN, self.on_return)
+        task.node.server.on(TASK_STATE, self.on_state)
         task.node.server.on(TASK_FAIL, self.on_fail)
         task.node.server.on(TASK_LOG, self.on_log)
 
@@ -28,8 +29,12 @@ class TaskList(dict):
         if id in self:
             self[id].result = result
 
+    async def on_state(self, conn: Conn, id, state, **msg):
+        if id in self:
+            self[id].state = state
+
     async def on_log(self, conn: Conn, id, file, data, **msg):
         if id in self:
-            if not hasattr(self[id], 'log'):
+            if not hasattr(self[id], 'log') or self[id].log is None:
                 self[id].log = ''
             self[id].log += data
