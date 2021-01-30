@@ -4,6 +4,16 @@ from .graph import Graph
 
 
 class GraphTask(Task):
+    def init(self) -> dict:
+        return {
+            'ui': [
+                {
+                    'component': 'ui.cowait.io/task-graph',
+                    'path': 'graph',
+                },
+            ]
+        }
+
     async def define(self, graph, **inputs):
         # this is where you would define your graph nodes
         # to create a dag, override this function in a subclass
@@ -22,12 +32,12 @@ class GraphTask(Task):
             for node in graph.nodes:
                 task = node_tasks.get(node, None)
                 state[node.id] = {
-                    'id': node.id,
+                    'id': str(node.id),
                     'task': node.task if not issubclass(node.task, Task) else node.task.__module__,
-                    'depends_on': [edge.id for edge in node.edges],
+                    'depends_on': [str(edge.id) for edge in node.edges],
                     'task_id': None if not task else task.id,
                 }
-            await self.set_state(state)
+            await self.set_state({'graph': state})
 
         await send_state()
 

@@ -10,6 +10,7 @@ export const LogOutput = styled.pre<Props>`
     font-family: ${p => p.theme.fonts.monospace};
     color: ${p => p.theme.colors.text.secondary};
     line-height: 1.25em;
+    max-width: 100vh;
 `
 
 export const LogContainer = styled.div<Props>`
