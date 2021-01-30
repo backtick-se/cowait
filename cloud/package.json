@@ -19,6 +19,7 @@
     "@types/react-router-dom": "^5.1.5",
     "@types/react-syntax-highlighter": "^11.0.4",
     "@types/redux-logger": "^3.0.7",
+    "dagre-d3-react": "^0.2.4",
     "eslint-webpack-plugin": "^2.4.3",
     "lodash": "^4.17.19",
     "polished": "^3.6.3",
