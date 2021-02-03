@@ -1,4 +1,5 @@
 ![cowait](/assets/cowait_bg.png)
+
 # cowait
 
 [![Actions Status](https://github.com/backtick-se/cowait/workflows/Tests/badge.svg)](https://github.com/backtick-se/cowait/actions)
@@ -7,7 +8,7 @@
 [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](http://cowait.io/)
 [![](https://img.shields.io/badge/chat-slack-blueviolet)](https://slack.cowait.io)
 
-Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called *Tasks*, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. Because of the loose definition of what a Task could be, and the integration with Docker & Kubernetes, Cowait can be used to easily build many types of distributed applications.
+Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called _Tasks_, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. Because of the loose definition of what a Task could be, and the integration with Docker & Kubernetes, Cowait can be used to easily build many types of distributed applications.
 
 Check out the documentation at https://docs.cowait.io/
 
@@ -17,13 +18,14 @@ Cowait is still in fairly early development. We invite you to try it out and gla
 
 ## Community
 
-Join the Cowait development Slack channel! 
+Join the Cowait development Slack channel!
 
 Get your invite at https://slack.cowait.io
 
 ## Getting Started
 
 **Requirements**
+
 - docker
 - python 3.6+
 
@@ -69,7 +71,8 @@ $ cowait run hello
 ```
 
 **Notes**
-- `hello` supplied to `cowait run` is the python module name. This module should contain exactly *one* task class. Modules can be single python files or subdirectories with `__init__.py` files.
+
+- `hello` supplied to `cowait run` is the python module name. This module should contain exactly _one_ task class. Modules can be single python files or subdirectories with `__init__.py` files.
 - The actual function/class name of the task does not matter when running from the CLI, only when importing and executing tasks from python.
 
 ### Subtasks, Arguments & Return Values
@@ -106,6 +109,7 @@ async def MainTask():
 A task context is a directory containing a `cowait.yml` configuration file. This directory will act as the root of a project, and everything within this folder is copied into the resulting docker image during the build step. If you have not created a `cowait.yml` file, the current working directory (when executing `cowait build`) will be used.
 
 ** Example Task Context **
+
 ```
  /var/stuff/my_cowait_project
    src/
@@ -125,7 +129,7 @@ Before you can run tasks on a Kubernetes cluster, they must be pushed to a docke
 ```yaml
 version: 1
 cowait:
-    image: docker.io/username/cowait-task
+  image: docker.io/username/cowait-task
 ```
 
 Once the full image name has been configured, you can push the image using `cowait push`:
@@ -137,6 +141,7 @@ $ cowait push
 ## Cluster Deployment
 
 **Requiurements**
+
 - Configured kubernetes cluster context.
 - Docker registry accessible from the cluster.
 
@@ -148,13 +153,13 @@ $ cowait push
 
 **Kubernetes Configuration**
 
-Before you can run tasks on a kubernetes cluster, you need a service account with permissions to create/list pods. A sample configuration is provided in `k8setup.yml`, which will allow any pods owned by the default service account to create, list and destroy other pods. 
+Before you can run tasks on a kubernetes cluster, you need a service account with permissions to create/list pods. A sample configuration is provided in `k8setup.yml`, which will allow any pods owned by the default service account to create, list and destroy other pods.
 
 For detailed information about running on Kubernetes, see the [documentation](https://docs.cowait.io/kubernetes/setup]).
 
 **Running Tasks**
 
-To run tasks on a remote cluster, pass the cluster name using the `--cluster` option to `cowait run`. 
+To run tasks on a remote cluster, pass the cluster name using the `--cluster` option to `cowait run`.
 
 Cowait comes with a predefined cluster called `kubernetes` which always refers to your default configured cluster (the one returned by `$ kubectl config current-context`).
 
@@ -165,6 +170,7 @@ $ cowait run docker.io/username/cowait-task --cluster kubernetes
 ## Development
 
 **Requirements**
+
 - docker
 - python 3.6+
 - poetry (recommended)
@@ -181,3 +187,10 @@ $ ./build.sh
 ```
 
 **Note:** Tasks will have to rebuilt with `cowait build` for the changes to take effect.
+
+**Generate Documentation**
+You can generate documentation (from docstrings) for Cowait to the /docs folder using `pdoc3` (defined in Poetry as a dev dependency):
+
+```bash
+$ pdoc3 --skip-errors --html --output-dir docs/html cowait
+```
