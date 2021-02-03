@@ -50,6 +50,8 @@ class Server(EventEmitter):
                 msg = await ws.receive()
                 if msg.type == WSMsgType.CLOSE:
                     break
+                elif msg.type == WSMsgType.CLOSE:
+                    break
                 elif msg.type == WSMsgType.ERROR:
                     raise SocketError(ws.exception())
                 elif msg.type == WSMsgType.BINARY:

@@ -10,7 +10,7 @@ from .task import Task
 from .remote_task import RemoteTask
 from .definition import TaskDefinition
 from .instance import TaskInstance
-from .decorator import task
+from .decorator import task, spawn
 from .ops import join, wait
 
 from .components.rpc import rpc

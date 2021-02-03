@@ -67,17 +67,17 @@ class Client(EventEmitter):
                 try:
                     while not ws.closed:
                         msg = await ws.receive()
-                        if msg.type == WSMsgType.CLOSING:
+                        if msg.type == WSMsgType.CLOSE:
                             break
                         elif msg.type == WSMsgType.ERROR:
                             raise SocketError(ws.exception())
                         elif msg.type == WSMsgType.BINARY:
                             raise SocketError('Unexpected binary message')
-
-                        event = msg.json()
-                        if self.rpc.intercept_event(**event):
-                            continue
-                        await self.emit(**event, conn=self)
+                        elif msg.type == WSMsgType.TEXT:
+                            event = msg.json()
+                            if self.rpc.intercept_event(**event):
+                                continue
+                            await self.emit(**event, conn=self)
 
                     await self.emit(ON_CLOSE, conn=self)
 

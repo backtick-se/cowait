@@ -71,9 +71,9 @@ class TaskDefinition(object):
             routes (dict): HTTP Ingresses
             volumes (dict): List of volumes
             cpu (str): CPU request
-            cpu_limit (str): CPU limit
+            cpu_limit (str): CPU limit. Defaults to cpu request if unset.
             memory (str): Memory request
-            memory_limit (str): Memory limit
+            memory_limit (str): Memory limit. Defaults to memory request if unset
             affinity (str): Affinity Mode (None/stack/spread)
             owner (str): Owner name
             created_at (DateTime): Creation date
@@ -89,9 +89,9 @@ class TaskDefinition(object):
         self.ports = ports
         self.routes = routes
         self.cpu = cpu
-        self.cpu_limit = cpu_limit
         self.memory = memory
-        self.memory_limit = memory_limit
+        self.cpu_limit = cpu_limit if cpu_limit else cpu
+        self.memory_limit = memory_limit if memory_limit else memory
         self.owner = owner
         self.volumes = volumes
         self.affinity = affinity
