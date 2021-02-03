@@ -23,3 +23,9 @@ def task(func):
     FuncTask.__wraps__ = func
 
     return FuncTask
+
+
+def spawn(*args, **kwargs):
+    """Spawns subtasks from functional tasks. API is identical to Task.spawn()"""
+    return Task.get_current().spawn(*args, **kwargs)
+
