@@ -1,3 +1,4 @@
+import os
 from .run import run as run_cmd
 
 
@@ -14,4 +15,12 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
             '/': '8888',
         },
         cluster_name=cluster_name,
+        volumes={
+            '/var/task': {
+                'bind': {
+                    'src': os.getcwd(),
+                    'mode': 'rw',
+                },
+            },
+        },
     )

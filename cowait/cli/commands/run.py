@@ -23,6 +23,7 @@ def run(
     env: dict = {},
     ports: dict = {},
     routes: dict = {},
+    volumes: dict = {},
     build: bool = False,
     upstream: str = None,
     detach: bool = False,
@@ -49,7 +50,7 @@ def run(
             image = context.image
             remote_image = False
 
-        volumes = context.get('volumes', {})
+        volumes = context.override('volumes', volumes)
         if not isinstance(volumes, dict):
             raise TaskCreationError('Invalid volume configuration')
 
