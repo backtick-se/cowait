@@ -3,6 +3,7 @@ cd "${0%/*}" || exit
 set -e
 
 image="cowait/task"
+notebook="cowait/notebook"
 version=$(grep 'version.*=.*".*"' cowait/version.py | sed -E 's/.*"(.*)"/\1/g')
 minor=$(echo $version | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+/\1/g')
 
@@ -16,8 +17,10 @@ if [ -n "$GITHUB_REF" ]; then
     fi
 fi
 
+args=$*
+
 # build dashboard
-if [[ $* == *--with-dashboard* ]]; then
+if [[ $args == *--with-dashboard* ]]; then
     (
     cd cloud
     yarn install
@@ -25,27 +28,34 @@ if [[ $* == *--with-dashboard* ]]; then
     )
 fi
 
-# build image
-echo "Building $image:$version"
-docker build --tag "$image:latest" .
 
-# tag versions
-if [[ $* == *--tag* ]] || [[ $* == *--push* ]]; then
-    echo "Tag: $image:$version"
-    docker tag "$image:latest" "$image:$version"
+build() {
+    # build image
+    echo "Building $1:$version"
+    docker build --tag "$1:latest" $2
 
-    echo "Tag: $image:$minor"
-    docker tag "$image:latest" "$image:$minor"
-fi
+    # tag versions
+    if [[ $args == *--tag* ]] || [[ $args == *--push* ]]; then
+        echo "Tag: $1:$version"
+        docker tag "$1:latest" "$1:$version"
 
-# push versions
-if [[ $* == *--push* ]]; then
-    echo "Pushing: $image:latest"
-    docker push "$image:latest"
+        echo "Tag: $1:$minor"
+        docker tag "$1:latest" "$1:$minor"
+    fi
 
-    echo "Pushing: $image:$version"
-    docker push "$image:$version"
+    # push versions
+    if [[ $args == *--push* ]]; then
+        echo "Pushing: $1:latest"
+        docker push "$1:latest"
 
-    echo "Pushing: $image:$minor"
-    docker push "$image:$minor"
-fi
+        echo "Pushing: $1:$version"
+        docker push "$1:$version"
+
+        echo "Pushing: $1:$minor"
+        docker push "$1:$minor"
+    fi
+}
+
+build $image .
+build $notebook ./images/notebook
+
