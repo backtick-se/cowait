@@ -55,6 +55,9 @@ class WorkerNode(object):
             monitor = ResourceMonitor()
             while True:
                 await asyncio.sleep(interval)
-                await self.parent.send_stats(monitor.stats())
+                try:
+                    await self.parent.send_stats(monitor.stats())
+                except ConnectionResetError:
+                    return
 
         self.io.create_task(monitor_loop())
