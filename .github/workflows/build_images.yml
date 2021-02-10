@@ -32,7 +32,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install dependencies
-      run: pip3 install --upgrade setuptools twine wheel
+      run: pip3 install --upgrade setuptools twine wheel cryptography==3.3.2
 
     - name: Build & publish python package
       run: bash ./publish.sh
