@@ -29,11 +29,11 @@ class WorkerNode(object):
 
     async def close(self) -> None:
         async def _close():
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.2)
             await self.server.close()
             await self.parent.close()
 
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0.2)
         self.io.create_task(_close())
 
     def capture_logs(self) -> StreamCapturing:
@@ -55,6 +55,9 @@ class WorkerNode(object):
             monitor = ResourceMonitor()
             while True:
                 await asyncio.sleep(interval)
-                await self.parent.send_stats(monitor.stats())
+                try:
+                    await self.parent.send_stats(monitor.stats())
+                except ConnectionResetError:
+                    return
 
         self.io.create_task(monitor_loop())
