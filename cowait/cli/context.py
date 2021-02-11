@@ -48,6 +48,17 @@ class CowaitContext(SettingsDict):
         if not abs_path:
             return None
         return self.relpath(abs_path)
+    
+    def file_root(self, file_name: str) -> str:
+        """
+        Find a file within the root path of the task and return its full path
+        """
+        path = os.path.join(self.root_path, file_name)
+        print(path)
+        if not os.path.isfile(path):
+            return None
+
+        return path
 
     def relpath(self, context_path: str):
         """

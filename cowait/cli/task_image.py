@@ -80,7 +80,7 @@ class TaskImage(object):
         return client.images.get(name_or_id)
 
     @staticmethod
-    def build_image(quiet: bool, **kwargs):
+    def build_image(quiet: bool=False, **kwargs):
         logs = client.api.build(decode=True, rm=True, **kwargs)
 
         image_hash = None

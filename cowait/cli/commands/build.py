@@ -38,7 +38,7 @@ def build(quiet: bool = False, workdir: str = None, image_name: str = None, dock
         # find custom Dockerfile
         # if it exists, build and extend that instead of the default base image
         base_image = context.base
-        dockerfile = context.file_rel(dockerfile_name)
+        dockerfile = context.file_root(dockerfile_name)
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
             logger.header('BASE')
