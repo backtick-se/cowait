@@ -30,6 +30,6 @@ class TaskList(dict):
 
     async def on_log(self, conn: Conn, id, file, data, **msg):
         if id in self:
-            if not hasattr(self[id], 'log'):
+            if not hasattr(self[id], 'log') or self[id].log is None:
                 self[id].log = ''
             self[id].log += data
