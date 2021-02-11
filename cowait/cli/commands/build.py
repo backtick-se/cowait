@@ -9,7 +9,7 @@ from ..context import CowaitContext, CONTEXT_FILE_NAME
 from ..logger import Logger
 
 
-def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> TaskImage:
+def build(quiet: bool = False, workdir: str = None, image_name: str = None, dockerfile_name: str = 'Dockerfile') -> TaskImage:
     logger = Logger(quiet)
     try:
         if not CowaitContext.exists():
@@ -38,7 +38,7 @@ def build(quiet: bool = False, workdir: str = None, image_name: str = None) -> T
         # find custom Dockerfile
         # if it exists, build and extend that instead of the default base image
         base_image = context.base
-        dockerfile = context.file('Dockerfile')
+        dockerfile = context.file_rel(dockerfile_name)
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
             logger.header('BASE')
