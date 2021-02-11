@@ -77,19 +77,19 @@ class Server(EventEmitter):
                     raise SocketError(ws.exception())
                 elif msg.type == WSMsgType.BINARY:
                     raise SocketError('Unexpected binary message')
-
-                event = msg.json()
-                if conn.rpc.intercept_event(**event):
-                    continue
-                await self.emit(**event, conn=conn)
+                elif msg.type == WSMsgType.TEXT:
+                    event = msg.json()
+                    if conn.rpc.intercept_event(**event):
+                        continue
+                    await self.emit(**event, conn=conn)
 
             await self.emit(type=ON_CLOSE, conn=conn)
 
-        except CancelledError as e:
-            raise e
+        except CancelledError:
+            await self.emit(type=ON_CLOSE, conn=conn)
 
-        except SocketError as e:
-            await self.emit(type=ON_ERROR, conn=conn, error=str(e))
+        except SocketError:
+            await self.emit(type=ON_CLOSE, conn=conn, error=str(e))
 
         finally:
             # disconnected
