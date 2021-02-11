@@ -323,7 +323,7 @@ def notebook(ctx, cluster, build, image):
               default='Dockerfile',
               type=str,
               help='path and name of dockerfile')
-def build(quiet: bool, workdir: str, image: str):
+def build(quiet: bool, workdir: str, image: str, dockerfile: str):
     cowait.cli.build(
         quiet=quiet,
         workdir=workdir,
