@@ -50,7 +50,6 @@ def run(
             image = context.image
             remote_image = False
 
-        volumes = context.override('volumes', volumes)
         if not isinstance(volumes, dict):
             raise TaskCreationError('Invalid volume configuration')
 
@@ -73,16 +72,13 @@ def run(
             name=task,
             image=image,
             inputs=inputs,
-            env={
-                **context.environment,
-                **env,
-            },
+            env=context.extend('environment', env),
             ports=ports,
             routes=routes,
             parent=None,  # root task
             upstream=context.coalesce('upstream', upstream, agent),
             owner=getpass.getuser(),
-            volumes=volumes,
+            volumes=context.extend('volumes', volumes),
             cpu=context.override('cpu', cpu),
             cpu_limit=context.override('cpu_limit', cpu_limit),
             memory=context.override('memory', memory),
