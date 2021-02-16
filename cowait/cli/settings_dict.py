@@ -34,6 +34,17 @@ class SettingsDict(object):
         container[path[-1]] = value
         return value
 
+    def extend(self, key: str, value: dict) -> dict:
+        existing = self.get(key, None, False)
+        if existing is None:
+            return value
+        if not isinstance(existing, dict):
+            raise ValueError('Existing value must be a dict')
+        return {
+            **existing,
+            **value,
+        }
+
     def override(self, key: str, value: any) -> any:
         if value is None:
             return self.get(key, None, False)
