@@ -319,11 +319,16 @@ def notebook(ctx, cluster, build, image):
               default=None,
               type=str,
               help='image name')
-def build(quiet: bool, workdir: str, image: str):
+@click.option('-d', '--dockerfile',
+              default='Dockerfile',
+              type=str,
+              help='path and name of dockerfile')
+def build(quiet: bool, workdir: str, image: str, dockerfile: str):
     cowait.cli.build(
         quiet=quiet,
         workdir=workdir,
         image_name=image,
+        dockerfile_name=dockerfile
     )
 
 
