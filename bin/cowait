@@ -142,29 +142,6 @@ def run(
     if not isinstance(file_inputs, dict):
         raise CliError('Error: Expected input file to contain a dictionary')
 
-
-    if affinity.lower() == 'spread':
-        affinity = {
-                "type" : "spread",
-                "label" : {
-                    "key" :task + "-key",
-                    "value" :task + "-value"
-                }
-            }
-
-    elif affinity.lower() == 'group':
-
-        affinity = {
-                "type" : "group",
-                "label" : {
-                    "key" :task + "-key",
-                    "value" :task + "-value"
-                }
-            }
-
-    else:
-        affinity = {}
-
     cowait.cli.run(
         ctx.obj,
         task,
