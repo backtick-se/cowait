@@ -30,7 +30,7 @@ def run(
     memory_limit: str = None,
     raw: bool = False,
     quiet: bool = False,
-    affinity: dict = {},
+    affinity: str = None,
 ):
     logger = RunLogger(raw, quiet)
     try:
@@ -55,6 +55,27 @@ def run(
                     'src': context.root_path,
                     'mode': 'rw',
                 },
+            }
+
+        if not affinity:
+            affinity = {}
+
+        elif affinity.lower() == 'spread':
+            affinity = {
+                "type": "spread",
+                "label": {
+                        "key": task + "-key",
+                        "value": task + "-value"
+                }
+            }
+
+        elif affinity.lower() == 'group':
+            affinity = {
+                "type": "group",
+                "label": {
+                        "key": task + "-key",
+                        "value": task + "-value"
+                }
             }
 
         # default to agent as upstream
@@ -176,7 +197,6 @@ class RunLogger(Logger):
             self.println(f'   memory:     {taskdef.memory}/{taskdef.memory_limit}')
         if taskdef.affinity != {}:
             self.println('   affinity:   ', self.json(taskdef.affinity))
-        
 
     def print(self, *args):
         if self.raw:
@@ -193,10 +213,11 @@ class RunLogger(Logger):
     def on_init(self, task: dict, version: str, **msg):
         self.print_time()
         self.print_id(task['id'])
-        
+
         self.print(
             f' {fg.yellow}*{rs.all} started with',
-            self.json({k: (v if len(json.dumps(v)) < 50 else '..')  for k, v in task['inputs'].items()}, indent=2),
+            self.json({k: (v if len(json.dumps(v)) < 50 else '..')
+                       for k, v in task['inputs'].items()}, indent=2),
         )
 
         if task['parent'] is not None:
