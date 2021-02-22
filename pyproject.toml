@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cowait"
-version = "0.4.12"
+version = "0.4.13"
 description = ""
 authors = ["Backtick Technologies <johan@backtick.se>"]
 license = "Apache License v2.0"
