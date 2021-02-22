@@ -55,7 +55,7 @@ def run(
 
         # if we are using the image of the current context, automatically mount the working directory
         # todo: add an option to disable this
-        if not remote_image:
+        if not remote_image or image == 'cowait/notebook':
             volumes['/var/task'] = {
                 'bind': {
                     'src': context.root_path,

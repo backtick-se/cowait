@@ -15,7 +15,7 @@ class NotebookTask(ShellTask):
         print('Starting JupyterLab...')
 
         await super().run(
-            command='jupyter lab',
+            command='jupyter lab --no-browser',
             env={
                 ENV_GZIP_ENABLED: '1',
                 ENV_TASK_DEFINITION: env_pack(self.taskdef.serialize()),
@@ -32,6 +32,7 @@ class NotebookTask(ShellTask):
             print('Notebook available at:')
             print(f'  {url}?token={self.jupyter_token}')
         else:
+
             print('Warning: No route set')
 
     def filter_stdout(self, line):
