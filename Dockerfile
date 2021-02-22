@@ -40,10 +40,6 @@ COPY setup.py README.md ./
 COPY cowait/version.py cowait
 RUN pip install -e . --use-feature=2020-resolver
 
-# jupyter mods
-COPY notebook/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
-COPY notebook/kernel /usr/share/jupyter/kernels/cowait
-
 # copy code last, to benefit from caching
 COPY . . 
 
