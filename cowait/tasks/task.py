@@ -5,6 +5,7 @@ from cowait.types import serialize
 from .definition import TaskDefinition
 from .components import TaskManager, RpcComponent, rpc
 from .parent_task import ParentTask
+from .errors import StoppedError
 
 
 class Task(object):
@@ -178,6 +179,9 @@ class Task(object):
         self.subtasks.watch(task)
 
         return task
+
+    def exit(self, result):
+        raise StoppedError(result)
 
     @staticmethod
     def get_current() -> 'Task':

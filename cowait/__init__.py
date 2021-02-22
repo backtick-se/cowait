@@ -2,4 +2,4 @@
 
 from .version import version
 
-from .tasks import Task, task, rpc, join, wait, sleep, spawn
+from .tasks import Task, task, rpc, join, wait, sleep, spawn, input, exit

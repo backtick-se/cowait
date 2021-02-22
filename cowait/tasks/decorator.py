@@ -1,4 +1,5 @@
 import inspect
+from typing import Any
 from .task import Task
 
 
@@ -27,5 +28,27 @@ def task(func):
 
 def spawn(*args, **kwargs):
     """Spawns subtasks from functional tasks. API is identical to Task.spawn()"""
-    return Task.get_current().spawn(*args, **kwargs)
+    task = Task.get_current()
+    if task is None:
+        raise RuntimeError('No running task found')
+    return task.spawn(*args, **kwargs)
 
+
+def input(name: str, default: Any = None) -> Any:
+    """Returns the value of an input to the currently running task"""
+    task = Task.get_current()
+    if task is None:
+        raise RuntimeError('No running task found')
+
+    if default is None and name not in task.taskdef.inputs:
+        raise ValueError(f'Input {name} has no default value')
+
+    return task.taskdef.inputs.get(name, default)
+
+
+def exit(result: Any = None) -> None:
+    """Exits the currently running task with the provided result"""
+    task = Task.get_current()
+    if task is None:
+        raise RuntimeError('No running task found')
+    task.exit(result)

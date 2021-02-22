@@ -1,6 +1,6 @@
 import traceback
 from cowait.engine import ClusterProvider
-from cowait.tasks import Task, TaskDefinition, TaskError
+from cowait.tasks import Task, TaskDefinition, TaskError, StoppedError
 from cowait.types import typed_arguments, typed_return, get_parameter_defaults
 from .worker_node import WorkerNode
 from .loader import load_task_class
@@ -69,7 +69,10 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             await node.parent.send_run()
 
             # execute task
-            result = await task.run(**inputs)
+            try:
+                result = await task.run(**inputs)
+            except StoppedError as e:
+                result = e.result
 
             # after hook
             await task.after(inputs)
