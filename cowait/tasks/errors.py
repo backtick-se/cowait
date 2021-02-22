@@ -1,7 +1,9 @@
 
 
 class StoppedError(RuntimeError):
-    pass
+    def __init__(self, result):
+        super().__init__('Exited')
+        self.result = result
 
 
 class TaskError(RuntimeError):

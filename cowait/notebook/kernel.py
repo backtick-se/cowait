@@ -1,4 +1,5 @@
 import os
+import cowait
 import asyncio
 from ipykernel.kernelapp import IPKernelApp
 from ipykernel.ipkernel import IPythonKernel
@@ -47,6 +48,7 @@ class CowaitKernel(IPythonKernel):
 
         # write globals
         self.shell.push({
+            'cowait': cowait,
             'kernel': self.task,
             'tasks': self.task.subtasks,
         })
