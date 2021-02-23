@@ -6,8 +6,6 @@ import docker
 from .context import Context
 from .docker_file import Dockerfile
 
-client = docker.from_env()
-
 
 class BuildError(RuntimeError):
     pass
@@ -29,7 +27,6 @@ class TaskImage(object):
         df = Dockerfile(base)
 
         # install task-specific requirements
-        requirements = self.context.file_rel('requirements.txt')
         if requirements:
             df.copy(f'./{requirements}', './requirements.txt')
             df.run('pip install -r ./requirements.txt')
@@ -59,6 +56,7 @@ class TaskImage(object):
         """
         Push context image to a remote registry.
         """
+        client = docker.from_env()
         logs = client.images.push(
             repository=self.name,
             tag='latest',
@@ -79,10 +77,12 @@ class TaskImage(object):
 
     @staticmethod
     def get(name_or_id):
+        client = docker.from_env()
         return client.images.get(name_or_id)
 
     @staticmethod
     def build_image(quiet: bool, **kwargs):
+        client = docker.from_env()
         logs = client.api.build(decode=True, rm=True, **kwargs)
 
         image_hash = None
@@ -111,6 +111,7 @@ class TaskImage(object):
             # we expect this error. pull the image
             pass
 
+        client = docker.from_env()
         logs = client.api.pull(repository=name, tag=tag, stream=True, decode=True)
         sys.stdout.write('   pulling image...')
         sys.stdout.flush()
@@ -137,4 +138,3 @@ class TaskImage(object):
 
         sys.stdout.write('\r   pulling image... done   \n')
         sys.stdout.flush()
-
