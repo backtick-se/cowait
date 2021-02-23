@@ -10,5 +10,6 @@ htmlcov/
 .coverage
 .DS_Store
 .vscode
+.vim
 .ipynb_checkpoints/
 .venv/
