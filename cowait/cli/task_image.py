@@ -103,6 +103,10 @@ class TaskImage(object):
 
     @staticmethod
     def pull(name: str, tag: str = 'latest') -> None:
+        # remote images always contain a slash.
+        if '/' not in name:
+            return
+
         try:
             # if the image already exists, just return it
             # todo: add a policy setting for this, similar to kubernetes

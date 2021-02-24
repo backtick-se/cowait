@@ -15,7 +15,7 @@ class NotebookTask(ShellTask):
         print('Starting JupyterLab...')
 
         await super().run(
-            command='jupyter lab --no-browser',
+            command='jupyter lab',
             env={
                 ENV_GZIP_ENABLED: '1',
                 ENV_TASK_DEFINITION: env_pack(self.taskdef.serialize()),

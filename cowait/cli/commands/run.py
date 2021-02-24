@@ -4,7 +4,6 @@ import getpass
 import docker.errors
 from cowait.tasks import TaskDefinition
 from cowait.engine.errors import TaskCreationError, ProviderError
-from cowait.utils import parse_task_image_name
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 from ..config import Config
 from ..context import Context
@@ -19,6 +18,7 @@ def run(
     config: Config,
     task: str, *,
     name: str = None,
+    image: str = None,
     inputs: dict = {},
     env: dict = {},
     ports: dict = {},
@@ -43,7 +43,6 @@ def run(
 
         # figure out image name
         remote_image = True
-        image, task = parse_task_image_name(task, None)
         if image is None:
             if build:
                 build_cmd(config, quiet=quiet or raw)
@@ -55,11 +54,12 @@ def run(
 
         # if we are using the image of the current context, automatically mount the working directory
         # todo: add an option to disable this
-        if not remote_image or image == 'cowait/notebook':
+        if not remote_image:
             volumes['/var/task'] = {
                 'bind': {
                     'src': context.root_path,
                     'mode': 'rw',
+                    'inherit': 'same-image',
                 },
             }
 

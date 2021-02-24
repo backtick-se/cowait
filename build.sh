@@ -57,10 +57,3 @@ build() {
 }
 
 build $image .
-
-if [[ $args == *--with-notebook* ]]; then
-    (
-    build $notebook ./images/notebook
-    )
-fi
-

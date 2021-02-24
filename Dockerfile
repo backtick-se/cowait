@@ -10,6 +10,10 @@ COPY setup.py README.md pytest.ini /var/cowait/
 COPY cowait/version.py /var/cowait/cowait/
 RUN pip install -e /var/cowait --use-feature=2020-resolver --no-cache-dir
 
+# jupyter mods
+COPY notebook/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
+COPY notebook/kernel /usr/share/jupyter/kernels/cowait
+
 # copy code last, to benefit from caching
 COPY test /var/cowait/test/
 COPY cowait /var/cowait/cowait/

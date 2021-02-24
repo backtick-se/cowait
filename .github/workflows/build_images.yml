@@ -23,7 +23,7 @@ jobs:
         node-version: '14.x'
 
     - name: Build & publish task image
-      run: bash ./build.sh --push --with-dashboard --with-notebook
+      run: bash ./build.sh --push --with-dashboard
 
   publish_pypi:
     runs-on: ubuntu-latest
