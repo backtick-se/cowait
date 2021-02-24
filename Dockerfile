@@ -1,47 +1,18 @@
-FROM debian:buster-slim
+FROM python:3.7-slim
 
-ARG CONDA_VERSION=py37_4.9.2
-
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-
-# directory structure & dependencies
+# directory structure
 RUN mkdir -p /usr/share/man/man1 && \
     mkdir -p /var/cowait/cowait && \
-    mkdir /var/task && \
-    apt-get update -q && \
-    apt-get install -q -y \
-        bzip2 \
-        build-essential \
-        ca-certificates \
-        git \
-        libglib2.0-0 \
-        libsm6 \
-        libxext6 \
-        libxrender1 \
-        mercurial \
-        subversion \
-        wget \
-    && apt-get clean
-
-ENV PATH /opt/conda/bin:$PATH
-ENV PYTHONPATH /var/task:$PYTHONPATH
-
-# install conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
-    mkdir -p /opt && \
-    sh miniconda.sh -b -p /opt/conda && \
-    find /opt/conda/ -follow -type f -name '*.a' -delete && \
-    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
-    /opt/conda/bin/conda clean -afy
+    mkdir /var/task
 
 # install cowait
-WORKDIR /var/cowait
-COPY setup.py README.md ./
-COPY cowait/version.py cowait
-RUN pip install -e . --use-feature=2020-resolver
+COPY setup.py README.md pytest.ini /var/cowait/
+COPY cowait/version.py /var/cowait/cowait/
+RUN pip install -e /var/cowait --use-feature=2020-resolver --no-cache-dir
 
 # copy code last, to benefit from caching
-COPY . . 
+COPY test /var/cowait/test/
+COPY cowait /var/cowait/cowait/
 
 # move to task directory
 WORKDIR /var/task

@@ -43,7 +43,6 @@ setup(
         'sty==1.0.0-beta.12',  # tty coloring, seems to be stuck in beta. remove/replace
 
         # utilities, not actually required
-        'numpy >= 1',  # provides typing for numpy. unlikely to break
         'pytest-sugar >= 0.9',
         'pytest-cov >= 2',
 

@@ -5,7 +5,6 @@ from .dict import Dict
 from .list import List
 from .custom import CustomType
 from .simple import Any, String, Int, Float, Bool, DateTime, Void
-from .numpy import NumpyInt, NumpyFloat, NumpyBool, NumpyArray
 from .mapping import TypeAlias
 from .utils import typed_arguments, typed_return, \
     typed_call, typed_async_call, serialize, deserialize, \
