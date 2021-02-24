@@ -48,12 +48,11 @@ class TaskManager(dict):
             # the kill command might arrive after the error has been sent
             # perhaps we should note that this task has failed, and ignore any
             # further communication from it?
-            self.task.cluster.kill(task.id)
+            self.task.cluster.destroy(task.id)
 
             # emit a timeout error
             await self.emit_child_error(
                 id=task.id, error=f'{task.id} timed out before initialization')
-
 
     async def on_child_init(self, conn, id: str, task: dict, version: str, **msg: dict):
         # version check

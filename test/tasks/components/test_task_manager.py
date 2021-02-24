@@ -44,7 +44,7 @@ async def test_task_watch_timeout():
     child.future.done = Mock(return_value=False)
     await mgr._init_timeout_check(child, 0)
     child.wait_for_scheduling.assert_called()
-    parent.cluster.kill.assert_called_with(child.id)
+    parent.cluster.destroy.assert_called_with(child.id)
     mgr.emit_child_error.assert_called()
 
 
@@ -57,7 +57,7 @@ async def test_task_watch_completed():
     child.future.done = Mock(return_value=True)
     await mgr._init_timeout_check(child, 0)
     child.wait_for_scheduling.assert_called()
-    parent.cluster.kill.assert_not_called()
+    parent.cluster.destroy.assert_not_called()
     mgr.emit_child_error.assert_not_called()
 
 
