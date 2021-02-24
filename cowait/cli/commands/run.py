@@ -107,7 +107,7 @@ def run(
 
         with ExitTrap(destroy):
             # capture & print logs
-            logs = cluster.logs(task)
+            logs = cluster.logs(task.id)
             logger.header('task output')
             for msg in logs:
                 logger.handle(msg)

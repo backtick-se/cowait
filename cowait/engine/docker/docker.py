@@ -9,6 +9,7 @@ from cowait.engine.errors import ProviderError
 from cowait.engine.routers import create_router
 from .task import DockerTask
 from .volumes import create_volumes
+from .utils import create_env, create_ports, extract_container_taskdef
 
 DEFAULT_NETWORK = 'cowait'
 
@@ -38,8 +39,8 @@ class DockerProvider(ClusterProvider):
                 name=taskdef.id,
                 hostname=taskdef.id,
                 network=self.network,
-                ports=self.create_ports(taskdef),
-                environment=self.create_env(taskdef),
+                ports=create_ports(taskdef),
+                environment=create_env(self, taskdef),
                 mounts=create_volumes(taskdef.volumes),
                 cpu_quota=int(cpu_quota),
                 cpu_period=int(cpu_period),
@@ -65,15 +66,18 @@ class DockerProvider(ClusterProvider):
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 
+    def wait(self, task: DockerTask) -> bool:
+        """ Wait for a task to finish. Returns True on clean exit """
+        result = task.container.wait()
+        return result['StatusCode'] == 0
+
     def list_all(self) -> list:
-        """ Returns a list of all running tasks """
+        """ Returns a list of task definitions for all running tasks """
         try:
             containers = self.docker.containers.list(
-                filters={
-                    'label': LABEL_TASK_ID,
-                },
+                filters={'label': LABEL_TASK_ID},
             )
-            return list(map(lambda c: c.labels[LABEL_TASK_ID], containers))
+            return [extract_container_taskdef(c) for c in containers]
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
@@ -163,21 +167,17 @@ class DockerProvider(ClusterProvider):
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
 
-    def logs(self, task: DockerTask):
+    def logs(self, task_id: str):
         """ Stream task logs """
-        if not isinstance(task, DockerTask):
-            raise TypeError('Expected a valid DockerTask')
-
         try:
-            return json_stream(task.container.logs(stream=True))
+            container = self.docker.containers.get(task_id)
+            return json_stream(container.logs(stream=True))
+
+        except docker.errors.NotFound:
+            raise ProviderError(f'No such task: {task_id}')
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
-
-    def wait(self, task: DockerTask) -> bool:
-        """ Wait for a task to finish. Returns True on clean exit """
-        result = task.container.wait()
-        return result['StatusCode'] == 0
 
     def ensure_network(self):
         try:
@@ -217,3 +217,4 @@ class DockerProvider(ClusterProvider):
 
         except requests.exceptions.ConnectionError:
             raise ProviderError('Docker engine unavailable')
+
