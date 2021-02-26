@@ -6,4 +6,3 @@ from imdb import ImdbTask
 async def test_number():
     result = await ImdbTask()
     assert result == 1
-    

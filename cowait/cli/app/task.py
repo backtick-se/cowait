@@ -193,3 +193,19 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
 @click.pass_context
 def notebook(ctx, cluster, build, image):
     cowait.cli.notebook(ctx.obj, build, image, cluster_name=cluster)
+
+
+@click.command(help='stream logs from a running task')
+@click.option('-c', '--cluster',
+              default=None,
+              type=str,
+              help='cluster name')
+@click.option('-r', '--raw',
+              type=bool, is_flag=True,
+              help='raw output',
+              default=False)
+@click.argument('task', type=str)
+@click.pass_context
+def logs(ctx, cluster: str, raw: bool, task: str):
+    cowait.cli.logs(ctx.obj, task, cluster_name=cluster, raw=raw)
+

@@ -57,6 +57,10 @@ def build(
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
 
+            # cant override base image when using custom dockerfiles
+            if base_image != DEFAULT_BASE_IMAGE:
+                logger.println('! Warning: Base image setting is ignored when using a custom dockerfile')
+
             # disable automatic requirements.txt install when using custom dockerfiles.
             # notify user to avoid confusion
             if requirements:

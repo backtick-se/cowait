@@ -72,7 +72,10 @@ def run(
             name=task,
             image=image,
             inputs=inputs,
-            env=context.extend('environment', env),
+            env={
+                **context.extend('environment', env),
+                **context.dotenv,
+            },
             ports=ports,
             routes=routes,
             parent=None,  # root task
@@ -107,7 +110,7 @@ def run(
 
         with ExitTrap(destroy):
             # capture & print logs
-            logs = cluster.logs(task)
+            logs = cluster.logs(task.id)
             logger.header('task output')
             for msg in logs:
                 logger.handle(msg)
