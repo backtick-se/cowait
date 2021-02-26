@@ -58,7 +58,7 @@ def agent(
 
         with ExitTrap(destroy):
             # capture & print logs
-            logs = cluster.logs(task)
+            logs = cluster.logs(task.id)
             logger.header('task output')
             for log in logs:
                 logger.handle(log)

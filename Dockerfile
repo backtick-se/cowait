@@ -13,6 +13,7 @@ RUN pip install -e /var/cowait --use-feature=2020-resolver --no-cache-dir
 # copy code last, to benefit from caching
 COPY test /var/cowait/test/
 COPY cowait /var/cowait/cowait/
+COPY cloud /var/cowait/cloud
 
 # move to task directory
 WORKDIR /var/task
