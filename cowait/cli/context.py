@@ -30,10 +30,11 @@ class Context(Config):
 
     @property
     def environment(self):
-        return {
-            **self.get('environment', {}, False),
-            **dotenv_values(self.file('.env')),
-        }
+        return self.get('environment', {}, False)
+
+    @property
+    def dotenv(self) -> dict:
+        return dotenv_values(self.file('.env'))
 
     def file(self, file_name: str) -> str:
         """

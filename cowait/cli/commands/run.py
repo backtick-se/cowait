@@ -72,7 +72,10 @@ def run(
             name=task,
             image=image,
             inputs=inputs,
-            env=context.extend('environment', env),
+            env={
+                **context.extend('environment', env),
+                **context.dotenv,
+            },
             ports=ports,
             routes=routes,
             parent=None,  # root task
