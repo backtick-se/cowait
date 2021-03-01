@@ -44,7 +44,7 @@ class Agent(Task):
 
         # monitor tasks
         while True:
-            running_tasks = self.cluster.list_all()
+            running_tasks = set(map(lambda t: t.id, self.cluster.list_all()))
             for id, task in self.tasks.items():
                 # consider only tasks that are waiting or running
                 if task.status != WAIT and task.status != WORK:
