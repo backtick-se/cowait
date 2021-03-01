@@ -89,7 +89,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
     except TaskError as e:
         # pass subtask errors upstream
         await node.parent.send_fail(
-            f'Caught exception in subtask {taskdef.id}:\n'
+            f'Caught exception in subtask of {taskdef.id}:\n'
             f'{e.error}')
         raise e
 

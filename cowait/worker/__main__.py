@@ -7,12 +7,8 @@ Environment:
 """
 import os
 import sys
-import json
 import asyncio
-import traceback
 import nest_asyncio
-from datetime import datetime
-from cowait.tasks.messages import TASK_FAIL
 from cowait.worker import execute, \
     env_get_cluster_provider, \
     env_get_task_definition
@@ -34,12 +30,6 @@ async def main():
         await asyncio.sleep(0.1)
 
     except Exception:
-        print(json.dumps({
-            'id': taskdef.id,
-            'type': TASK_FAIL,
-            'error': traceback.format_exc(),
-            'ts': datetime.now().isoformat(),
-        }))
         os._exit(1)
 
     os._exit(0)
