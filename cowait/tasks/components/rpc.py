@@ -86,6 +86,8 @@ class RpcError(RuntimeError):
 
 def rpc(f):
     """ Decorator for marking RPC methods """
+    if f.__name__[0] == '_':
+        raise ValueError('RPC function names may not start with underscore')
     setattr(f, 'rpc', True)
     return f
 
