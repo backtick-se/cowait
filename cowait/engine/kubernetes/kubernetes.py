@@ -31,10 +31,9 @@ class KubernetesProvider(ClusterProvider):
             # load local config
             config.load_kube_config(context=self.args.get('context', None))
 
-        self.client = kubernetes.client.ApiClient(client.Configuration().get_default_copy())
-        self.core = client.CoreV1Api(self.client)
-        self.ext = client.ExtensionsV1beta1Api(self.client)
-        self.custom = client.CustomObjectsApi(self.client)
+        self.core = client.CoreV1Api()
+        self.ext = client.ExtensionsV1beta1Api()
+        self.custom = client.CustomObjectsApi()
 
         self.router = create_router(self, self.args.get('router', 'none'))
 
