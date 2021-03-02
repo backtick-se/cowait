@@ -3,10 +3,16 @@ from cowait.engine import get_cluster_provider
 from .const import CONTEXT_FILE_NAME
 from .settings_dict import SettingsDict
 
-
-def get_global_config_path():
-    home = os.path.expanduser('~')
-    return f'{home}/.{CONTEXT_FILE_NAME}'
+DEFAULT_CLUSTER = 'docker'
+DEFAULT_CLUSTERS = {
+    'docker': {
+        'type': 'docker',
+        'network': 'cowait',
+    },
+    'kubernetes': {
+        'type': 'kubernetes',
+    },
+}
 
 
 class Config(SettingsDict):
@@ -20,11 +26,14 @@ class Config(SettingsDict):
 
     @property
     def clusters(self) -> list:
-        return self.get('clusters', {}, False)
+        return {
+            **DEFAULT_CLUSTERS,
+            **self.get('clusters', {}, False)
+        }
 
     @property
     def default_cluster(self) -> str:
-        return self.get('default_cluster', 'docker', False)
+        return self.get('default_cluster', DEFAULT_CLUSTER, False)
 
     @default_cluster.setter
     def default_cluster(self, value):
@@ -59,14 +68,11 @@ class Config(SettingsDict):
     @staticmethod
     def get_default() -> 'Config':
         return Config(data={
-            'default_cluster': 'docker',
-            'clusters': {
-                'docker': {
-                    'type': 'docker',
-                    'network': 'cowait',
-                },
-                'kubernetes': {
-                    'type': 'kubernetes',
-                },
-            },
+            'default_cluster': DEFAULT_CLUSTER,
+            'clusters': {**DEFAULT_CLUSTERS},
         })
+
+
+def get_global_config_path():
+    home = os.path.expanduser('~')
+    return f'{home}/.{CONTEXT_FILE_NAME}'
