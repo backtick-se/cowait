@@ -1,4 +1,6 @@
+from typing import Tuple, List
 from kubernetes import client
+from kubernetes.client import V1Volume, V1VolumeMount
 
 
 VOLUME_SOURCES = {
@@ -33,7 +35,7 @@ VOLUME_SOURCES = {
 }
 
 
-def create_volumes(task_volumes):
+def create_volumes(task_volumes) -> Tuple[List[V1Volume], List[V1VolumeMount]]:
     index = 0
     mounts = []
     volumes = []
@@ -45,11 +47,11 @@ def create_volumes(task_volumes):
                 continue
 
             volume_config = volume[source_type]
-            volumes.append(client.V1Volume(**{
+            volumes.append(V1Volume(**{
                 'name': name,
                 source_type: VolumeSource(**volume_config),
             }))
-            mounts.append(client.V1VolumeMount(
+            mounts.append(V1VolumeMount(
                 name=name,
                 read_only=volume.get('read_only', False),
                 mount_path=target,

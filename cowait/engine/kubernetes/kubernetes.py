@@ -14,7 +14,7 @@ from .volumes import create_volumes
 from .utils import create_env, create_ports
 from .affinity import create_affinity
 from .pod import pod_is_ready, extract_pod_taskdef
-from .errors import PodUnschedulableError, PodTerminatedError, ImagePullError
+from .errors import PodConfigError, PodUnschedulableError, PodTerminatedError, ImagePullError
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_SERVICE_ACCOUNT = 'default'
@@ -166,10 +166,15 @@ class KubernetesProvider(ClusterProvider):
 
             except PodTerminatedError:
                 raise TaskCreationError('Task terminated') from None
-            
+
             except ImagePullError:
                 self.kill(task_id)
                 raise TaskCreationError('Image pull failed') from None
+
+            except PodConfigError:
+                # todo: check pod events to figure out what went wrong, and report it back.
+                # for now, leave the pod running so the user may inspect it
+                raise TaskCreationError('Pod configuration error') from None
 
     def logs(self, task_id: str):
         # wait for pod to become ready
@@ -214,7 +219,7 @@ class KubernetesProvider(ClusterProvider):
                 for pod in running
             ]
 
-        except urllib3.exceptions.MaxRetryError as e:
+        except urllib3.exceptions.MaxRetryError:
             raise ProviderError('Kubernetes engine unavailable')
 
     def destroy(self, task_id) -> list:
