@@ -60,6 +60,16 @@ class Context(Config):
         """
         return os.path.relpath(context_path, self.root_path)
 
+    def file_root(self, file_name: str) -> str:
+        """
+        Find a file within the root path of the task and return its full path
+        """
+        path = os.path.join(self.root_path, file_name)
+        if not os.path.isfile(path):
+            return None
+
+        return path
+
     def includes(self, path: str) -> bool:
         """
         Checks if the path is included in the context
