@@ -45,6 +45,7 @@ class CowaitKernel(IPythonKernel):
 
         # instantiate kernel task
         self.task = KernelTask(node=self.node, cluster=cluster, taskdef=taskdef)
+        Task.set_current(self.task)
 
         # write globals
         self.shell.push({
