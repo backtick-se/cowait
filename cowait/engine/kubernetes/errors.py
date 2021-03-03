@@ -11,3 +11,6 @@ class PodTerminatedError(Exception):
 class ImagePullError(Exception):
     pass
 
+
+class PodConfigError(Exception):
+    pass

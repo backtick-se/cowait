@@ -85,7 +85,7 @@ class TaskDefinition(object):
         self.upstream = upstream
         self.inputs = inputs
         self.meta = meta
-        self.env = {str(k): str(v) for k, v in env.items()}
+        self.env = env
         self.ports = ports
         self.routes = routes
         self.cpu = cpu
@@ -132,23 +132,23 @@ class TaskDefinition(object):
     def deserialize(taskdef: dict) -> TaskDefinition:
         """ Deserialize task definition from a dict """
         return TaskDefinition(
-            id = taskdef.get('id'),
-            name = taskdef.get('name'),
-            image = taskdef.get('image'),
-            upstream = taskdef.get('upstream', None),
-            parent = taskdef.get('parent', None),
-            inputs = taskdef.get('inputs', {}),
-            meta = taskdef.get('meta', {}),
-            env = taskdef.get('env', {}),
-            ports = taskdef.get('ports', {}),
-            routes = taskdef.get('routes', {}),
-            cpu = taskdef.get('cpu', None),
-            cpu_limit = taskdef.get('cpu_limit', None),
-            memory = taskdef.get('memory', None),
-            memory_limit = taskdef.get('memory_limit', None),
-            affinity = taskdef.get('affinity', None),
-            owner = taskdef.get('owner', None),
-            created_at = datetime.fromisoformat(taskdef.get('created_at', datetime.now().isoformat())),
-            volumes = taskdef.get('volumes', {}),
+            id=taskdef.get('id'),
+            name=taskdef.get('name'),
+            image=taskdef.get('image'),
+            upstream=taskdef.get('upstream', None),
+            parent=taskdef.get('parent', None),
+            inputs=taskdef.get('inputs', {}),
+            meta=taskdef.get('meta', {}),
+            env=taskdef.get('env', {}),
+            ports=taskdef.get('ports', {}),
+            routes=taskdef.get('routes', {}),
+            cpu=taskdef.get('cpu', None),
+            cpu_limit=taskdef.get('cpu_limit', None),
+            memory=taskdef.get('memory', None),
+            memory_limit=taskdef.get('memory_limit', None),
+            affinity=taskdef.get('affinity', None),
+            owner=taskdef.get('owner', None),
+            created_at=datetime.fromisoformat(taskdef.get(
+                'created_at', datetime.now().isoformat())),
+            volumes=taskdef.get('volumes', {}),
         )
-
