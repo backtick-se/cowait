@@ -27,7 +27,10 @@ from .utils import parse_input_list
               type=str,
               multiple=True,
               help='define enviornment variable')
-@click.option('-p', '--port', type=int, multiple=True, help='open a port')
+@click.option('-p', '--port', 
+              type=int, 
+              multiple=True, 
+              help='open a port')
 @click.option('-r', '--route',
               type=str,
               multiple=True,
@@ -180,25 +183,6 @@ def kill(ctx, cluster: str, task: str):
 @click.pass_context
 def agent(ctx, cluster: str, detach: bool, upstream: str):
     cowait.cli.agent(ctx.obj, detach, upstream, cluster_name=cluster)
-
-
-@click.command(help='start notebook')
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-@click.option('-b', '--build',
-              type=bool, is_flag=True,
-              help='build and push first',
-              default=False)
-@click.option('-i', '--image',
-              type=str,
-              default=None,
-              help='default image')
-@click.pass_context
-def notebook(ctx, cluster, build, image):
-    cowait.cli.notebook(ctx.obj, build, image, cluster_name=cluster)
-
 
 @click.command(help='stream logs from a running task')
 @click.option('-c', '--cluster',

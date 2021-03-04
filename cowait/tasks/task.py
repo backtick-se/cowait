@@ -55,6 +55,10 @@ class Task(object):
         return self.taskdef.id
 
     @property
+    def name(self) -> str:
+        return self.taskdef.name
+
+    @property
     def image(self) -> str:
         return self.taskdef.image
 
