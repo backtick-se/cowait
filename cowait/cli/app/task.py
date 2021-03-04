@@ -7,6 +7,10 @@ from .utils import parse_input_list
 
 @click.command(help='run a task')
 @click.argument('task', type=str)
+@click.option('--image',
+              default=None,
+              type=str,
+              help='image name')
 @click.option('-c', '--cluster',
               default=None,
               type=str,
@@ -73,7 +77,7 @@ from .utils import parse_input_list
               default=None)
 @click.pass_context
 def run(
-    ctx, task: str, cluster: str, name: str,
+    ctx, task: str, image: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
     cpu: str, cpu_limit: str, memory: str, memory_limit: str,
@@ -94,6 +98,7 @@ def run(
         ctx.obj,
         task,
         name=name,
+        image=image,
         inputs={
             **file_inputs,
             **parse_input_list(input),

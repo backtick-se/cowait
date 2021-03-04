@@ -101,6 +101,9 @@ class RemoteTask(TaskInstance):
         return self.cluster.logs(self.id)
 
     def __getattr__(self, method):
+        if method[0] == '_':
+            return super().__getattr__(method)
+
         async def magic_rpc(*args, **kwargs):
             if len(args) > 0:
                 raise TypeError('Positional arguments are not supported for RPC methods')
