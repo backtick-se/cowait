@@ -19,7 +19,7 @@ def new_context(
         os.mkdir(path)
         print('Created context folder', path)
 
-    context = Config(path=name, config=config)
+    context = {}
 
     # image name
     if image is not None:
@@ -30,6 +30,11 @@ def new_context(
     if base is not None:
         print('Base image:', base)
         context['base'] = base
+    
+    context = Config(data={
+        "version": 1,
+        "cowait": context
+    }, parent=config)
 
     context_file = os.path.join(path, CONTEXT_FILE_NAME)
     if os.path.isfile(context_file):

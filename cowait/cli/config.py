@@ -47,8 +47,9 @@ class Config(SettingsDict):
                 f'No configuration found for cluster {cluster_name}')
         return get_cluster_provider(**self.get(f'clusters.{cluster_name}'))
 
-    def write(self) -> None:
-        path = get_global_config_path()
+    def write(self, path: str = None) -> None:
+        if path is None:
+            path = get_global_config_path()
         return super().write(path)
 
     @staticmethod
