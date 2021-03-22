@@ -14,6 +14,10 @@ from .build import build as build_cmd
 from sty import fg, rs
 
 
+class TaskFailedError(RuntimeError):
+    pass
+
+
 def run(
     config: Config,
     task: str, *,
@@ -119,12 +123,18 @@ def run(
 
     except docker.errors.NotFound as e:
         logger.print_exception(f'Docker Error: {e.explanation}')
+        sys.exit(1)
 
     except ProviderError as e:
         logger.print_exception(f'Provider Error: {e}')
+        sys.exit(1)
 
     except TaskCreationError as e:
         logger.print_exception(f'Error creating task: {e}')
+        sys.exit(1)
+
+    except TaskFailedError:
+        sys.exit(1)
 
 
 class RunLogger(Logger):
@@ -219,6 +229,8 @@ class RunLogger(Logger):
         self.print_time(ts)
         self.print_id(id)
         self.println(f'{fg.red} ! {rs.all}ERROR: {error}')
+        if id == self.id:
+            raise TaskFailedError(error)
 
     def on_return(self, id: str, result: any, ts: str = None, **msg):
         self.print_time(ts)
