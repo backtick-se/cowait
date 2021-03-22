@@ -1,3 +1,4 @@
+import sys
 import os.path
 import docker
 import docker.errors
@@ -99,6 +100,8 @@ def build(
 
     except docker.errors.DockerException as e:
         logger.print_exception(f'Docker exception: {e}')
+        sys.exit(1)
 
     except BuildError as e:
         logger.print_exception(str(e))
+        sys.exit(1)

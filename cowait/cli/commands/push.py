@@ -1,5 +1,4 @@
 import sys
-import json
 from ..task_image import TaskImage
 from ..const import CONTEXT_FILE_NAME
 from ..config import Config
@@ -13,12 +12,12 @@ def push(config: Config, **kwargs) -> TaskImage:
 
     if image is None:
         print('Error: Failed to resolve task image')
-        return
+        sys.exit(1)
 
     if '/' not in image.name:
         print(f'Error: You must specify a full image name in '
               f'{CONTEXT_FILE_NAME} before you can push')
-        return
+        sys.exit(1)
 
     print('Pushing image')
 
@@ -36,6 +35,6 @@ def push(config: Config, **kwargs) -> TaskImage:
 
         if 'errorDetail' in update:
             print('Error:', update['error'])
-            return None
+            sys.exit(1)
 
     return image
