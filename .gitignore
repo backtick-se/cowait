@@ -1,5 +1,4 @@
 dist/
-docs/
 build/
 cowait.egg-info/
 dask-worker-space/
