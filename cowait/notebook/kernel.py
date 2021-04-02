@@ -36,6 +36,7 @@ class CowaitKernel(IPythonKernel):
             env=parent.env,
             upstream=get_local_url(),
             meta={
+                **parent.meta,
                 'virtual': True,
             },
         )

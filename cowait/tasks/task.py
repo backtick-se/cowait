@@ -153,7 +153,10 @@ class Task(object):
             parent=self.id,
             image=image if image else self.image,
             upstream=self.node.get_url(),
-            meta=meta,
+            meta={
+                **self.taskdef.meta,
+                **meta,
+            },
             ports=ports,
             routes=routes,
             cpu=cpu if cpu else self.taskdef.cpu,

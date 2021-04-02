@@ -91,6 +91,9 @@ def run(
             memory=context.override('memory', memory),
             memory_limit=context.override('memory_limit', memory_limit),
             affinity=context.override('affinity', affinity),
+            meta={
+                'agent': agent,
+            },
         )
 
         # print execution info

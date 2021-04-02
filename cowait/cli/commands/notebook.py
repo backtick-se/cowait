@@ -129,6 +129,9 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
             upstream=agent,
             owner=getpass.getuser(),
             volumes=context.extend('volumes', volumes),
+            meta={
+                'agent': agent,
+            },
         )
 
         # print execution info
