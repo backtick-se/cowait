@@ -34,7 +34,7 @@ class Traefik2Router(Router):
                 raise RuntimeError(f'Paths must start with /, got {path}')
 
             taskdef.routes[path] = {
-                'port': port,
+                'port': int(port),
                 'path': path,
                 'url': f'{protocol}://{taskdef.id}.{domain}{path}',
             }
@@ -51,8 +51,8 @@ class Traefik2Router(Router):
             idx += 1
 
             ports.append(client.V1ServicePort(
-                port=port,
-                target_port=port,
+                port=int(port),
+                target_port=int(port),
             ))
 
             host = f'{task.id}.{self.cluster.domain}'
@@ -61,7 +61,7 @@ class Traefik2Router(Router):
                 'middlewares': self.middlewares,
                 'kind': 'Rule',
                 'services': [
-                    {'name': task.id, 'port': port}
+                    {'name': task.id, 'port': int(port)}
                 ]
             })
 
