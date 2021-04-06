@@ -1,3 +1,4 @@
+from typing import List
 from kubernetes import client
 from .router import Router
 from ..const import LABEL_TASK_ID
@@ -16,17 +17,32 @@ class Traefik2Router(Router):
         cluster.on('prepare', self.on_prepare)
         cluster.on('spawn', self.on_spawn)
         cluster.on('kill', self.on_kill)
-
         self.config = cluster.args.get('traefik2', {})
-        self.secure = self.config.get('secure', False)
-        self.middlewares = self.config.get('middlewares', [])
-        self.entrypoints = self.config.get('entrypoints', ['web'])
 
-    def on_prepare(self, taskdef):
+    @property
+    def secure(self) -> bool:
+        return self.cert_resolver is not None
+
+    @property
+    def middlewares(self) -> List[str]:
+        return self.config.get('middlewares', [])
+
+    @property
+    def entrypoints(self) -> List[str]:
+        return self.config.get('entrypoints', ['web', 'websecure'])
+
+    @property
+    def cert_resolver(self) -> str:
+        return self.config.get('certresolver', None)
+
+    @property
+    def domain(self) -> str:
         domain = self.cluster.domain
         if domain is None:
             raise RuntimeError('No cluster domain configured')
+        return domain
 
+    def on_prepare(self, taskdef):
         protocol = 'https' if self.secure else 'http'
 
         for path, port in taskdef.routes.items():
@@ -36,7 +52,7 @@ class Traefik2Router(Router):
             taskdef.routes[path] = {
                 'port': int(port),
                 'path': path,
-                'url': f'{protocol}://{taskdef.id}.{domain}{path}',
+                'url': f'{protocol}://{taskdef.id}.{self.domain}{path}',
             }
 
         return taskdef
@@ -57,12 +73,12 @@ class Traefik2Router(Router):
 
             host = f'{task.id}.{self.cluster.domain}'
             routes.append({
+                'kind': 'Rule',
                 'match': f'Host(`{host}`) && PathPrefix(`{path}`)',
                 'middlewares': self.middlewares,
-                'kind': 'Rule',
                 'services': [
                     {'name': task.id, 'port': int(port)}
-                ]
+                ],
             })
 
         if len(routes) == 0:
@@ -89,6 +105,15 @@ class Traefik2Router(Router):
             ),
         )
 
+        ingress = {
+            'entryPoints': self.entrypoints,
+            'routes': routes,
+        }
+        if self.secure:
+            ingress['tls'] = {
+                'certResolver': self.cert_resolver,
+            }
+
         self.cluster.custom.create_namespaced_custom_object(
             group=TRAEFIK2_API_GROUP,
             version=TRAEFIK2_API_VERSION,
@@ -105,10 +130,7 @@ class Traefik2Router(Router):
                         'ingress-for': task.id
                     },
                 },
-                'spec': {
-                    'entryPoints': self.entrypoints,
-                    'routes': routes,
-                }
+                'spec': ingress,
             },
         )
 
@@ -119,7 +141,7 @@ class Traefik2Router(Router):
                 name=task_id,
             )
         except client.rest.ApiException as e:
-            print('! error deleting Kubernetes Service:', e)
+            print('!! error deleting Kubernetes Service:', e)
 
         try:
             self.cluster.custom.delete_namespaced_custom_object(
@@ -130,4 +152,4 @@ class Traefik2Router(Router):
                 name=task_id,
             )
         except client.rest.ApiException as e:
-            print('! error deleting IngressRoute:', e)
+            print('!! error deleting IngressRoute:', e)
