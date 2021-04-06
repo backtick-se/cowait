@@ -10,3 +10,8 @@ from .utils import typed_arguments, typed_return, \
     typed_call, typed_async_call, serialize, deserialize, \
     get_parameter_types, get_parameter_defaults, get_return_type, \
     type_from_description
+
+try:
+    from .numpy import *
+except ModuleNotFoundError:
+    pass

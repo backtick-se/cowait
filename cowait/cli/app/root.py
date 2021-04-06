@@ -2,6 +2,7 @@ import click
 from cowait.version import version
 from . import task, image, context
 from .cluster import cluster
+from .notebook import notebook
 
 
 def new_cli_app():
@@ -17,7 +18,6 @@ def new_cli_app():
     cli.add_command(task.ps)
     cli.add_command(task.rm)
     cli.add_command(task.agent)
-    cli.add_command(task.notebook)
     cli.add_command(task.test)
     cli.add_command(task.logs)
 
@@ -30,5 +30,8 @@ def new_cli_app():
 
     # cluster commands
     cli.add_command(cluster)
+
+    # notebook commands
+    cli.add_command(notebook)
 
     return cli

@@ -4,6 +4,7 @@ import asyncio
 from ipykernel.kernelapp import IPKernelApp
 from ipykernel.ipkernel import IPythonKernel
 from cowait.tasks import Task, TaskDefinition
+from cowait.tasks.notebook import NotebookRunner
 from cowait.network import get_local_url
 from cowait.worker import env_get_cluster_provider, env_get_task_definition
 from .node import NotebookNode
@@ -51,6 +52,7 @@ class CowaitKernel(IPythonKernel):
             'cowait': cowait,
             'kernel': self.task,
             'tasks': self.task.subtasks,
+            'NotebookRunner': NotebookRunner,
         })
 
     def do_shutdown(self, restart):

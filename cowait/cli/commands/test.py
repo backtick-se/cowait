@@ -20,7 +20,7 @@ def test(
         cluster = context.get_cluster(cluster_name)
 
         if push:
-            run_push()
+            run_push(config)
         else:
             run_build(config)
 

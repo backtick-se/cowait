@@ -6,7 +6,7 @@ from .push import push
 from .agent import agent
 from .new_context import new_context
 from .test import test
-from .notebook import notebook
+from .notebook import notebook, run_notebook
 from .cluster import *
 
 from .task import *
