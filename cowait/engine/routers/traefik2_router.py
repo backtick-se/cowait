@@ -118,15 +118,16 @@ class Traefik2Router(Router):
                 namespace=self.cluster.namespace,
                 name=task_id,
             )
-        except client.rest.ApiException:
-            pass
+        except client.rest.ApiException as e:
+            print('! error deleting Kubernetes Service:', e)
 
         try:
-            self.cluster.custom.delete_cluster_custom_object(
+            self.cluster.custom.delete_namespaced_custom_object(
                 group=TRAEFIK2_API_GROUP,
                 version=TRAEFIK2_API_VERSION,
                 plural=TRAEFIK2_INGRESSROUTE_PLURAL,
+                namespace=self.cluster.namespace,
                 name=task_id,
             )
-        except client.rest.ApiException:
-            pass
+        except client.rest.ApiException as e:
+            print('! error deleting IngressRoute:', e)
