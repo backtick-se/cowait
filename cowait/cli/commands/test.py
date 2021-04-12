@@ -1,4 +1,5 @@
 import sys
+import getpass
 from cowait.tasks import TaskDefinition, TASK_LOG
 from cowait.engine import ProviderError, TaskCreationError
 from ..config import Config
@@ -11,7 +12,6 @@ from .push import push as run_push
 
 def test(
     config: Config,
-    push: bool,
     cluster_name: str = None,
 ):
     logger = TestLogger()
@@ -19,15 +19,16 @@ def test(
         context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
 
-        if push:
-            run_push(config)
-        else:
-            run_build(config)
-
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
             name='cowait.test',
             image=context.image,
+            owner=getpass.getuser(),
+            env={
+                **context.environment,
+                **context.dotenv,
+            },
+            volumes=context.get('volumes', {}),
         ))
 
         def destroy(*args):

@@ -14,6 +14,9 @@ do
     echo "~~ Running tests in $dir"
     cd $dir
 
+    # build
+    cowait build
+
     # run tests
     cowait test
     if [ "$?" != "0" ]; then

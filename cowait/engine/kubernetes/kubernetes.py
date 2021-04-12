@@ -275,3 +275,17 @@ class KubernetesProvider(ClusterProvider):
         token = pod.metadata.labels['http_token']
         return get_remote_url(pod.status.pod_ip, token)
 
+    def wait(self, task: KubernetesTask) -> bool:
+        while True:
+            pod = self.get_task_pod(task.id)
+            if pod is None:
+                return False
+
+            if pod.status.phase == 'Running':
+                time.sleep(2)
+            elif pod.status.phase == 'Pending':
+                time.sleep(2)
+            elif pod.status.phase == 'Succeeded':
+                return True
+            else:
+                return False
