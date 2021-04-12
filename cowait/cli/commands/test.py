@@ -1,4 +1,5 @@
 import sys
+import getpass
 from cowait.tasks import TaskDefinition, TASK_LOG
 from cowait.engine import ProviderError, TaskCreationError
 from ..config import Config
@@ -22,6 +23,12 @@ def test(
         task = cluster.spawn(TaskDefinition(
             name='cowait.test',
             image=context.image,
+            owner=getpass.getuser(),
+            env={
+                **context.environment,
+                **context.dotenv,
+            },
+            volumes=context.get('volumes', {}),
         ))
 
         def destroy(*args):
