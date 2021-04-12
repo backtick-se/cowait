@@ -128,13 +128,9 @@ def run(
               default=None,
               type=str,
               help='cluster name')
-@click.option('--push',
-              type=bool, is_flag=True,
-              help='build and push first',
-              default=False)
 @click.pass_context
-def test(ctx, cluster: str, push: bool):
-    cowait.cli.test(ctx.obj, push, cluster_name=cluster)
+def test(ctx, cluster: str):
+    cowait.cli.test(ctx.obj, cluster_name=cluster)
 
 
 @click.command(help='destroy tasks')

@@ -11,18 +11,12 @@ from .push import push as run_push
 
 def test(
     config: Config,
-    push: bool,
     cluster_name: str = None,
 ):
     logger = TestLogger()
     try:
         context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
-
-        if push:
-            run_push(config)
-        else:
-            run_build(config)
 
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
