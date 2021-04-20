@@ -13,6 +13,7 @@ from .push import push as run_push
 def test(
     config: Config,
     cluster_name: str = None,
+    mount: bool = True,
 ):
     logger = TestLogger()
     try:
@@ -20,9 +21,10 @@ def test(
         cluster = context.get_cluster(cluster_name)
 
         volumes = {}
-        if cluster.type == 'docker':
+        if mount and cluster.type == 'docker':
             # when testing in docker, mount the local directory
             # this avoids the problem of having to constantly rebuild in order to test
+            print('** Mounting', context.root_path)
             volumes['/var/task'] = {
                 'bind': {
                     'src': context.root_path,

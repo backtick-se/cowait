@@ -128,9 +128,13 @@ def run(
               default=None,
               type=str,
               help='cluster name')
+@click.option('-m', '--mount/--no-mount',
+              default=True,
+              type=bool,
+              help='mount working directory')
 @click.pass_context
-def test(ctx, cluster: str):
-    cowait.cli.test(ctx.obj, cluster_name=cluster)
+def test(ctx, cluster: str, mount: bool):
+    cowait.cli.test(ctx.obj, cluster_name=cluster, mount=mount)
 
 
 @click.command(help='destroy tasks')
