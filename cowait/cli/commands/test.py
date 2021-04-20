@@ -19,6 +19,18 @@ def test(
         context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
 
+        volumes = {}
+        if cluster.type == 'docker':
+            # when testing in docker, mount the local directory
+            # this avoids the problem of having to constantly rebuild in order to test
+            volumes['/var/task'] = {
+                'bind': {
+                    'src': context.root_path,
+                    'mode': 'rw',
+                    'inherit': 'same-image',
+                },
+            }
+
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
             name='cowait.test',
@@ -28,7 +40,10 @@ def test(
                 **context.environment,
                 **context.dotenv,
             },
-            volumes=context.get('volumes', {}),
+            volumes={
+                **context.get('volumes', {}),
+                **volumes,
+            },
         ))
 
         def destroy(*args):
