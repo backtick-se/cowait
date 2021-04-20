@@ -18,7 +18,7 @@ do
     cowait build
 
     # run tests
-    cowait test
+    cowait test --no-mount
     if [ "$?" != "0" ]; then
         echo "~~ Test failed in $dir"
         exit 1

@@ -13,11 +13,25 @@ from .push import push as run_push
 def test(
     config: Config,
     cluster_name: str = None,
+    mount: bool = True,
 ):
     logger = TestLogger()
     try:
         context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
+
+        volumes = {}
+        if mount and cluster.type == 'docker':
+            # when testing in docker, mount the local directory
+            # this avoids the problem of having to constantly rebuild in order to test
+            print('** Mounting', context.root_path)
+            volumes['/var/task'] = {
+                'bind': {
+                    'src': context.root_path,
+                    'mode': 'rw',
+                    'inherit': 'same-image',
+                },
+            }
 
         # execute the test task within the current image
         task = cluster.spawn(TaskDefinition(
@@ -28,7 +42,10 @@ def test(
                 **context.environment,
                 **context.dotenv,
             },
-            volumes=context.get('volumes', {}),
+            volumes={
+                **context.get('volumes', {}),
+                **volumes,
+            },
         ))
 
         def destroy(*args):
