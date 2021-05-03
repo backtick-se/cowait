@@ -47,6 +47,22 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
     }
 
     cluster = context.get_cluster(cluster_name)
+
+    # Docker
+    if cluster.type == 'docker':
+        return run_cmd(
+            config=config,
+            task='cowait.notebook',
+            build=False,
+            image=image,
+            routes={
+                '/': '8888',
+            },
+            cluster_name=cluster_name,
+            volumes=volumes,
+        )
+
+    # Kubernetes
     core = client.CoreV1Api()
     notebook_id = 'notebook-' + uuid(4)
 
@@ -103,8 +119,8 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
     clientfs = subprocess.Popen([
         "clientfs",
         "--proxy=hq.backtick.se:9091",
-        "--uid=100",
-        "--gid=1000",
+        "--uid=0",
+        "--gid=0",
         f"--volume={pvc_id}"
     ])
 
@@ -129,9 +145,6 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
             upstream=agent,
             owner=getpass.getuser(),
             volumes=context.extend('volumes', volumes),
-            meta={
-                'agent': agent,
-            },
         )
 
         # print execution info

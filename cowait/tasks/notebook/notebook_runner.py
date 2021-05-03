@@ -28,7 +28,7 @@ def cells_to_code(cells):
         if cell_type == 'code':
             source_rows = [row[:-1] if row[-1] == '\n' else row for row in cell['source']]
 
-            if len(source_rows) >= 0:
+            if len(source_rows) > 0:
                 code.appendBlock(0, code_from_source(source_rows))
                 code.append(0, '')
 

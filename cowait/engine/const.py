@@ -21,6 +21,6 @@ LABEL_PARENT_ID = 'cowait/parent'
 # Settings
 # ---------------------------------------------------
 
-# Maximum length of environment variables, 100kB
+# Maximum length of environment variables, 500kB
 MAX_ENV_LENGTH = 500 * 1024
 

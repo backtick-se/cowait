@@ -44,6 +44,8 @@ def agent(
             },
         )
 
+        logger.id = taskdef.id
+
         # submit task to cluster
         task = cluster.spawn(taskdef)
 
