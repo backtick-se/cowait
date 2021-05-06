@@ -2,39 +2,28 @@ import os
 import sys
 import time
 import getpass
+import platform
 import traceback
 import subprocess
 from kubernetes import client
-from .run import RunLogger, run as run_cmd
-# from .build import build as build_cmd
-from ..context import Context
-# from ..docker_file import Dockerfile
-# from ..task_image import TaskImage
-from ..utils import ExitTrap
-from cowait.utils import uuid
+from cowait.cli.utils import ExitTrap
+from cowait.cli.context import Context
+from cowait.cli.commands.run import RunLogger, run as run_cmd
 from cowait.tasks import TaskDefinition
+from cowait.utils import uuid
 
 
-def notebook(config, build: bool, image: str = None, cluster_name: str = None) -> None:
+def notebook(config, image: str = None, cluster_name: str = None) -> None:
     context = Context.open(config)
 
-    """
-    if image is None:
-        # rebuild task image first
-        if build:
-            build_cmd(config, quiet=False)
+    if not context.notebook:
+        print('Notebook funcitonaility is not enabled.')
+        print('To enable, set features.notebook to True in cowait.yml and rebuild.')
+        sys.exit(1)
 
-        df = Dockerfile(context.image)
-        df.run('pip install jupyterlab dill --no-cache-dir')
-
-        buildctx = '/tmp/cowait-notebook-ctx'
-        os.makedirs(buildctx, exist_ok=True)
-        try:
-            nbimage = TaskImage.build_image(path=buildctx, dockerfile=str(df), quiet=False)
-            image = nbimage.short_id[7:]
-        finally:
-            os.removedirs(buildctx)
-    """
+    if image is not None:
+        print('Remote images are currently not supported')
+        sys.exit(1)
 
     volumes = {
         '/var/task': {
@@ -61,6 +50,12 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
             cluster_name=cluster_name,
             volumes=volumes,
         )
+
+    # check for clientfs
+    clientfs_executable = './clientfs-' + platform.system().lower()
+    if not os.path.exists(clientfs_executable):
+        print('Kubernetes notebooks are not supported in this build of Cowait')
+        sys.exit(1)
 
     # Kubernetes
     core = client.CoreV1Api()
@@ -115,12 +110,11 @@ def notebook(config, build: bool, image: str = None, cluster_name: str = None) -
     }
 
     # start clientfs
-    print('* starting clientfs')
+    clientfs_host = f'{cluster.domain}:9091'
+    print(f'* connecting clientfs volume to {clientfs_host}...')
     clientfs = subprocess.Popen([
-        "clientfs",
-        "--proxy=hq.backtick.se:9091",
-        "--uid=0",
-        "--gid=0",
+        clientfs_executable,
+        f"--proxy={clientfs_host}",
         f"--volume={pvc_id}"
     ])
 

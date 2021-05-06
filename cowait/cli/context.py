@@ -33,6 +33,10 @@ class Context(Config):
         return self.get('environment', {}, False)
 
     @property
+    def notebook(self) -> bool:
+        return self.get('features.notebook', False, False)
+
+    @property
     def dotenv(self) -> dict:
         return dotenv_values(self.file('.env'))
 

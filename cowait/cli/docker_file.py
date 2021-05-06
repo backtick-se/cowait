@@ -24,6 +24,9 @@ class Dockerfile(object):
     def workdir(self, path):
         self.lines.append(f'WORKDIR {path}')
 
+    def label(self, key: str, value: str):
+        self.lines.append(f'LABEL {key}={value}')
+
     def __str__(self):
         return '\n'.join(self.lines)
 
