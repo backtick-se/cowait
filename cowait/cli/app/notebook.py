@@ -10,18 +10,14 @@ from .utils import parse_input_list
               default=None,
               type=str,
               help='cluster name')
-@click.option('-b', '--build',
-              type=bool, is_flag=True,
-              help='build and push first',
-              default=False)
 @click.option('-i', '--image',
               type=str,
               default=None,
-              help='default image')
+              help='remote image')
 @click.pass_context
-def notebook(ctx, cluster, build, image):
+def notebook(ctx, cluster, image):
     if ctx.invoked_subcommand is None:
-        cowait.cli.notebook(ctx.obj, build, image, cluster_name=cluster)
+        cowait.cli.notebook(ctx.obj, image, cluster_name=cluster)
 
 
 @notebook.command(help='run notebook as a task')
@@ -65,8 +61,8 @@ def notebook(ctx, cluster, build, image):
 @click.pass_context
 def run(
     ctx, path: str, image: str, cluster: str, name: str,
-    input, env, build: bool, detach: bool, file: str, quiet: bool):
-
+    input, env, build: bool, detach: bool, file: str, quiet: bool
+):
     file_inputs = {}
     if file is not None:
         try:

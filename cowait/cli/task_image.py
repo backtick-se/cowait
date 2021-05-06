@@ -1,8 +1,8 @@
 import os
 import os.path
 import sys
-import json
 import docker
+import cowait
 from .context import Context
 from .docker_file import Dockerfile
 
@@ -26,10 +26,15 @@ class TaskImage(object):
         # create temporary dockerfile
         df = Dockerfile(base)
 
+        # extra features
+        if self.context.notebook:
+            df.run('pip install jupyterlab --no-cache-dir')
+            df.label('cowait.feature.notebook', 'true')
+
         # install task-specific requirements
         if requirements:
             df.copy(f'./{requirements}', './requirements.txt')
-            df.run('pip install -r ./requirements.txt')
+            df.run('pip install -r ./requirements.txt --no-cache-dir')
 
         # copy source code
         df.copy('.', '.')
@@ -38,6 +43,7 @@ class TaskImage(object):
         if workdir != '.':
             df.workdir(os.path.join('/var/task', workdir))
 
+        df.label('cowait.version', cowait.version)
         self.image = TaskImage.build_image(
             dockerfile=str(df),
             path=self.context.root_path,

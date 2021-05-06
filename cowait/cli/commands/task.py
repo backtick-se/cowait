@@ -48,6 +48,7 @@ def logs(config: Config, task_id: str, cluster_name: str, raw: bool = False):
     
         logs = cluster.logs(task_id)
         logger = RunLogger(raw)
+        logger.id = task_id
         logger.header('task output')
         for msg in logs:
             logger.handle(msg)
