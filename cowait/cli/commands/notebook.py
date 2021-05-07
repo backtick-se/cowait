@@ -110,7 +110,7 @@ def notebook(config, image: str = None, cluster_name: str = None) -> None:
     }
 
     # start clientfs
-    clientfs_host = f'{cluster.domain}:9091'
+    clientfs_host = cluster.args.get('clientfs', {}).get('host')
     print(f'* connecting clientfs volume to {clientfs_host}...')
     clientfs = subprocess.Popen([
         clientfs_executable,
