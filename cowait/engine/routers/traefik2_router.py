@@ -1,6 +1,5 @@
 from typing import List
 from kubernetes import client
-import kubernetes.client.exceptions
 from .router import Router
 from ..const import LABEL_TASK_ID
 
@@ -141,7 +140,7 @@ class Traefik2Router(Router):
                 namespace=self.cluster.namespace,
                 name=task_id,
             )
-        except kubernetes.client.exceptions.ApiException as e:
+        except client.rest.ApiException as e:
             if e.status != 404:
                 print('!! error deleting Kubernetes Service:', e)
 
@@ -153,6 +152,6 @@ class Traefik2Router(Router):
                 namespace=self.cluster.namespace,
                 name=task_id,
             )
-        except kubernetes.client.exceptions.ApiException as e:
+        except client.rest.ApiException as e:
             if e.status != 404:
                 print('!! error deleting IngressRoute:', e)
