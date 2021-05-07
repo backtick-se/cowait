@@ -23,7 +23,11 @@ class RpcClient(object):
         nonce = self.nonce
         self.nonce += 1
 
-        self.calls[nonce] = RpcCall(method, args, nonce)
+        call = RpcCall(method, args, nonce)
+
+        # track pending rpc calls
+        self.calls[nonce] = call
+
         await self.ws.send_json({
             'type':   RPC_CALL,
             'method': method,
@@ -31,10 +35,10 @@ class RpcClient(object):
             'nonce':  nonce,
         })
 
-        return await asyncio.wrap_future(self.calls[nonce])
+        return await asyncio.wrap_future(call)
 
     def cancel_all(self):
-        for nonce, future in self.calls.items():
+        for future in self.calls.values():
             if not future.done():
                 future.set_exception(RpcError('Cancelled'))
 
