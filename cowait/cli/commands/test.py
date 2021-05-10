@@ -6,14 +6,16 @@ from ..config import Config
 from ..context import Context
 from ..utils import ExitTrap
 from ..logger import Logger
-from .build import build as run_build
-from .push import push as run_push
 
 
 def test(
     config: Config,
     cluster_name: str = None,
     mount: bool = True,
+    cpu: str = None,
+    cpu_limit: str = None,
+    memory: str = None,
+    memory_limit: str = None,
 ):
     logger = TestLogger()
     try:
@@ -46,6 +48,10 @@ def test(
                 **context.get('volumes', {}),
                 **volumes,
             },
+            cpu=context.override('cpu', cpu),
+            cpu_limit=context.override('cpu_limit', cpu_limit),
+            memory=context.override('memory', memory),
+            memory_limit=context.override('memory_limit', memory_limit),
         ))
 
         def destroy(*args):
