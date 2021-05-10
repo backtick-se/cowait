@@ -27,9 +27,9 @@ from .utils import parse_input_list
               type=str,
               multiple=True,
               help='define enviornment variable')
-@click.option('-p', '--port', 
-              type=int, 
-              multiple=True, 
+@click.option('-p', '--port',
+              type=int,
+              multiple=True,
               help='open a port')
 @click.option('-r', '--route',
               type=str,
@@ -132,9 +132,28 @@ def run(
               default=True,
               type=bool,
               help='mount working directory')
+@click.option('--cpu',
+              help='cpu request',
+              type=str,
+              default=None)
+@click.option('--cpu-limit',
+              help='cpu limit',
+              type=str,
+              default=None)
+@click.option('--memory', '--mem',
+              help='memory request',
+              type=str,
+              default=None)
+@click.option('--memory-limit', '--mem-limit',
+              help='memory limit',
+              type=str,
+              default=None)
 @click.pass_context
-def test(ctx, cluster: str, mount: bool):
-    cowait.cli.test(ctx.obj, cluster_name=cluster, mount=mount)
+def test(ctx, cluster: str, mount: bool, cpu: str, cpu_limit: str, memory: str, memory_limit: str):
+    cowait.cli.test(
+        ctx.obj, cluster_name=cluster, mount=mount,
+        cpu=cpu, cpu_limit=cpu_limit, memory=memory, memory_limit=memory_limit
+    )
 
 
 @click.command(help='destroy tasks')
@@ -184,6 +203,7 @@ def kill(ctx, cluster: str, task: str):
 def agent(ctx, cluster: str, detach: bool, upstream: str):
     cowait.cli.agent(ctx.obj, detach, upstream, cluster_name=cluster)
 
+
 @click.command(help='stream logs from a running task')
 @click.option('-c', '--cluster',
               default=None,
@@ -197,4 +217,3 @@ def agent(ctx, cluster: str, detach: bool, upstream: str):
 @click.pass_context
 def logs(ctx, cluster: str, raw: bool, task: str):
     cowait.cli.logs(ctx.obj, task, cluster_name=cluster, raw=raw)
-
