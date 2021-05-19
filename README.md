@@ -10,7 +10,7 @@
 
 Cowait is a framework for creating containerized distributed applications with asynchronous Python. Containerized functions, called _Tasks_, can run locally in Docker or on remote Kubernetes clusters. The intention is to build a novel type of workflow engine that offers maximum flexibility while also requiring minimal setup and configuration. Because of the loose definition of what a Task could be, and the integration with Docker & Kubernetes, Cowait can be used to easily build many types of distributed applications.
 
-Check out the documentation at https://docs.cowait.io/
+Check out the documentation at https://cowait.io/docs/quick-start/
 
 ## Notice
 
