@@ -78,13 +78,17 @@ from .utils import parse_input_list
               help='task affinity (stack/spread)',
               type=str,
               default=None)
+@click.option('--deploy',
+              type=bool, is_flag=True,
+              help='run forever',
+              default=False)
 @click.pass_context
 def run(
     ctx, task: str, image: str, cluster: str, name: str,
     input, env, port, route,
     upstream: str, build: bool, detach: bool,
     cpu: str, cpu_limit: str, memory: str, memory_limit: str,
-    file: str, raw: bool, quiet: bool, affinity: str
+    file: str, raw: bool, quiet: bool, affinity: str, deploy: bool
 ):
     file_inputs = {}
     if file is not None:
@@ -120,6 +124,7 @@ def run(
         memory_limit=memory_limit,
         affinity=affinity,
         cluster_name=cluster,
+        deploy=deploy,
     )
 
 

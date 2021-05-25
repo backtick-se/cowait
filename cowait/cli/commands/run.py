@@ -39,6 +39,7 @@ def run(
     quiet: bool = False,
     affinity: str = None,
     cluster_name: str = None,
+    deploy: bool = False,
 ):
     logger = RunLogger(raw, quiet)
     try:
@@ -101,16 +102,20 @@ def run(
             TaskImage.pull(image, tag='latest')
 
         # submit task to cluster
-        task = cluster.spawn(taskdef)
+        task = cluster.spawn(taskdef, deploy=deploy)
 
         if detach:
             logger.header('detached')
             return
 
         def destroy(*args):
-            logger.header('interrupt')
-            cluster.destroy(task.id)
-            sys.exit(1)
+            if deploy:
+                logger.header('detached')
+                sys.exit(0)
+            else:
+                logger.header('interrupt')
+                cluster.destroy(task.id)
+                sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs

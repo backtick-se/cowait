@@ -53,7 +53,7 @@ class KubernetesProvider(ClusterProvider):
     def timeout(self):
         return self.args.get('timeout', 180)
 
-    def spawn(self, taskdef: TaskDefinition) -> KubernetesTask:
+    def spawn(self, taskdef: TaskDefinition, deploy: bool = False) -> KubernetesTask:
         try:
             self.emit_sync('prepare', taskdef=taskdef)
 
@@ -93,7 +93,7 @@ class KubernetesProvider(ClusterProvider):
                     ),
                     spec=client.V1PodSpec(
                         hostname=taskdef.id,
-                        restart_policy='Never',
+                        restart_policy='Always' if deploy else 'Never',
                         image_pull_secrets=self.get_pull_secrets(),
                         volumes=volumes,
 
