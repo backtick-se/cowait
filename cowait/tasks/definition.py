@@ -3,7 +3,18 @@ from datetime import datetime, timezone
 from ..utils import uuid
 
 
-def generate_task_id(name: str) -> str:
+def generate_task_id(name: str, unique: bool = True) -> str:
+    """
+    Generates a new Task ID from a task import path.
+
+    Args:
+        name (str): Task import path name
+        unique (bool): True if the ID should be unique. Adds a random string
+
+    Returns:
+        id (str): Task ID
+    """
+
     if '.' in name:
         dot = name.rfind('.')
         name = name[dot+1:]
@@ -11,7 +22,10 @@ def generate_task_id(name: str) -> str:
     name = name.replace('.', '-')
     name = name.replace('_', '-')
 
-    return '%s-%s' % (name.lower(), uuid())
+    if unique:
+        return '%s-%s' % (name.lower(), uuid())
+    else:
+        return name.lower()
 
 
 class TaskDefinition(object):

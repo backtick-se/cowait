@@ -2,7 +2,7 @@ import sys
 import json
 import getpass
 import docker.errors
-from cowait.tasks import TaskDefinition
+from cowait.tasks.definition import TaskDefinition, generate_task_id
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 from ..config import Config
@@ -73,7 +73,7 @@ def run(
 
         # create task definition
         taskdef = TaskDefinition(
-            id=name,
+            id=generate_task_id(task, unique=not deploy),
             name=task,
             image=image,
             inputs=inputs,
