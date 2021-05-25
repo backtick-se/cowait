@@ -57,6 +57,11 @@ class KubernetesProvider(ClusterProvider):
         try:
             self.emit_sync('prepare', taskdef=taskdef)
 
+            if deploy:
+                # if deploying, destroy any existing pod
+                self.kill(taskdef.id)
+                self.wait_until_deleted(taskdef.id)
+
             volumes, mounts = create_volumes(taskdef.volumes)
 
             # container definition
@@ -175,6 +180,10 @@ class KubernetesProvider(ClusterProvider):
                 # todo: check pod events to figure out what went wrong, and report it back.
                 # for now, leave the pod running so the user may inspect it
                 raise TaskCreationError('Pod configuration error') from None
+
+    def wait_until_deleted(self, task_id: str, poll_interval: float = 1):
+        while self.get_task_pod(task_id) is not None:
+            time.sleep(poll_interval)
 
     def logs(self, task_id: str):
         # wait for pod to become ready
