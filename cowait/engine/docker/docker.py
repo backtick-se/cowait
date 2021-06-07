@@ -24,7 +24,7 @@ class DockerProvider(ClusterProvider):
     def network(self):
         return self.args.get('network', DEFAULT_NETWORK)
 
-    def spawn(self, taskdef: TaskDefinition) -> DockerTask:
+    def spawn(self, taskdef: TaskDefinition, deploy: bool = False) -> DockerTask:
         try:
             self.ensure_network()
 
@@ -46,6 +46,7 @@ class DockerProvider(ClusterProvider):
                 cpu_period=int(cpu_period),
                 mem_reservation=str(taskdef.memory or 0),
                 mem_limit=str(taskdef.memory_limit or 0),
+                restart_policy=None if not deploy else {'Name': 'always'},
                 labels={
                     LABEL_TASK_ID: taskdef.id,
                     LABEL_PARENT_ID: taskdef.parent,

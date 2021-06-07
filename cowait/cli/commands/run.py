@@ -2,7 +2,7 @@ import sys
 import json
 import getpass
 import docker.errors
-from cowait.tasks import TaskDefinition
+from cowait.tasks.definition import TaskDefinition, generate_task_id
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
 from ..config import Config
@@ -39,6 +39,7 @@ def run(
     quiet: bool = False,
     affinity: str = None,
     cluster_name: str = None,
+    deploy: bool = False,
 ):
     logger = RunLogger(raw, quiet)
     try:
@@ -72,7 +73,7 @@ def run(
 
         # create task definition
         taskdef = TaskDefinition(
-            id=name,
+            id=generate_task_id(task, unique=not deploy),
             name=task,
             image=image,
             inputs=inputs,
@@ -101,16 +102,20 @@ def run(
             TaskImage.pull(image, tag='latest')
 
         # submit task to cluster
-        task = cluster.spawn(taskdef)
+        task = cluster.spawn(taskdef, deploy=deploy)
 
         if detach:
             logger.header('detached')
             return
 
         def destroy(*args):
-            logger.header('interrupt')
-            cluster.destroy(task.id)
-            sys.exit(1)
+            if deploy:
+                logger.header('detached')
+                sys.exit(0)
+            else:
+                logger.header('interrupt')
+                cluster.destroy(task.id)
+                sys.exit(1)
 
         with ExitTrap(destroy):
             # capture & print logs
