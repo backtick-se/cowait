@@ -16,6 +16,7 @@ def test(
     cpu_limit: str = None,
     memory: str = None,
     memory_limit: str = None,
+    marks: str = None,
 ):
     logger = TestLogger()
     try:
@@ -47,6 +48,9 @@ def test(
             volumes={
                 **context.get('volumes', {}),
                 **volumes,
+            },
+            inputs={
+                'marks': marks,
             },
             cpu=context.override('cpu', cpu),
             cpu_limit=context.override('cpu_limit', cpu_limit),

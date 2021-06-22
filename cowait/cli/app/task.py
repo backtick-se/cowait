@@ -133,7 +133,7 @@ def run(
               default=None,
               type=str,
               help='cluster name')
-@click.option('-m', '--mount/--no-mount',
+@click.option('--mount/--no-mount',
               default=True,
               type=bool,
               help='mount working directory')
@@ -153,11 +153,16 @@ def run(
               help='memory limit',
               type=str,
               default=None)
+@click.option('-m', '--marks',
+              help='pytest marks',
+              type=str,
+              default=None)
 @click.pass_context
-def test(ctx, cluster: str, mount: bool, cpu: str, cpu_limit: str, memory: str, memory_limit: str):
+def test(ctx, cluster: str, mount: bool, cpu: str, cpu_limit: str, memory: str, memory_limit: str, marks: str):
     cowait.cli.test(
         ctx.obj, cluster_name=cluster, mount=mount,
-        cpu=cpu, cpu_limit=cpu_limit, memory=memory, memory_limit=memory_limit
+        cpu=cpu, cpu_limit=cpu_limit, memory=memory, memory_limit=memory_limit,
+        marks=marks,
     )
 
 
