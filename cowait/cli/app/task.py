@@ -159,26 +159,6 @@ def ps(ctx, cluster: str):
 def kill(ctx, cluster: str, task: str):
     cowait.cli.kill(ctx.obj, task, cluster_name=cluster)
 
-@click.command(help='kill tasks by wildcard-search on id')
-@click.argument('partial_task_id', type=str)
-@click.option('-c', '--cluster',
-              default=None,
-              type=str,
-              help='cluster name')
-@click.pass_context
-def kill_name_search(ctx, partial_task_id: str, cluster: str):
-    """Kills all tasks that somewhat matches partial_task_id     
-    """
-    try:
-        tasks = cowait.cli.list_tasks(ctx.obj, cluster_name=cluster)
-        for task in tasks:
-            if partial_task_id in str(task):
-                cowait.cli.kill(ctx.obj, task, cluster_name=cluster)
-                print('Killed ', str(task))
-
-    except ProviderError as e:
-        print('Provider error:', str(e))
-
 @click.command(help='deploy cowait agent')
 @click.option('-c', '--cluster',
               default=None,
