@@ -24,8 +24,12 @@ from .utils import parse_input_list
               type=bool, is_flag=True,
               help='push image after building',
               default=False)
+@click.option('-d', '--dockerfile',
+              default='Dockerfile',
+              type=str,
+              help='path and name of dockerfile')
 @click.pass_context
-def build(ctx, quiet: bool, workdir: str, image: str, arg: dict, push: bool):
+def build(ctx, quiet: bool, workdir: str, image: str, arg: dict, push: bool, dockerfile: str):
     cowait.cli.build(
         ctx.obj,
         quiet=quiet,
@@ -33,6 +37,7 @@ def build(ctx, quiet: bool, workdir: str, image: str, arg: dict, push: bool):
         image_name=image,
         buildargs=parse_input_list(arg),
         push=push,
+        dockerfile_name=dockerfile,
     )
 
 

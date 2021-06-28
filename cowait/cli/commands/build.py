@@ -19,6 +19,7 @@ def build(
     buildargs: dict = {},
     quiet: bool = False,
     push: bool = False,
+    dockerfile_name: str = 'Dockerfile',
 ) -> TaskImage:
     logger = Logger(quiet)
     try:
@@ -54,7 +55,7 @@ def build(
         # find custom Dockerfile
         # if it exists, build and extend that instead of the default base image
         base_image = context.base
-        dockerfile = context.file('Dockerfile')
+        dockerfile = context.file_root(dockerfile_name)
         if dockerfile:
             logger.println('* Found custom Dockerfile:', context.relpath(dockerfile))
 

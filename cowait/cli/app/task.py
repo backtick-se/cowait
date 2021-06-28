@@ -196,7 +196,6 @@ def ps(ctx, cluster: str):
 def kill(ctx, cluster: str, task: str):
     cowait.cli.kill(ctx.obj, task, cluster_name=cluster)
 
-
 @click.command(help='deploy cowait agent')
 @click.option('-c', '--cluster',
               default=None,
