@@ -157,12 +157,23 @@ def run(
               help='pytest marks',
               type=str,
               default=None)
+@click.option('-v', '--verbose',
+              help='display verbose output',
+              type=bool,
+              default=False)
+@click.option('--capture',
+              help='toggle pytest output capture',
+              type=bool,
+              default=True)
 @click.pass_context
-def test(ctx, cluster: str, mount: bool, cpu: str, cpu_limit: str, memory: str, memory_limit: str, marks: str):
+def test(
+    ctx, cluster: str, mount: bool, cpu: str, cpu_limit: str, memory: str, memory_limit: str,
+    marks: str, verbose: bool, capture: bool,
+):
     cowait.cli.test(
         ctx.obj, cluster_name=cluster, mount=mount,
         cpu=cpu, cpu_limit=cpu_limit, memory=memory, memory_limit=memory_limit,
-        marks=marks,
+        marks=marks, verbose=verbose, capture=capture,
     )
 
 
