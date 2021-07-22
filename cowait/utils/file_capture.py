@@ -3,9 +3,11 @@ import io
 import sys
 from tempfile import TemporaryFile
 
+STDOUT = 1
+STDERR = 2
 SYS_FDS = {
-    1: 'stdout',
-    2: 'stderr',
+    STDOUT: 'stdout',
+    STDERR: 'stderr',
 }
 
 
@@ -13,26 +15,26 @@ class CallbackFile(io.TextIOWrapper):
     def __init__(self, callback: callable = None):
         super().__init__(
             TemporaryFile(buffering=0),
-            encoding="utf-8",
-            errors="replace",
-            newline="",
+            encoding='utf-8',
+            errors='replace',
             write_through=True,
+            newline='',
         )
         self.callback = callback
 
-    def write(self, data):
+    def write(self, data) -> None:
         super().write(data)
         if '\n' in data:
             self.flush()
 
-    def getvalue(self):
+    def getvalue(self) -> str:
         self.buffer.seek(0)
         res = self.buffer.read()
         self.buffer.seek(0)
         self.buffer.truncate()
         return res.decode('utf-8')
 
-    def flush(self):
+    def flush(self) -> None:
         if self.callback is not None:
             text = self.getvalue()
             if len(text) > 0:
@@ -79,21 +81,36 @@ class FDCapture:
 
         self._capturing = False
 
-    def writeorg(self, data):
+    def writeorg(self, data) -> None:
         """Write to original file descriptor."""
         assert self._capturing
         os.write(self.targetfd_save, data.encode('utf-8'))
 
-    def snap(self):
+    def getvalue(self) -> str:
         return self.tmpfile.getvalue()
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.tmpfile.close()
 
 
-class FDTransform(FDCapture):
-    def __init__(self, targetfd: int, transformer: callable):
-        def callback(data):
-            self.writeorg(transformer(data))
+class FileCapturing(object):
+    def __init__(
+        self,
+        on_stdout: callable = None,
+        on_stderr: callable = None,
+    ):
+        self.stdout = FDCapture(STDOUT, on_stdout)
+        self.stderr = FDCapture(STDERR, on_stderr)
 
-        super().__init__(targetfd, callback)
+    def __enter__(self) -> None:
+        self.stdout.start()
+        self.stderr.start()
+        return self
+
+    def __exit__(self, *args) -> None:
+        self.stdout.stop()
+        self.stderr.stop()
+
+    def __del__(self) -> None:
+        del self.stdout
+        del self.stderr
