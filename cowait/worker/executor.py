@@ -33,7 +33,7 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             )
 
             # monitor system resources
-            node.monitor_system(interval=2)
+            node.monitor_system(interval=10)
 
             # initialize task
             task.init()
