@@ -24,9 +24,9 @@ class StreamCapture(object):
             self.stream.write(data)
 
         if '\n' in data:
-            self.flush(auto=True)
+            self.flush()
 
-    def flush(self, auto: bool = False):
+    def flush(self):
         if not self.silence:
             self.stream.flush()
 
