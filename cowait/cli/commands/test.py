@@ -17,6 +17,8 @@ def test(
     memory: str = None,
     memory_limit: str = None,
     marks: str = None,
+    verbose: bool = None,
+    capture: bool = None,
 ):
     logger = TestLogger()
     try:
@@ -51,6 +53,8 @@ def test(
             },
             inputs={
                 'marks': marks,
+                'verbose': verbose,
+                'capture': capture,
             },
             cpu=context.override('cpu', cpu),
             cpu_limit=context.override('cpu_limit', cpu_limit),
