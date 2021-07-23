@@ -1,4 +1,3 @@
-import json
 from cowait.tasks import TaskDefinition
 from cowait.engine.const import ENV_TASK_DEFINITION
 from cowait.engine.utils import env_unpack
