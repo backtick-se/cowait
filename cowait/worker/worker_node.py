@@ -1,6 +1,6 @@
 import asyncio
 from cowait.network import Server, get_local_ip, WS_PATH
-from cowait.utils import StreamCapturing
+from cowait.utils.file_capture import FileCapturing
 from .io_thread import IOThread
 from .logger import Logger
 from .parent_client import ParentClient
@@ -36,7 +36,7 @@ class WorkerNode(object):
         await asyncio.sleep(0.2)
         self.io.create_task(_close())
 
-    def capture_logs(self) -> StreamCapturing:
+    def capture_logs(self) -> FileCapturing:
         """ Sets up a stream capturing context, forwarding logs to the node """
         def logger(file):
             def callback(x):
@@ -44,10 +44,9 @@ class WorkerNode(object):
                 self.io.create_task(self.parent.send_log(file, x))
             return callback
 
-        return StreamCapturing(
+        return FileCapturing(
             on_stdout=logger('stdout'),
             on_stderr=logger('stderr'),
-            silence=True,
         )
 
     def monitor_system(self, interval: float = 1.0):

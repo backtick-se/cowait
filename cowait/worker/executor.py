@@ -21,20 +21,31 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
         # init should always be the first command sent
         await node.parent.send_init(taskdef)
 
+        # instantiate
+        TaskClass = load_task_class(taskdef.name)
+        task = TaskClass(
+            taskdef=taskdef,
+            cluster=cluster,
+            node=node,
+        )
+
+        # monitor system resources
+        node.monitor_system(interval=10)
+
+        # unpack wrapped function if defined.
+        # allows typechecking of functional tasks
+        taskfunc = task.run
+        if hasattr(TaskClass, '__wraps__'):
+            taskfunc = TaskClass.__wraps__
+
+        # prepare arguments
+        inputs = {
+            **get_parameter_defaults(taskfunc),
+            **taskdef.inputs,
+        }
+
         # run task within a log capture context
         with node.capture_logs():
-
-            # instantiate
-            TaskClass = load_task_class(taskdef.name)
-            task = TaskClass(
-                taskdef=taskdef,
-                cluster=cluster,
-                node=node,
-            )
-
-            # monitor system resources
-            node.monitor_system(interval=10)
-
             # initialize task
             task.init()
 
@@ -42,18 +53,6 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # this must happen after task.init() so that tasks have a chance
             # to register extra http routes.
             node.serve()
-
-            # unpack wrapped function if defined.
-            # allows typechecking of functional tasks
-            taskfunc = task.run
-            if hasattr(TaskClass, '__wraps__'):
-                taskfunc = TaskClass.__wraps__
-
-            # prepare arguments
-            inputs = {
-                **get_parameter_defaults(taskfunc),
-                **taskdef.inputs,
-            }
 
             # before hook
             inputs = await task.before(inputs)
@@ -77,14 +76,14 @@ async def execute(cluster: ClusterProvider, taskdef: TaskDefinition) -> None:
             # after hook
             await task.after(inputs)
 
-            # wait for dangling tasks
-            await handle_orphans(task)
+        # wait for dangling tasks
+        await handle_orphans(task)
 
-            # prepare & typecheck result
-            result, result_type = typed_return(taskfunc, result)
+        # prepare & typecheck result
+        result, result_type = typed_return(taskfunc, result)
 
-            # submit result
-            await node.parent.send_done(result, result_type.describe())
+        # submit result
+        await node.parent.send_done(result, result_type.describe())
 
     except TaskError as e:
         # pass subtask errors upstream

@@ -47,6 +47,7 @@ class FDCapture:
     def __init__(self, targetfd: int, callback: callable = None) -> None:
         self.targetfd = targetfd
         self.targetfd_save = os.dup(targetfd)
+        self.callback = callback
         self.tmpfile = CallbackFile(callback)
         self._capturing = False
 
@@ -72,6 +73,12 @@ class FDCapture:
         # disable output redirection
         os.dup2(self.targetfd_save, self.targetfd)
 
+        # if we have a callback, flush any remaining data
+        if self.callback:
+            remainder = self.getvalue()
+            if len(remainder) > 0:
+                self.callback(remainder)
+
         # close temporary file descriptor
         os.close(self.targetfd_save)
 
@@ -83,8 +90,10 @@ class FDCapture:
 
     def writeorg(self, data) -> None:
         """Write to original file descriptor."""
-        assert self._capturing
-        os.write(self.targetfd_save, data.encode('utf-8'))
+        if self._capturing:
+            os.write(self.targetfd_save, data.encode('utf-8'))
+        else:
+            os.write(self.targetfd, data.encode('utf-8'))
 
     def getvalue(self) -> str:
         return self.tmpfile.getvalue()
