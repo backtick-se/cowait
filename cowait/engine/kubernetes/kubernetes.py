@@ -186,7 +186,20 @@ class KubernetesProvider(ClusterProvider):
             time.sleep(poll_interval)
 
     def logs(self, task_id: str):
-        # wait for pod to become ready
+        # if the pod has already terminated attempt to retrieve all the logs at once
+        try:
+            pod = self.get_task_pod(task_id)
+            pod_is_ready(pod)
+
+        except PodTerminatedError:
+            log = self.core.read_namespaced_pod_log(name=task_id, namespace=self.namespace)
+            return json_stream(log.splitlines(True))
+
+        except Exception:
+            # other errors will be caught later in wait_until_ready
+            pass
+
+        # otherwise, wait for the pod to become ready and stream logs
         self.wait_until_ready(task_id)
 
         try:
@@ -204,6 +217,7 @@ class KubernetesProvider(ClusterProvider):
             return json_stream(add_newline_stream())
 
         except Exception:
+            # this looks like a terrible idea
             return self.logs(task_id)
 
     def destroy_all(self) -> list:
