@@ -2,6 +2,7 @@ import sys
 import json
 import getpass
 import docker.errors
+from datetime import datetime
 from cowait.tasks.definition import TaskDefinition, generate_task_id
 from cowait.engine.errors import TaskCreationError, ProviderError
 from cowait.tasks.messages import TASK_INIT, TASK_STATUS, TASK_FAIL, TASK_RETURN, TASK_LOG
@@ -123,6 +124,7 @@ def run(
             logger.header('task output')
             for msg in logs:
                 logger.handle(msg)
+            logger.finalize()
 
         logger.header()
 
@@ -147,6 +149,8 @@ class RunLogger(Logger):
         super().__init__(quiet, time)
         self.raw = raw
         self.idlen = 0
+        self.returned = False
+        self.failed = False
 
     @property
     def newline_indent(self):
@@ -168,8 +172,14 @@ class RunLogger(Logger):
             if type == TASK_INIT:
                 self.on_init(**msg)
             elif type == TASK_RETURN:
+                if msg['id'] == self.id:
+                    # mark task as returned
+                    self.returned = True
                 self.on_return(**msg)
             elif type == TASK_FAIL:
+                if msg['id'] == self.id:
+                    # mark task as failed
+                    self.failed = True
                 self.on_fail(**msg)
             elif type == TASK_STATUS:
                 pass
@@ -204,8 +214,10 @@ class RunLogger(Logger):
             return
         super().print(*args)
 
-    def print_id(self, id, ts=None, short=True, pad=True):
+    def print_id(self, id, short=True, pad=True):
         color = fg(hash(id) % 214 + 17)
+        if id == 'system':
+            color = fg('red')
         if short and '-' in id:
             id = id[:id.rfind('-')]
             self.idlen = max(self.idlen, len(id))
@@ -246,3 +258,16 @@ class RunLogger(Logger):
         self.print_time(ts)
         self.print_id(id)
         self.println('  ', data)
+
+    def finalize(self):
+        if self.returned or self.failed:
+            return
+        ts = datetime.now().isoformat()
+        error = (f'Reached end of log stream without return or failure. '
+                 f'Task {self.id} appears to have been lost.')
+        if self.raw:
+            # print a raw error
+            if not self.quiet:
+                print(json.dumps({'id': 'system', 'type': TASK_FAIL, 'error': error, 'ts': ts}))
+        else:
+            self.on_fail(id='system', ts=ts, error=error)

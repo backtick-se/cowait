@@ -1,6 +1,6 @@
+from cowait.engine import ProviderError
 from ..config import Config
 from ..context import Context
-from cowait.engine import ProviderError
 from .run import RunLogger
 
 
@@ -45,15 +45,16 @@ def logs(config: Config, task_id: str, cluster_name: str, raw: bool = False):
     try:
         context = Context.open(config)
         cluster = context.get_cluster(cluster_name)
-    
+
         logs = cluster.logs(task_id)
         logger = RunLogger(raw)
         logger.id = task_id
         logger.header('task output')
         for msg in logs:
             logger.handle(msg)
+        logger.finalize()
+
         logger.header()
 
     except ProviderError as e:
         print('Provider error:', str(e))
-
