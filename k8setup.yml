@@ -1,9 +1,12 @@
-# sets up permissions for the default service account in the default namespace
-# pods: create/list/delete
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: cowait
+---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: task-node
+  name: cowait-task
 rules:
 - apiGroups: [""]
   resources: ["pods", "pods/log", "services"]
@@ -18,12 +21,12 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: task-node
+  name: cowait-task
 subjects:
 - kind: ServiceAccount
-  name: default
-  namespace: default
+  name: cowait
+  namespace: cowait
 roleRef:
   kind: ClusterRole
-  name: task-node
+  name: cowait-task
   apiGroup: rbac.authorization.k8s.io
