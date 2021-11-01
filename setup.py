@@ -31,7 +31,7 @@ setup(
         'docker>=4',
         'kubernetes>=10',
         'nest-asyncio>=1.4.1',
-        'aiohttp>=3',
+        'aiohttp==3.7.4',
         'aiohttp-middlewares>=1',
         'pytest>=6',
         'alt-pytest-asyncio>=0.5.3',  # would be nice to move to the widely used pytest-asyncio
