@@ -163,7 +163,7 @@ def run(
               default=False)
 @click.option('--capture',
               help='toggle pytest output capture',
-              type=bool,
+              type=bool, is_flag=True,
               default=True)
 @click.pass_context
 def test(
@@ -206,6 +206,7 @@ def ps(ctx, cluster: str):
 @click.pass_context
 def kill(ctx, cluster: str, task: str):
     cowait.cli.kill(ctx.obj, task, cluster_name=cluster)
+
 
 @click.command(help='deploy cowait agent')
 @click.option('-c', '--cluster',

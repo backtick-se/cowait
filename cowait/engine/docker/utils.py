@@ -11,7 +11,7 @@ def create_ports(taskdef):
 
 def create_env(cluster, taskdef):
     env = base_environment(cluster, taskdef)
-    
+
     # check total length of environment data
     length = 0
     for key, value in env.items():
@@ -20,6 +20,8 @@ def create_env(cluster, taskdef):
             # try to inherit the setting from the host
             if key in os.environ:
                 value = os.environ[key]
+            elif 'fallback' in value:
+                value = value['fallback']
             else:
                 source = value.get('source', '<unset>')
                 print(f'Warning: unset environment variable {key} with source "{source}"')

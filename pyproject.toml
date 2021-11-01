@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cowait"
-version = "0.4.29"
+version = "0.4.30"
 description = ""
 authors = ["Backtick Technologies <johan@backtick.se>"]
 license = "Apache License v2.0"
@@ -14,7 +14,7 @@ python = "^3.7"
 docker = ">=4"
 kubernetes = ">=10"
 nest-asyncio = "^1.4.1"
-aiohttp = "^3"
+aiohttp = "3.7.4"
 aiohttp-middlewares = "^1"
 pytest = "^6"
 alt-pytest-asyncio = "^0.5.4" # would be nice to move to the widely used pytest-asyncio
