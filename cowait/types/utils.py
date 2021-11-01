@@ -86,9 +86,14 @@ def typed_return(func: callable, result: object) -> object:
         result_type = guess_type(result)
 
     # serialize & validate
-    data = result_type.serialize(result)
-    result_type.validate(data, 'Return')
-    return data, result_type
+    try:
+        data = result_type.serialize(result)
+        result_type.validate(data, 'Return')
+        return data, result_type
+    except TypeError:
+        expect = type(result_type)
+        got = type(result)
+        raise TypeError(f'Expected task to return value of type {expect}, got {got}')
 
 
 async def typed_call(func: callable, args: dict) -> object:
