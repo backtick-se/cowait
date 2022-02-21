@@ -21,6 +21,10 @@ DEFAULT_SERVICE_ACCOUNT = 'default'
 
 
 class KubernetesProvider(ClusterProvider):
+    core: client.CoreV1Api
+    custom: client.CustomObjectsApi
+    networking: client.NetworkingApi
+
     def __init__(self, args={}):
         super().__init__('kubernetes', args)
 
@@ -32,8 +36,8 @@ class KubernetesProvider(ClusterProvider):
             config.load_kube_config(context=self.args.get('context', None))
 
         self.core = client.CoreV1Api()
-        self.ext = client.ExtensionsV1beta1Api()
         self.custom = client.CustomObjectsApi()
+        self.networking = client.NetworkingApi()
 
         self.router = create_router(self, self.args.get('router', 'none'))
 
