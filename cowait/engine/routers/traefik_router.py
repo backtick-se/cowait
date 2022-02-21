@@ -1,11 +1,17 @@
 from kubernetes import client
 from .router import Router
+from ..kubernetes import KubernetesProvider
 from ..const import LABEL_TASK_ID
 
 
 class TraefikRouter(Router):
+    cluster: KubernetesProvider
+
     def __init__(self, cluster):
         super().__init__(cluster)
+        if not isinstance(cluster, KubernetesProvider):
+            raise TypeError('TraefikRouter can only be used with a Kubernetes provider')
+
         cluster.on('prepare', self.on_prepare)
         cluster.on('spawn', self.on_spawn)
         cluster.on('kill', self.on_kill)
@@ -39,13 +45,13 @@ class TraefikRouter(Router):
                 target_port=port,
             ))
 
-            rules.append(client.ExtensionsV1beta1IngressRule(
+            rules.append(client.V1IngressRule(
                 host=f'{task.id}.{self.cluster.domain}',
-                http=client.ExtensionsV1beta1HTTPIngressRuleValue(
+                http=client.V1IngressRuleValue(
                     paths=[
-                        client.ExtensionsV1beta1HTTPIngressPath(
+                        client.V1IngressPath(
                             path=path,
-                            backend=client.ExtensionsV1beta1IngressBackend(
+                            backend=client.V1IngressBackend(
                                 service_name=task.id,
                                 service_port=port_name,
                             ),
@@ -78,9 +84,9 @@ class TraefikRouter(Router):
             ),
         )
 
-        self.cluster.ext.create_namespaced_ingress(
+        self.cluster.networking.create_namespaced_ingress(
             namespace=self.cluster.namespace,
-            body=client.ExtensionsV1beta1Ingress(
+            body=client.V1Ingress(
                 metadata=client.V1ObjectMeta(
                     name=task.id,
                     labels={
@@ -91,7 +97,7 @@ class TraefikRouter(Router):
                         'traefik.frontend.rule.type': 'PathPrefix',
                     },
                 ),
-                spec=client.ExtensionsV1beta1IngressSpec(
+                spec=client.V1IngressSpec(
                     rules=rules,
                 ),
             ),
@@ -107,7 +113,7 @@ class TraefikRouter(Router):
             pass
 
         try:
-            self.cluster.ext.delete_namespaced_ingress(
+            self.cluster.networking.delete_namespaced_ingress(
                 namespace=self.cluster.namespace,
                 name=task_id
             )

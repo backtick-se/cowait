@@ -1,6 +1,7 @@
 from typing import List
 from kubernetes import client
 from .router import Router
+from ..kubernetes import KubernetesProvider
 from ..const import LABEL_TASK_ID
 
 
@@ -12,8 +13,13 @@ TRAEFIK2_INGRESSROUTE_PLURAL = 'ingressroutes'
 
 
 class Traefik2Router(Router):
+    cluster: KubernetesProvider
+
     def __init__(self, cluster):
         super().__init__(cluster)
+        if not isinstance(cluster, KubernetesProvider):
+            raise TypeError('TraefikRouter can only be used with a Kubernetes provider')
+
         cluster.on('prepare', self.on_prepare)
         cluster.on('spawn', self.on_spawn)
         cluster.on('kill', self.on_kill)
