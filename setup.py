@@ -29,7 +29,7 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         'docker>=4',
-        'kubernetes>=10',
+        'kubernetes>=10,<22',
         'nest-asyncio>=1.4.1',
         'aiohttp==3.7.4',
         'aiohttp-middlewares>=1',
