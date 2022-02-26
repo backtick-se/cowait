@@ -29,7 +29,8 @@ class KubernetesProvider(ClusterProvider):
             config.load_incluster_config()
         except kubernetes.config.ConfigException:
             # load local config
-            config.load_kube_config(context=self.args.get('context', None))
+            config.load_kube_config(config_file=self.args.get('kube_config_file', None),
+                                    context=self.args.get('context', None))
 
         self.core = client.CoreV1Api()
         self.ext = client.ExtensionsV1beta1Api()
