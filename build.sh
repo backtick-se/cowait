@@ -32,7 +32,7 @@ fi
 build() {
     # build image
     echo "Building $1:$version"
-    docker build --tag "$1:latest" $2
+    docker build --platform linux/amd64 --tag "$1:latest" $2
 
     # tag versions
     if [[ $args == *--tag* ]] || [[ $args == *--push* ]]; then
