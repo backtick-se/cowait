@@ -88,7 +88,7 @@ class Server(EventEmitter):
         except CancelledError:
             await self.emit(type=ON_CLOSE, conn=conn)
 
-        except SocketError:
+        except SocketError as e:
             await self.emit(type=ON_CLOSE, conn=conn, error=str(e))
 
         finally:
