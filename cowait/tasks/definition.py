@@ -47,6 +47,8 @@ class TaskDefinition(object):
         cpu_limit (str): CPU limit
         memory (str): Memory request
         memory_limit (str): Memory limit
+        affinity (str): Node affinity
+        nodes (dict): Node selector labels
         owner (str): Owner name
         created_at (DateTime): Creation date
     """
@@ -58,18 +60,19 @@ class TaskDefinition(object):
         id:           str = None,
         upstream:     str = None,
         parent:       str = None,
-        inputs:       dict = {},
-        meta:         dict = {},
-        env:          dict = {},
-        ports:        dict = {},
-        routes:       dict = {},
-        volumes:      dict = {},
+        inputs:       dict = None,
+        meta:         dict = None,
+        env:          dict = None,
+        ports:        dict = None,
+        routes:       dict = None,
+        volumes:      dict = None,
         cpu:          str = None,
         cpu_limit:    str = None,
         memory:       str = None,
         memory_limit: str = None,
         affinity:     str = None,
-        owner:        str = '',
+        nodes:        dict = None,
+        owner:        str = None,
         created_at:   datetime = None,
     ):
         """
@@ -97,18 +100,19 @@ class TaskDefinition(object):
         self.image = image
         self.parent = parent
         self.upstream = upstream
-        self.inputs = inputs
-        self.meta = meta
-        self.env = env
-        self.ports = ports
-        self.routes = routes
+        self.inputs = inputs or {}
+        self.meta = meta or {}
+        self.env = env or {}
+        self.ports = ports or {}
+        self.routes = routes or {}
         self.cpu = cpu
         self.memory = memory
-        self.cpu_limit = cpu_limit if cpu_limit else cpu
-        self.memory_limit = memory_limit if memory_limit else memory
-        self.owner = owner
-        self.volumes = volumes
+        self.cpu_limit = cpu_limit or cpu
+        self.memory_limit = memory_limit or memory
+        self.owner = owner or ''
+        self.volumes = volumes or {}
         self.affinity = affinity
+        self.nodes = nodes or {}
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -137,6 +141,7 @@ class TaskDefinition(object):
             'memory': self.memory,
             'memory_limit': self.memory_limit,
             'affinity': self.affinity,
+            'nodes': self.nodes,
             'owner': self.owner,
             'created_at': self.created_at.isoformat(),
             'volumes': self.volumes,
@@ -161,6 +166,7 @@ class TaskDefinition(object):
             memory=taskdef.get('memory', None),
             memory_limit=taskdef.get('memory_limit', None),
             affinity=taskdef.get('affinity', None),
+            nodes=taskdef.get('nodes', {}),
             owner=taskdef.get('owner', None),
             created_at=datetime.fromisoformat(taskdef.get(
                 'created_at', datetime.now().isoformat())),

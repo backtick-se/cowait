@@ -102,6 +102,7 @@ class KubernetesProvider(ClusterProvider):
                         restart_policy='Always' if deploy else 'Never',
                         image_pull_secrets=self.get_pull_secrets(),
                         volumes=volumes,
+                        node_selector=taskdef.nodes,
 
                         containers=[container],
                         service_account_name=self.service_account,
