@@ -20,6 +20,7 @@ def test_taskdef_serialization():
         'memory':       '128m',
         'memory_limit': '256m',
         'affinity':     'stack',
+        'nodes':        {'pool': 'omega'},
         'owner':        'santa',
     }
 

@@ -47,6 +47,8 @@ class TaskDefinition(object):
         cpu_limit (str): CPU limit
         memory (str): Memory request
         memory_limit (str): Memory limit
+        affinity (str): Node affinity
+        nodes (dict): Node selector labels
         owner (str): Owner name
         created_at (DateTime): Creation date
     """
@@ -69,6 +71,7 @@ class TaskDefinition(object):
         memory:       str = None,
         memory_limit: str = None,
         affinity:     str = None,
+        nodes:        dict = {},
         owner:        str = '',
         created_at:   datetime = None,
     ):
@@ -109,6 +112,7 @@ class TaskDefinition(object):
         self.owner = owner
         self.volumes = volumes
         self.affinity = affinity
+        self.nodes = nodes
 
         if created_at is None:
             self.created_at = datetime.now(timezone.utc)
@@ -137,6 +141,7 @@ class TaskDefinition(object):
             'memory': self.memory,
             'memory_limit': self.memory_limit,
             'affinity': self.affinity,
+            'nodes': self.nodes,
             'owner': self.owner,
             'created_at': self.created_at.isoformat(),
             'volumes': self.volumes,
@@ -161,6 +166,7 @@ class TaskDefinition(object):
             memory=taskdef.get('memory', None),
             memory_limit=taskdef.get('memory_limit', None),
             affinity=taskdef.get('affinity', None),
+            nodes=taskdef.get('nodes', {}),
             owner=taskdef.get('owner', None),
             created_at=datetime.fromisoformat(taskdef.get(
                 'created_at', datetime.now().isoformat())),
