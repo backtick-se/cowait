@@ -14,7 +14,7 @@ python = "^3.7"
 docker = ">=4"
 kubernetes = ">=10,<22"
 nest-asyncio = "^1.4.1"
-aiohttp = "3.7.4"
+aiohttp = "^3.7.4"
 aiohttp-middlewares = "^1"
 pytest = "^6"
 alt-pytest-asyncio = "^0.5.4" # would be nice to move to the widely used pytest-asyncio
@@ -23,7 +23,7 @@ python-dotenv = "^0.15"
 # cli
 click = "^7"
 PyYAML = "^5"
-sty = "^1.0.0-beta.12" # tty coloring, seems to be stuck in beta. remove/replace
+sty = "^1"
 
 # utilities, not actually required
 pytest-sugar = "^0.9"
