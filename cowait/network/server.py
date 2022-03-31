@@ -1,35 +1,12 @@
 from asyncio import CancelledError
 from aiohttp import web, WSMsgType
-from aiohttp.helpers import call_later
 from aiohttp_middlewares import cors_middleware
 from datetime import datetime
 from cowait.utils import EventEmitter
 from .conn import Conn
-from .const import WS_PATH, ON_CONNECT, ON_CLOSE, ON_ERROR
+from .const import WS_PATH, ON_CONNECT, ON_CLOSE
 from .auth_middleware import AuthMiddleware
 from .errors import SocketError
-
-
-class FixedWebSocketResponse(web.WebSocketResponse):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    async def _ping(self):
-        try:
-            await self._writer.ping()
-        except ConnectionResetError:
-            pass
-
-    def _send_heartbeat(self) -> None:
-        if self._heartbeat is not None and not self._closed:
-            assert self._loop is not None
-            self._loop.create_task(self._ping())  # type: ignore[union-attr]
-
-            if self._pong_response_cb is not None:
-                self._pong_response_cb.cancel()
-            self._pong_response_cb = call_later(
-                self._pong_not_received, self._pong_heartbeat, self._loop
-            )
 
 
 class Server(EventEmitter):
@@ -38,6 +15,7 @@ class Server(EventEmitter):
         self.conns = []
         self.port = port
         self.auth = AuthMiddleware()
+        self.timeout = 30.0
 
         # create http app
         self.app = web.Application(
@@ -57,10 +35,10 @@ class Server(EventEmitter):
         self.add_get(f'/{WS_PATH}', self.handle_client)
 
     async def handle_client(self, request):
-        ws = FixedWebSocketResponse(
-            timeout=30.0,
-            autoping=True,
-            heartbeat=5.0,
+        ws = web.WebSocketResponse(
+            timeout=self.timeout,
+            receive_timeout=self.timeout,
+            autoping=False,
         )
         await ws.prepare(request)
 
