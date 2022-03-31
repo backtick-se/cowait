@@ -1,16 +1,15 @@
-from cowait.tasks import Task
-
 import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, GlobalAveragePooling1D, Dense
+from cowait.tasks import Task
 
 
 class ImdbTask(Task):
     async def run(self):
         # get the pre-processed data
         data_train, data_test = self.get_data()
-        
+
         # train and evaluate model
         model = self.fit(data_train, data_test)
 
@@ -24,7 +23,6 @@ class ImdbTask(Task):
         print("Predicted class:", pred)
 
         return int(pred)
-        
 
     def get_data(self):
         # load the data
@@ -47,13 +45,13 @@ class ImdbTask(Task):
         # set up the model structure
         model = Sequential([
             Embedding(input_dim=vocab_size, output_dim=embedding_dim),    # embedding layer
-            GlobalAveragePooling1D(),                                     # pooling layer  
+            GlobalAveragePooling1D(),                                     # pooling layer
             Dense(1, activation='sigmoid')                                # single sigmoid output node
         ])
 
         # compile model with optimizer, loss function and evaluation metrics
         model.compile(
-            optimizer='adam', 
+            optimizer='adam',
             loss='binary_crossentropy',
             metrics=['accuracy']
         )
@@ -70,15 +68,15 @@ class ImdbTask(Task):
         # fit the model to the train set
         print("##### Train model #####")
         model.fit(
-            x=x_train, 
-            y=y_train, 
-            epochs=10
+            x=x_train,
+            y=y_train,
+            epochs=2
         )
 
         # evaluate the model on the test set
         print("##### Evaluate model #####")
         model.evaluate(
-            x=x_test, 
+            x=x_test,
             y=y_test
         )
 

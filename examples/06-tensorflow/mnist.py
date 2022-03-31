@@ -1,7 +1,7 @@
 import tensorflow as tf
 from cowait.tasks import Task
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Dropout, Flatten, MaxPooling2D
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Dropout, Flatten, MaxPooling2D
 
 
 class MnistTask(Task):
