@@ -1,4 +1,4 @@
-from asyncio import CancelledError
+from asyncio import CancelledError, TimeoutError
 from aiohttp import web, WSMsgType
 from aiohttp_middlewares import cors_middleware
 from datetime import datetime
@@ -67,6 +67,9 @@ class Server(EventEmitter):
             await self.emit(type=ON_CLOSE, conn=conn)
 
         except SocketError as e:
+            await self.emit(type=ON_CLOSE, conn=conn, error=str(e))
+
+        except TimeoutError as e:
             await self.emit(type=ON_CLOSE, conn=conn, error=str(e))
 
         finally:
