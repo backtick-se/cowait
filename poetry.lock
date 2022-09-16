@@ -18,7 +18,7 @@ typing-extensions = {version = ">=3.7.4", markers = "python_version < \"3.8\""}
 yarl = ">=1.0,<2.0"
 
 [package.extras]
-speedups = ["aiodns", "brotli", "cchardet"]
+speedups = ["Brotli", "aiodns", "cchardet"]
 
 [[package]]
 name = "aiohttp-middlewares"
@@ -56,7 +56,7 @@ python-versions = ">= 3.5"
 pytest = ">=3.0.6"
 
 [package.extras]
-tests = ["pytest (==5.4.3)", "noseOfYeti (==2.0.2)", "nest-asyncio (==1.0.0)"]
+tests = ["nest-asyncio (==1.0.0)", "noseOfYeti (==2.0.2)", "pytest (==5.4.3)"]
 
 [[package]]
 name = "async-timeout"
@@ -94,10 +94,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
+dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "sphinx", "sphinx-notfound-page", "zope.interface"]
+docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
+tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "zope.interface"]
+tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
 
 [[package]]
 name = "autopep8"
@@ -186,9 +186,9 @@ pyyaml = "*"
 
 [package.extras]
 array = ["numpy (>=1.13.0)", "toolz (>=0.8.2)"]
-bag = ["cloudpickle (>=0.2.2)", "fsspec (>=0.6.0)", "toolz (>=0.8.2)", "partd (>=0.3.10)"]
+bag = ["cloudpickle (>=0.2.2)", "fsspec (>=0.6.0)", "partd (>=0.3.10)", "toolz (>=0.8.2)"]
 complete = ["bokeh (>=1.0.0,!=2.0.0)", "cloudpickle (>=0.2.2)", "distributed (>=2.0)", "fsspec (>=0.6.0)", "numpy (>=1.13.0)", "pandas (>=0.23.0)", "partd (>=0.3.10)", "toolz (>=0.8.2)"]
-dataframe = ["numpy (>=1.13.0)", "pandas (>=0.23.0)", "toolz (>=0.8.2)", "partd (>=0.3.10)", "fsspec (>=0.6.0)"]
+dataframe = ["fsspec (>=0.6.0)", "numpy (>=1.13.0)", "pandas (>=0.23.0)", "partd (>=0.3.10)", "toolz (>=0.8.2)"]
 delayed = ["cloudpickle (>=0.2.2)", "toolz (>=0.8.2)"]
 diagnostics = ["bokeh (>=1.0.0,!=2.0.0)"]
 distributed = ["distributed (>=2.0)"]
@@ -208,6 +208,7 @@ dask = ">=2.9.0"
 msgpack = ">=0.6.0"
 psutil = ">=5.0"
 pyyaml = "*"
+setuptools = "*"
 sortedcontainers = "<2.0.0 || >2.0.0,<2.0.1 || >2.0.1"
 tblib = ">=1.6.0"
 toolz = ">=0.8.2"
@@ -232,7 +233,7 @@ websocket-client = ">=0.32.0"
 
 [package.extras]
 ssh = ["paramiko (>=2.4.2)"]
-tls = ["pyOpenSSL (>=17.5.0)", "cryptography (>=3.4.7)", "idna (>=2.0.0)"]
+tls = ["cryptography (>=3.4.7)", "idna (>=2.0.0)", "pyOpenSSL (>=17.5.0)"]
 
 [[package]]
 name = "flake8"
@@ -271,7 +272,7 @@ rsa = {version = ">=3.1.4,<5", markers = "python_version >= \"3.6\""}
 six = ">=1.9.0"
 
 [package.extras]
-aiohttp = ["requests (>=2.20.0,<3.0.0dev)", "aiohttp (>=3.6.2,<4.0.0dev)"]
+aiohttp = ["aiohttp (>=3.6.2,<4.0.0dev)", "requests (>=2.20.0,<3.0.0dev)"]
 pyopenssl = ["pyopenssl (>=20.0.0)"]
 reauth = ["pyu2f (>=0.1.5)"]
 
@@ -304,9 +305,9 @@ typing-extensions = {version = ">=3.6.4", markers = "python_version < \"3.8\""}
 zipp = ">=0.5"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
+docs = ["jaraco.packaging (>=9)", "rst.linker (>=1.9)", "sphinx"]
 perf = ["ipython"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
+testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf (>=0.9.2)"]
 
 [[package]]
 name = "iniconfig"
@@ -331,6 +332,7 @@ python-dateutil = ">=2.5.3"
 pyyaml = ">=5.4.1"
 requests = "*"
 requests-oauthlib = "*"
+setuptools = ">=21.0.0"
 six = ">=1.9.0"
 urllib3 = ">=1.24.2"
 websocket-client = ">=0.32.0,<0.40.0 || >0.40.0,<0.41.0 || >=0.43.0"
@@ -351,7 +353,7 @@ importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 MarkupSafe = ">=0.9.2"
 
 [package.extras]
-babel = ["babel"]
+babel = ["Babel"]
 lingua = ["lingua"]
 testing = ["pytest"]
 
@@ -411,7 +413,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "oauthlib"
-version = "3.2.0"
+version = "3.2.1"
 description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
 category = "main"
 optional = false
@@ -469,7 +471,7 @@ optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.extras]
-test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
+test = ["enum34", "ipaddress", "mock", "pywin32", "unittest2", "wmi"]
 
 [[package]]
 name = "py"
@@ -561,7 +563,7 @@ pytest = ">=4.6"
 toml = "*"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
 name = "pytest-sugar"
@@ -659,6 +661,19 @@ python-versions = ">=3.6,<4"
 pyasn1 = ">=0.1.3"
 
 [[package]]
+name = "setuptools"
+version = "65.3.0"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mock", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -739,8 +754,8 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
-brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+brotli = ["brotli (>=1.0.9)", "brotlicffi (>=0.8.0)", "brotlipy (>=0.6.0)"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "pyOpenSSL (>=0.14)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
@@ -789,8 +804,8 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
+docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy"]
 
 [metadata]
 lock-version = "1.1"
@@ -1227,8 +1242,8 @@ nest-asyncio = [
     {file = "nest_asyncio-1.5.4.tar.gz", hash = "sha256:f969f6013a16fadb4adcf09d11a68a4f617c6049d7af7ac2c676110169a63abd"},
 ]
 oauthlib = [
-    {file = "oauthlib-3.2.0-py3-none-any.whl", hash = "sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe"},
-    {file = "oauthlib-3.2.0.tar.gz", hash = "sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2"},
+    {file = "oauthlib-3.2.1-py3-none-any.whl", hash = "sha256:88e912ca1ad915e1dcc1c06fc9259d19de8deacd6fd17cc2df266decc2e49066"},
+    {file = "oauthlib-3.2.1.tar.gz", hash = "sha256:1565237372795bf6ee3e5aba5e2a85bd5a65d0e2aa5c628b9a97b7d7a0da3721"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1396,6 +1411,10 @@ requests-oauthlib = [
 rsa = [
     {file = "rsa-4.8-py3-none-any.whl", hash = "sha256:95c5d300c4e879ee69708c428ba566c59478fd653cc3a22243eeb8ed846950bb"},
     {file = "rsa-4.8.tar.gz", hash = "sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17"},
+]
+setuptools = [
+    {file = "setuptools-65.3.0-py3-none-any.whl", hash = "sha256:2e24e0bec025f035a2e72cdd1961119f557d78ad331bb00ff82efb2ab8da8e82"},
+    {file = "setuptools-65.3.0.tar.gz", hash = "sha256:7732871f4f7fa58fb6bdcaeadb0161b2bd046c85905dbaa066bdcbcc81953b57"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
