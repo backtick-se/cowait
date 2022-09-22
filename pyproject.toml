@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cowait"
-version = "0.4.35"
+version = "0.5.0"
 description = ""
 authors = ["Backtick Technologies <johan@backtick.se>"]
 license = "Apache License v2.0"
@@ -10,7 +10,7 @@ cowait = 'cowait.__main__:main'
 
 [tool.poetry.dependencies]
 # core -- unlikely to collide with data science projects
-python = "^3.7"
+python = "^3.8"
 docker = ">=4"
 kubernetes = ">=10,<22"
 nest-asyncio = "^1.4.1"
